@@ -1,5 +1,6 @@
 const EN = {
     _language: 'English',
+    NEED_NOTIF_PERMISSION: 'Need a Notification Permission to Set Reminder',
     CANCEL: 'Cancel',
     SELECT_LANG: 'Select the language',
     MY_TASKS: 'My Tasks',
@@ -29,6 +30,7 @@ const EN = {
 
 const RU = {
     _language: 'Русский',
+    NEED_NOTIF_PERMISSION: 'Необходимо принять разрешение на уведомления для его задания',
     CANCEL: 'Отмена',
     SELECT_LANG: 'Выберите язык',
     MY_TASKS: 'Мои задачи',
@@ -58,6 +60,7 @@ const RU = {
 
 const ES = {
     _language: 'Español',
+    NEED_NOTIF_PERMISSION: 'Necesita un permiso de notificación para configurar un recordatorio',
     CANCEL: 'Cancelar',
     SELECT_LANG: 'Selecciona el idioma',
     MY_TASKS: 'Mis Tareas',
@@ -87,6 +90,7 @@ const ES = {
 
 const TAT = {
     _language: 'Татарча',
+    NEED_NOTIF_PERMISSION: 'Искә төшерү өчен хәбәр итү рөхсәте кирәк',
     CANCEL: 'Бас тарту',
     SELECT_LANG: 'Телне сайлагыз',
     MY_TASKS: 'Минем бурычларым',

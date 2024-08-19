@@ -5,8 +5,8 @@
         <ion-title @click="saveTasks">
           {{ tr.MY_TASKS }}{{ filtered.length ? `: ${filtered.length}` : '' }}
         </ion-title>
-        <img slot="end" :src="getFlagImg(lang)" :alt="lang" width="30"
-          @click="$('#langSelect').click()" style="margin-right: 8px"/>
+        <img slot="end" :src="getFlagImg(lang)" :alt="lang" width="30" @click="$('#langSelect').click()"
+          style="margin-right: 8px" />
         <ion-select v-show="false" v-model="lang" id="langSelect" :cancel-text="tr.CANCEL"
           :interface-options="{ header: tr.SELECT_LANG }">
           <ion-select-option v-for="lang of langs" :value="lang.value">
@@ -56,7 +56,7 @@
           <ion-toolbar>
             <ion-title>{{ tr.DETAIL_INFO }}</ion-title>
             <ion-buttons slot="end">
-              <ion-button @click="changeTask">
+              <ion-button @click="changeTask(current)">
                 <ion-icon :icon="checkmark" color="success" />
               </ion-button>
               <ion-button @click="isOpen = false">
@@ -111,7 +111,7 @@
 <script setup>
 import {
   IonButton, IonContent, IonHeader, IonIcon, IonInput, IonToolbar, IonModal, IonSearchbar, IonDatetime,
-  IonItem, IonLabel, IonList, IonPage, IonTitle, toastController, IonButtons, IonDatetimeButton,
+  IonItem, IonLabel, IonList, IonPage, IonTitle, IonButtons, IonDatetimeButton,
   IonSegment, IonSegmentButton, IonTextarea, IonItemSliding, IonItemOptions, IonItemOption,
   IonSelect, IonSelectOption, useBackButton, useIonRouter,
 } from '@ionic/vue';
@@ -120,16 +120,11 @@ import { addCircle, trash, checkmark, close, ellipse, funnel, sunny, moon } from
 import { Storage } from "@ionic/storage";
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import { Translations, langs } from "@/translations.js";
-import { nanoid } from "nanoid";
+import { nanoid, customAlphabet } from "nanoid";
+import { toast, clone, isEqual, $ } from "@/utils.js";
+import { LocalNotifications } from '@capacitor/local-notifications';
 
 const getFlagImg = name => new URL(`../assets/flags/${name}.png`, import.meta.url).href
-
-const toast = (message, color = 'success') =>
-  toastController.create({ message, duration: 1500, color, animated: true }).then(msg => msg.present())
-
-const clone = (obj) => JSON.parse(JSON.stringify(obj))
-const isEqual = (obj1, obj2) => JSON.stringify(obj1) === JSON.stringify(obj2)
-const $ = (_) => document.querySelector(_), $$ = (_) => document.querySelectorAll(_)
 
 const current = ref({})
 const isOpen = ref(false)
@@ -147,11 +142,6 @@ useBackButton(-1, async () => {
     App.exitApp()
   }
 })
-
-const saveTasks = async () => {
-  const storedTasks = JSON.stringify(tasks.value)
-  await storage.set('storedTasks', storedTasks)
-}
 
 const lang = ref()
 const tr = reactive({})
@@ -185,21 +175,30 @@ class Task {
   }
 }
 
+// #region CRUD
+const saveTasks = async () => {
+  const storedTasks = JSON.stringify(tasks.value)
+  await storage.set('storedTasks', storedTasks)
+}
+
 const openTask = (task) => {
   current.value = clone(task)
   isOpen.value = true
 }
 
-const changeTask = () => {
-  current.value.title = current.value.title.trim()
-  const { id, title } = current.value
-  if (!title) return toast(tr.TITLE_NOT_VALID, 'warning')
-  if (tasks.value.find(it => it.title === title && it.id !== id))
+const numNanoid = customAlphabet('123456789', 8)
+
+const changeTask = (cur) => {
+  cur.title = cur.title.trim()
+  if (!cur.title) return toast(tr.TITLE_NOT_VALID, 'warning')
+  if (tasks.value.find(it => it.title === cur.title && it.id !== cur.id))
     return toast(tr.TASK_EXISTS, 'warning')
-  const idx = tasks.value.findIndex(it => it.id === id)
-  if (!isEqual(current.value, tasks.value[idx])) {
-    tasks.value[idx] = current.value
+  const idx = tasks.value.findIndex(it => it.id === cur.id)
+  if (!isEqual(cur, tasks.value[idx])) {
+    tasks.value[idx] = cur
     tasks.value[idx].changed = new Date().toLocaleString()
+    if (new Date() < new Date(cur.notification))
+      scheduleNotification(+numNanoid(), 'My Tasks', cur.notification, cur.title)
     toast(tr.TASK_CHANGED)
   }
 
@@ -219,9 +218,26 @@ const addTask = (_title) => {
 }
 
 const removeTask = (task) => {
-  tasks.value = tasks.value.filter(it => it.id !== task.id)
+  const idx = tasks.value.findIndex(it => it.id === task.id)
+  tasks.value.splice(idx, 1)
   toast(tr.TASK_DELETED)
 }
+// #endregion
+
+// #region Notification
+const checkNotificationPermission = () =>
+  LocalNotifications.checkPermissions().then(res => {
+    if (res?.display !== 'denied') return
+    LocalNotifications.requestPermissions().then(res => {
+      if (res?.display === 'denied') toast(tr.NEED_NOTIF_PERMISSION, 'warning')
+    })
+  })
+
+const scheduleNotification = (id, title, dateTime, body) => {
+  const notification = { id, title, body, schedule: { at: new Date(dateTime) } }
+  LocalNotifications.schedule({ notifications: [notification] })
+}
+// #endregion
 
 // #region Dark mode
 const isDarkMode = ref(false)
@@ -242,6 +258,8 @@ onMounted(async () => {
   document.documentElement.classList.toggle('ion-palette-dark', isDarkMode.value)
 
   lang.value = (await storage.get('lang')) ?? Object.keys(Translations)[0]
+
+  checkNotificationPermission()
 })
 
 </script>
