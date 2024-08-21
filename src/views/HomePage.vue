@@ -13,6 +13,7 @@
         <IconText :icon="starOutline" :text="tr.RATE_APP" @click="rateApp" />
         <IconText :icon="informationCircleOutline" :text="tr.ABOUT" @click="showAppInfo" />
         <IconText :icon="settingsOutline" :text="tr.SETTINGS" />
+        <IconText :icon="powerOutline" :text="tr.EXIT" @click="App.exitApp()" />
       </ion-list>
     </ion-content>
   </ion-menu>
@@ -28,8 +29,7 @@
         </ion-title>
         <img slot="end" :src="getFlagImg(lang)" :alt="lang" width="30" @click="$('#langSelect').click()"
           style="margin-right: 8px" />
-        <ion-select v-show="false" v-model="lang" id="langSelect" :cancel-text="tr.CANCEL"
-          :interface-options="{ header: tr.SELECT_LANG }">
+        <ion-select v-show="false" v-model="lang" id="langSelect" v-bind="selectParams(tr.SELECT_LANG)">
           <ion-select-option v-for="lang of langs" :value="lang.value">
             {{ lang.label }}
           </ion-select-option>
@@ -38,16 +38,19 @@
           style="margin-right: 8px" />
       </ion-toolbar>
       <ion-item>
-        <ion-searchbar v-model="filter" :placeholder="tr.SEARCH" :debounce="500" maxlength="40"
-          show-clear-button="always" style="margin-right: 8px" />
-        <ion-select v-show="false" id="priority-select" v-model="selectedPriority" multiple :cancel-text="tr.CANCEL"
-          :interface-options="{ header: tr.FILTER_BY_PRIORITY }">
-          <ion-select-option value="low">{{ tr.LOW }}</ion-select-option>
-          <ion-select-option value="medium">{{ tr.MEDIUM }}</ion-select-option>
-          <ion-select-option value="high">{{ tr.HIGH }}</ion-select-option>
+        <ion-searchbar v-model="keyword" :placeholder="tr.SEARCH" :debounce="500" maxlength="40"
+          show-clear-button="always" style="padding: 5px 8px 5px 0" />
+        <ion-select v-show="false" id="fSelect" v-model="filter" multiple v-bind="selectParams(tr.filter)">
+          <OptionsGroup :label="tr.byPriorities" />
+          <ion-select-option value="low">{{ tr.low }}</ion-select-option>
+          <ion-select-option value="medium">{{ tr.medium }}</ion-select-option>
+          <ion-select-option value="high">{{ tr.high }}</ion-select-option>
+          <OptionsGroup :label="tr.others" />
+          <ion-select-option value="archived">{{ tr.archived }}</ion-select-option>
+          <ion-select-option value="notificated">{{ tr.notificated }}</ion-select-option>
         </ion-select>
-        <ion-icon :icon="funnel" @click="$('#priority-select').click()"
-          :color="selectedPriority.length < 3 ? 'primary' : ''" />
+        <ion-icon :icon="funnel" @click="$('#fSelect').click()"
+          :color="filter.length === 3 && isEqual(filter, Object.keys(priorityType)) ? '' : 'primary'" />
       </ion-item>
       <ion-item>
         <ion-input :placeholder="tr.NEW_TASK" v-model="title" maxlength="30" clear-input
@@ -111,7 +114,7 @@
               <ion-label style="margin-right: 10px">{{ tr.PRIORITY }}</ion-label>
               <ion-segment v-model="current.priority" mode="ios">
                 <ion-segment-button v-for="key in Object.keys(priorityType)" :value="key">
-                  <ion-label :color="priorityType[key]">{{ tr[key.toUpperCase()] }}</ion-label>
+                  <ion-label :color="priorityType[key]">{{ tr[key] }}</ion-label>
                 </ion-segment-button>
               </ion-segment>
             </ion-item>
@@ -139,12 +142,13 @@ import {
 } from '@ionic/vue';
 import {
   addCircle, checkmark, close, ellipse, funnel, sunny, moon, mailOutline,
-  arrowDownCircleOutline, arrowUpCircleOutline,
+  arrowDownCircleOutline, arrowUpCircleOutline, powerOutline,
   informationCircleOutline, settingsOutline, starOutline, shareSocialOutline, trashOutline,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
 import { Storage } from "@ionic/storage";
 import { computed, onMounted, reactive, ref, watch, h } from "vue";
+import { onClickOutside } from '@vueuse/core';
 import { Translations, langs } from "@/translations.js";
 import { nanoid, customAlphabet } from "nanoid";
 import { toast, confirm, alert, clone, isEqual, $ } from "@/utils.js";
@@ -159,6 +163,11 @@ const IconText = ({ text, icon }) =>
   h(IonItem, { button: true }, () => [
     h(IonIcon, { icon, style: 'margin-right: 10px' }), h(IonLabel, () => text)
   ])
+
+const OptionsGroup = ({ label }) =>
+  h(IonSelectOption, { disabled: true, class: 'options-group' }, () => label)
+
+const selectParams = (label) => ({ cancelText: tr.CANCEL, interfaceOptions: { header: label } })
 
 // #region X// #endregion
 
@@ -198,14 +207,20 @@ watch(lang, async (val) => {
 
 // #region Filter
 const priorityType = { low: 'success', medium: 'warning', high: 'danger' }
-const filter = ref('')
-const selectedPriority = ref(Object.keys(priorityType))
+const keyword = ref('')
+const filter = ref(Object.keys(priorityType))
 
 const filtered = computed(() => {
-  if (!filter.value.trim() && selectedPriority.value.length === 3) return tasks.value
+  const _filter = filter.value
+  const onlyAllPriorities = _filter.length === 3 && isEqual(_filter, Object.keys(priorityType))
+  if (!keyword.value.trim() && onlyAllPriorities) return tasks.value.filter(it => !it.archived)
+
   return tasks.value.filter(it => {
-    return it.title.toLowerCase().includes(filter.value.toLowerCase())
-      && selectedPriority.value.includes(it.priority)
+    let result = it.title.toLowerCase().includes(keyword.value.toLowerCase())
+    result &&= _filter.includes(it.priority)
+    if (!_filter.includes('archived')) result &&= !it.archived
+    if (_filter.includes('notificated')) result &&= new Date() < new Date(it.notification)
+    return result
   })
 })
 
@@ -221,6 +236,8 @@ const title = ref('')
 const current = ref({})
 const isOpen = ref(false)
 const listRef = ref()
+
+onClickOutside(listRef, () => listRef.value.$el.closeSlidingItems())
 
 class Task {
   constructor(title, description = '', notification = null) {
@@ -238,7 +255,7 @@ class Task {
 const saveTasks = async () => {
   const storedTasks = JSON.stringify(tasks.value)
   await storage.set('storedTasks', storedTasks)
-  
+
   listRef.value.$el.closeSlidingItems()
 }
 
@@ -337,9 +354,12 @@ onMounted(async () => {
 
 </script>
 
-<style scoped>
-ion-searchbar {
-  --box-shadow: 0px;
-  padding: 0px;
+<style>
+.options-group .alert-checkbox-icon {
+  display: none !important;
+}
+
+.options-group .alert-checkbox-label {
+  padding-left: 10px !important;
 }
 </style>

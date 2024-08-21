@@ -8,6 +8,7 @@ const EN = {
     RATE_APP: 'Rate the app',
     ABOUT: 'About the app',
     SETTINGS: 'Settings',
+    EXIT: 'Close app',
     CANCEL: 'Cancel',
     SELECT_LANG: 'Select the language',
     MY_TASKS: 'My Tasks',
@@ -22,10 +23,16 @@ const EN = {
     TYPE_DESCRIPTION: 'Type something description',
     NOTIFICATION: 'Notification',
     PRIORITY: 'Priority',
-    FILTER_BY_PRIORITY: 'Filter by priorities',
-    LOW: 'Low',
-    MEDIUM: 'Medium',
-    HIGH: 'High',
+
+    filter: 'Filter',
+    byPriorities: 'By priorities',
+    low: 'Low',
+    medium: 'Medium',
+    high: 'High',
+    others: 'Others',
+    archived: 'Archived',
+    notificated: 'Notificated',
+
     EMPTY_LIST: 'List is empty yet',
     TASKS_NOT_FOUND: 'Tasks not found',
     TITLE_NOT_VALID: 'Task title must not be empty',
@@ -47,6 +54,7 @@ const RU = {
     RATE_APP: 'Оценить приложение',
     ABOUT: 'О приложении',
     SETTINGS: 'Настройки',
+    EXIT: 'Закрыть приложение',
     CANCEL: 'Отмена',
     SELECT_LANG: 'Выберите язык',
     MY_TASKS: 'Мои задачи',
@@ -61,10 +69,16 @@ const RU = {
     TYPE_DESCRIPTION: 'Введите описание',
     NOTIFICATION: 'Уведомление',
     PRIORITY: 'Приоритет',
-    FILTER_BY_PRIORITY: 'Фильтр по приоритетам',
-    LOW: 'Низкий',
-    MEDIUM: 'Средний',
-    HIGH: 'Высокий',
+
+    filter: 'Фильтр',
+    byPriorities: 'По приоритетам',
+    low: 'Низкий',
+    medium: 'Средний',
+    high: 'Высокий',
+    others: 'Другие',
+    archived: 'Архивированные',
+    notificated: 'С уведомлением',
+
     EMPTY_LIST: 'Список пока пуст',
     TASKS_NOT_FOUND: 'Задачи не найдены',
     TITLE_NOT_VALID: 'Название не должно быть пустым',
@@ -115,6 +129,6 @@ const ES = {
     TASK_UNARCHIVED: 'Tarea desarchivada',
 }
 
-export const Translations = { EN, ES, RU }
+export const Translations = { EN, RU }
 export const langs = Object.keys(Translations)
     .map(key => ({ value: key, label: Translations[key]._language }))
