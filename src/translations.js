@@ -1,6 +1,13 @@
 const EN = {
     _language: 'English',
     NEED_NOTIF_PERMISSION: 'Need a Notification Permission to Set Reminder',
+    MENU: 'Menu',
+    CONTACT_US: 'Contact us',
+    DELETE_ALL: 'Delete all',
+    SHARE: 'Share the app',
+    RATE_APP: 'Rate the app',
+    ABOUT: 'About the app',
+    SETTINGS: 'Settings',
     CANCEL: 'Cancel',
     SELECT_LANG: 'Select the language',
     MY_TASKS: 'My Tasks',
@@ -26,11 +33,20 @@ const EN = {
     TASK_CHANGED: 'Task changed',
     TASK_ADDED: 'Task added',
     TASK_DELETED: 'Task deleted',
+    TASK_ARCHIVED: 'Task archived',
+    TASK_UNARCHIVED: 'Task unarchived',
 }
 
 const RU = {
     _language: 'Русский',
     NEED_NOTIF_PERMISSION: 'Необходимо принять разрешение на уведомления для его задания',
+    MENU: 'Меню',
+    CONTACT_US: 'Связаться с нами',
+    DELETE_ALL: 'Удалить все данные',
+    SHARE: 'Поделиться приложением',
+    RATE_APP: 'Оценить приложение',
+    ABOUT: 'О приложении',
+    SETTINGS: 'Настройки',
     CANCEL: 'Отмена',
     SELECT_LANG: 'Выберите язык',
     MY_TASKS: 'Мои задачи',
@@ -56,11 +72,20 @@ const RU = {
     TASK_CHANGED: 'Задача изменена',
     TASK_ADDED: 'Задача добавлена',
     TASK_DELETED: 'Задача удалена',
+    TASK_ARCHIVED: 'Задача архивирована',
+    TASK_UNARCHIVED: 'Задача разархивирована',
 }
 
 const ES = {
     _language: 'Español',
     NEED_NOTIF_PERMISSION: 'Necesita un permiso de notificación para configurar un recordatorio',
+    MENU: 'Menú',
+    CONTACT_US: 'Contacta con nosotros',
+    DELETE_ALL: 'Eliminar todo',
+    SHARE: 'Comparte la aplicación',
+    RATE_APP: 'Califica la aplicación',
+    ABOUT: 'Acerca de la aplicación',
+    SETTINGS: 'Ajustes',
     CANCEL: 'Cancelar',
     SELECT_LANG: 'Selecciona el idioma',
     MY_TASKS: 'Mis Tareas',
@@ -86,38 +111,10 @@ const ES = {
     TASK_CHANGED: 'Tarea cambiada',
     TASK_ADDED: 'Tarea añadida',
     TASK_DELETED: 'Tarea eliminada',
+    TASK_ARCHIVED: 'Tarea archivada',
+    TASK_UNARCHIVED: 'Tarea desarchivada',
 }
 
-const TAT = {
-    _language: 'Татарча',
-    NEED_NOTIF_PERMISSION: 'Искә төшерү өчен хәбәр итү рөхсәте кирәк',
-    CANCEL: 'Бас тарту',
-    SELECT_LANG: 'Телне сайлагыз',
-    MY_TASKS: 'Минем бурычларым',
-    SEARCH: 'Эзләү...',
-    NEW_TASK: 'Яңа бурыч языгыз',
-    DETAIL_INFO: 'Тулырак мәгълүмат',
-    CREATED: 'Тудыру',
-    CHANGED: 'Үзгәртелде',
-    TITLE: 'Исем',
-    TYPE_TASK: 'Исемне языгыз',
-    DESCRIPTION: 'Тасвирлама',
-    TYPE_DESCRIPTION: 'Тасвирламаны языгыз',
-    NOTIFICATION: 'Уйнау',
-    PRIORITY: 'Өстенлек',
-    FILTER_BY_PRIORITY: 'Өстенлекләр буенча фильтрлау',
-    LOW: 'Түбән',
-    MEDIUM: 'Уртача',
-    HIGH: 'Югары',
-    EMPTY_LIST: 'Список әле буш',
-    TASKS_NOT_FOUND: 'Бурычлар табылмады',
-    TITLE_NOT_VALID: 'Бурыч исеме буш булырга тиеш түгел',
-    TASK_EXISTS: 'Бу бурыч инде бар',
-    TASK_CHANGED: 'Бурыч үзгәртелде',
-    TASK_ADDED: 'Бурыч өстәлде',
-    TASK_DELETED: 'Бурыч юкка чыгарылды',
-}
-
-export const Translations = { EN, RU, ES, TAT }
+export const Translations = { EN, ES, RU }
 export const langs = Object.keys(Translations)
     .map(key => ({ value: key, label: Translations[key]._language }))

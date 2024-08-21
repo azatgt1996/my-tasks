@@ -1,8 +1,29 @@
 <template>
-  <ion-page>
+  <ion-menu content-id="main-content">
     <ion-header>
       <ion-toolbar>
-        <ion-title @click="saveTasks">
+        <ion-title>{{ tr.MENU }}</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content>
+      <ion-list>
+        <IconText :icon="mailOutline" :text="tr.CONTACT_US" @click="contactUs" />
+        <IconText :icon="trashOutline" :text="tr.DELETE_ALL" @click="deleteAll" />
+        <IconText :icon="shareSocialOutline" :text="tr.SHARE" @click="shareApp" />
+        <IconText :icon="starOutline" :text="tr.RATE_APP" @click="rateApp" />
+        <IconText :icon="informationCircleOutline" :text="tr.ABOUT" @click="showAppInfo" />
+        <IconText :icon="settingsOutline" :text="tr.SETTINGS" />
+      </ion-list>
+    </ion-content>
+  </ion-menu>
+
+  <ion-page id="main-content">
+    <ion-header>
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-menu-button />
+        </ion-buttons>
+        <ion-title style="padding: 0">
           {{ tr.MY_TASKS }}{{ filtered.length ? `: ${filtered.length}` : '' }}
         </ion-title>
         <img slot="end" :src="getFlagImg(lang)" :alt="lang" width="30" @click="$('#langSelect').click()"
@@ -36,15 +57,21 @@
     </ion-header>
 
     <ion-content>
-      <ion-list v-if="filtered.length">
+      <ion-list ref="listRef" v-if="filtered.length">
         <ion-item-sliding v-for="task in filtered" :key="task.id">
+          <ion-item-options side="start" @ion-swipe="toggleArchived(task)">
+            <ion-item-option color="success" expandable>
+              <ion-icon slot="icon-only" :icon="task.archived ? arrowUpCircleOutline : arrowDownCircleOutline"
+                @click="toggleArchived(task)" />
+            </ion-item-option>
+          </ion-item-options>
           <ion-item button @click="openTask(task)">
             <ion-label>{{ task.title }}</ion-label>
             <ion-icon :icon="ellipse" size="small" :color="priorityType[task.priority]" />
           </ion-item>
-          <ion-item-options side="end">
-            <ion-item-option color="danger">
-              <ion-icon slot="icon-only" :icon="trash" @click="removeTask(task)" />
+          <ion-item-options side="end" @ion-swipe="removeTask(task)">
+            <ion-item-option color="danger" expandable>
+              <ion-icon slot="icon-only" :icon="trashOutline" @click="removeTask(task)" />
             </ion-item-option>
           </ion-item-options>
         </ion-item-sliding>
@@ -83,14 +110,8 @@
             <ion-item>
               <ion-label style="margin-right: 10px">{{ tr.PRIORITY }}</ion-label>
               <ion-segment v-model="current.priority" mode="ios">
-                <ion-segment-button value="low">
-                  <ion-label color="success">{{ tr.LOW }}</ion-label>
-                </ion-segment-button>
-                <ion-segment-button value="medium">
-                  <ion-label color="warning">{{ tr.MEDIUM }}</ion-label>
-                </ion-segment-button>
-                <ion-segment-button value="high">
-                  <ion-label color="danger">{{ tr.HIGH }}</ion-label>
+                <ion-segment-button v-for="key in Object.keys(priorityType)" :value="key">
+                  <ion-label :color="priorityType[key]">{{ tr[key.toUpperCase()] }}</ion-label>
                 </ion-segment-button>
               </ion-segment>
             </ion-item>
@@ -110,37 +131,61 @@
 
 <script setup>
 import {
+  IonMenuButton, IonMenu,
   IonButton, IonContent, IonHeader, IonIcon, IonInput, IonToolbar, IonModal, IonSearchbar, IonDatetime,
   IonItem, IonLabel, IonList, IonPage, IonTitle, IonButtons, IonDatetimeButton,
   IonSegment, IonSegmentButton, IonTextarea, IonItemSliding, IonItemOptions, IonItemOption,
   IonSelect, IonSelectOption, useBackButton, useIonRouter,
 } from '@ionic/vue';
+import {
+  addCircle, checkmark, close, ellipse, funnel, sunny, moon, mailOutline,
+  arrowDownCircleOutline, arrowUpCircleOutline,
+  informationCircleOutline, settingsOutline, starOutline, shareSocialOutline, trashOutline,
+} from 'ionicons/icons';
 import { App } from '@capacitor/app';
-import { addCircle, trash, checkmark, close, ellipse, funnel, sunny, moon } from 'ionicons/icons';
 import { Storage } from "@ionic/storage";
-import { computed, onMounted, reactive, ref, watch } from "vue";
+import { computed, onMounted, reactive, ref, watch, h } from "vue";
 import { Translations, langs } from "@/translations.js";
 import { nanoid, customAlphabet } from "nanoid";
-import { toast, clone, isEqual, $ } from "@/utils.js";
+import { toast, confirm, alert, clone, isEqual, $ } from "@/utils.js";
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { Share } from '@capacitor/share';
 
-const getFlagImg = name => new URL(`../assets/flags/${name}.png`, import.meta.url).href
+const getFlagImg = (name) => new URL(`../assets/flags/${name}.png`, import.meta.url).href
 
-const current = ref({})
-const isOpen = ref(false)
-const title = ref('')
-const filter = ref('')
-const tasks = ref([])
-const priorityType = { low: 'success', medium: 'warning', high: 'danger' }
-const selectedPriority = ref(Object.keys(priorityType))
+const numNanoid = customAlphabet('123456789', 8)
 
+const IconText = ({ text, icon }) =>
+  h(IonItem, { button: true }, () => [
+    h(IonIcon, { icon, style: 'margin-right: 10px' }), h(IonLabel, () => text)
+  ])
+
+// #region X// #endregion
+
+// #region Menu
+const contactLink = 'mailto:azatgt96@gmail.com?subject=My%20Tasks%20Support&body='
+const appLink = 'https://play.google.com/store/apps/details?id=com.kvarta.memorytraining'
+
+const contactUs = () => window.location.href = contactLink
+
+const shareApp = () => Share.share({
+  title: 'Some title', text: 'Some text',
+  dialogTitle: 'Some dialogTitle', url: appLink
+})
+
+const rateApp = () => window.location.href = appLink
+
+const showAppInfo = () => alert('Some text', 'App info')
+
+const deleteAll = () => confirm('Are you sure?', () => toast('yes'))
+
+// #endregion
+
+// #region Others
 const storage = new Storage()
 const ionRouter = useIonRouter()
-useBackButton(-1, async () => {
-  if (!ionRouter.canGoBack()) {
-    await saveTasks()
-    App.exitApp()
-  }
+useBackButton(-1, () => {
+  if (!ionRouter.canGoBack()) App.exitApp()
 })
 
 const lang = ref()
@@ -149,6 +194,12 @@ watch(lang, async (val) => {
   await storage.set('lang', val)
   Object.assign(tr, Translations[val])
 })
+// #endregion
+
+// #region Filter
+const priorityType = { low: 'success', medium: 'warning', high: 'danger' }
+const filter = ref('')
+const selectedPriority = ref(Object.keys(priorityType))
 
 const filtered = computed(() => {
   if (!filter.value.trim() && selectedPriority.value.length === 3) return tasks.value
@@ -162,6 +213,14 @@ const listTitle = computed(() => {
   if (!tasks.value.length) return tr.EMPTY_LIST
   if (!filtered.value.length) return tr.TASKS_NOT_FOUND
 })
+// #endregion
+
+// #region Main
+const tasks = ref([])
+const title = ref('')
+const current = ref({})
+const isOpen = ref(false)
+const listRef = ref()
 
 class Task {
   constructor(title, description = '', notification = null) {
@@ -171,22 +230,22 @@ class Task {
     this.changed = new Date().toLocaleString()
     this.description = description
     this.priority = 'low'
+    this.archived = false
     this.notification = notification ?? '2020-01-01T18:00:00'
   }
 }
 
-// #region CRUD
 const saveTasks = async () => {
   const storedTasks = JSON.stringify(tasks.value)
   await storage.set('storedTasks', storedTasks)
+  
+  listRef.value.$el.closeSlidingItems()
 }
 
 const openTask = (task) => {
   current.value = clone(task)
   isOpen.value = true
 }
-
-const numNanoid = customAlphabet('123456789', 8)
 
 const changeTask = (cur) => {
   cur.title = cur.title.trim()
@@ -199,7 +258,9 @@ const changeTask = (cur) => {
     tasks.value[idx].changed = new Date().toLocaleString()
     if (new Date() < new Date(cur.notification))
       scheduleNotification(+numNanoid(), 'My Tasks', cur.notification, cur.title)
+
     toast(tr.TASK_CHANGED)
+    saveTasks()
   }
 
   isOpen.value = false
@@ -215,13 +276,25 @@ const addTask = (_title) => {
   const newTask = new Task(_title)
   tasks.value.push(newTask)
   toast(tr.TASK_ADDED)
+  saveTasks()
 }
 
 const removeTask = (task) => {
   const idx = tasks.value.findIndex(it => it.id === task.id)
   tasks.value.splice(idx, 1)
   toast(tr.TASK_DELETED)
+  saveTasks()
 }
+
+const toggleArchived = (task) => {
+  const idx = tasks.value.findIndex(it => it.id === task.id)
+  const isArchived = !task.archived
+  tasks.value[idx].archived = isArchived
+
+  saveTasks()
+  toast(isArchived ? tr.TASK_ARCHIVED : tr.TASK_UNARCHIVED)
+}
+
 // #endregion
 
 // #region Notification
