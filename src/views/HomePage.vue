@@ -2,18 +2,18 @@
   <ion-menu content-id="main-content">
     <ion-header>
       <ion-toolbar>
-        <ion-title>{{ tr.MENU }}</ion-title>
+        <ion-title>{{ tr.menu }}</ion-title>
       </ion-toolbar>
     </ion-header>
     <ion-content>
       <ion-list>
-        <IconText :icon="mailOutline" :text="tr.CONTACT_US" @click="contactUs" />
-        <IconText :icon="trashOutline" :text="tr.DELETE_ALL" @click="deleteAll" />
-        <IconText :icon="shareSocialOutline" :text="tr.SHARE" @click="shareApp" />
-        <IconText :icon="starOutline" :text="tr.RATE_APP" @click="rateApp" />
-        <IconText :icon="informationCircleOutline" :text="tr.ABOUT" @click="showAppInfo" />
-        <IconText :icon="settingsOutline" :text="tr.SETTINGS" />
-        <IconText :icon="powerOutline" :text="tr.EXIT" @click="App.exitApp()" />
+        <IconText :icon="mailOutline" :text="tr.contactUs" @click="contactUs" />
+        <IconText :icon="trashOutline" :text="tr.deleteAll" @click="deleteAll" />
+        <IconText :icon="shareSocialOutline" :text="tr.share" @click="shareApp" />
+        <IconText :icon="starOutline" :text="tr.rateApp" @click="rateApp" />
+        <IconText :icon="informationCircleOutline" :text="tr.aboutApp" @click="showAppInfo" />
+        <IconText :icon="settingsOutline" :text="tr.settings" />
+        <IconText :icon="powerOutline" :text="tr.exit" @click="App.exitApp()" />
       </ion-list>
     </ion-content>
   </ion-menu>
@@ -25,11 +25,11 @@
           <ion-menu-button />
         </ion-buttons>
         <ion-title style="padding: 0">
-          {{ tr.MY_TASKS }}{{ filtered.length ? `: ${filtered.length}` : '' }}
+          {{ tr.myTasks }}{{ filtered.length ? `: ${filtered.length}` : '' }}
         </ion-title>
         <img slot="end" :src="getFlagImg(lang)" :alt="lang" width="30" @click="$('#langSelect').click()"
           style="margin-right: 8px" />
-        <ion-select v-show="false" v-model="lang" id="langSelect" v-bind="selectParams(tr.SELECT_LANG)">
+        <ion-select v-show="false" v-model="lang" id="langSelect" v-bind="selectParams(tr.selectLang)">
           <ion-select-option v-for="lang of langs" :value="lang.value">
             {{ lang.label }}
           </ion-select-option>
@@ -38,7 +38,7 @@
           style="margin-right: 8px" />
       </ion-toolbar>
       <ion-item>
-        <ion-searchbar v-model="keyword" :placeholder="tr.SEARCH" :debounce="500" maxlength="40"
+        <ion-searchbar v-model="keyword" :placeholder="tr.search" :debounce="500" maxlength="40"
           show-clear-button="always" style="padding: 5px 8px 5px 0" />
         <ion-select v-show="false" id="fSelect" v-model="filter" multiple v-bind="selectParams(tr.filter)">
           <OptionsGroup :label="tr.byPriorities" />
@@ -53,7 +53,7 @@
           :color="filter.length === 3 && isEqual(filter, Object.keys(priorityType)) ? '' : 'primary'" />
       </ion-item>
       <ion-item>
-        <ion-input :placeholder="tr.NEW_TASK" v-model="title" maxlength="30" clear-input
+        <ion-input :placeholder="tr.newTask" v-model="title" maxlength="30" clear-input
           @keyup.enter="addTask(title)" />
         <ion-icon :icon="addCircle" size="large" color="primary" @click="addTask(title)" />
       </ion-item>
@@ -84,7 +84,7 @@
       <ion-modal :is-open="isOpen" @didDismiss="isOpen = false">
         <ion-header>
           <ion-toolbar>
-            <ion-title>{{ tr.DETAIL_INFO }}</ion-title>
+            <ion-title>{{ tr.detailInfo }}</ion-title>
             <ion-buttons slot="end">
               <ion-button @click="changeTask(current)">
                 <ion-icon :icon="checkmark" color="success" />
@@ -98,20 +98,20 @@
         <ion-content>
           <ion-list>
             <ion-item>
-              <ion-input :label="tr.CREATED" v-model="current.created" readonly />
+              <ion-input :label="tr.created" v-model="current.created" readonly />
             </ion-item>
             <ion-item>
-              <ion-input :label="tr.CHANGED" v-model="current.changed" readonly />
+              <ion-input :label="tr.changed" v-model="current.changed" readonly />
             </ion-item>
             <ion-item>
-              <ion-input :label="tr.TITLE" :placeholder="tr.TYPE_TASK" v-model="current.title" />
+              <ion-input :label="tr.title" :placeholder="tr.typeTask" v-model="current.title" />
             </ion-item>
             <ion-item>
-              <ion-textarea :label="tr.DESCRIPTION" v-model="current.description" :rows="4"
-                :placeholder="tr.TYPE_DESCRIPTION" clear-input />
+              <ion-textarea :label="tr.description" v-model="current.description" :rows="4"
+                :placeholder="tr.typeDescription" clear-input />
             </ion-item>
             <ion-item>
-              <ion-label style="margin-right: 10px">{{ tr.PRIORITY }}</ion-label>
+              <ion-label style="margin-right: 10px">{{ tr.priority }}</ion-label>
               <ion-segment v-model="current.priority" mode="ios">
                 <ion-segment-button v-for="key in Object.keys(priorityType)" :value="key">
                   <ion-label :color="priorityType[key]">{{ tr[key] }}</ion-label>
@@ -119,7 +119,7 @@
               </ion-segment>
             </ion-item>
             <ion-item>
-              <ion-label>{{ tr.NOTIFICATION }}</ion-label>
+              <ion-label>{{ tr.notification }}</ion-label>
               <ion-datetime-button datetime="datetime" />
               <ion-modal :keep-contents-mounted="true">
                 <ion-datetime id="datetime" hour-cycle="h24" v-model="current.notification" />
@@ -167,7 +167,7 @@ const IconText = ({ text, icon }) =>
 const OptionsGroup = ({ label }) =>
   h(IonSelectOption, { disabled: true, class: 'options-group' }, () => label)
 
-const selectParams = (label) => ({ cancelText: tr.CANCEL, interfaceOptions: { header: label } })
+const selectParams = (label) => ({ cancelText: tr.cancel, interfaceOptions: { header: label } })
 
 // #region X// #endregion
 
@@ -225,8 +225,8 @@ const filtered = computed(() => {
 })
 
 const listTitle = computed(() => {
-  if (!tasks.value.length) return tr.EMPTY_LIST
-  if (!filtered.value.length) return tr.TASKS_NOT_FOUND
+  if (!tasks.value.length) return tr.emptyList
+  if (!filtered.value.length) return tr.tasksNotFound
 })
 // #endregion
 
@@ -256,7 +256,7 @@ const saveTasks = async () => {
   const storedTasks = JSON.stringify(tasks.value)
   await storage.set('storedTasks', storedTasks)
 
-  listRef.value.$el.closeSlidingItems()
+  listRef.value?.$el.closeSlidingItems()
 }
 
 const openTask = (task) => {
@@ -266,9 +266,9 @@ const openTask = (task) => {
 
 const changeTask = (cur) => {
   cur.title = cur.title.trim()
-  if (!cur.title) return toast(tr.TITLE_NOT_VALID, 'warning')
+  if (!cur.title) return toast(tr.titleIsEmpty, 'warning')
   if (tasks.value.find(it => it.title === cur.title && it.id !== cur.id))
-    return toast(tr.TASK_EXISTS, 'warning')
+    return toast(tr.taskExists, 'warning')
   const idx = tasks.value.findIndex(it => it.id === cur.id)
   if (!isEqual(cur, tasks.value[idx])) {
     tasks.value[idx] = cur
@@ -276,7 +276,7 @@ const changeTask = (cur) => {
     if (new Date() < new Date(cur.notification))
       scheduleNotification(+numNanoid(), 'My Tasks', cur.notification, cur.title)
 
-    toast(tr.TASK_CHANGED)
+    toast(tr.taskChanged)
     saveTasks()
   }
 
@@ -286,20 +286,20 @@ const changeTask = (cur) => {
 const addTask = (_title) => {
   _title = _title.trim()
   if (tasks.value.find(it => it.title === _title))
-    return toast(tr.TASK_EXISTS, 'warning')
+    return toast(tr.taskExists, 'warning')
   title.value = ''
-  if (!_title) return toast(tr.TITLE_NOT_VALID, 'warning')
+  if (!_title) return toast(tr.titleIsEmpty, 'warning')
 
   const newTask = new Task(_title)
   tasks.value.push(newTask)
-  toast(tr.TASK_ADDED)
+  toast(tr.taskAdded)
   saveTasks()
 }
 
 const removeTask = (task) => {
   const idx = tasks.value.findIndex(it => it.id === task.id)
   tasks.value.splice(idx, 1)
-  toast(tr.TASK_DELETED)
+  toast(tr.taskDeleted)
   saveTasks()
 }
 
@@ -309,7 +309,7 @@ const toggleArchived = (task) => {
   tasks.value[idx].archived = isArchived
 
   saveTasks()
-  toast(isArchived ? tr.TASK_ARCHIVED : tr.TASK_UNARCHIVED)
+  toast(isArchived ? tr.taskArchived : tr.taskUnarchived)
 }
 
 // #endregion
@@ -319,7 +319,7 @@ const checkNotificationPermission = () =>
   LocalNotifications.checkPermissions().then(res => {
     if (res?.display !== 'denied') return
     LocalNotifications.requestPermissions().then(res => {
-      if (res?.display === 'denied') toast(tr.NEED_NOTIF_PERMISSION, 'warning')
+      if (res?.display === 'denied') toast(tr.needNotifyPermission, 'warning')
     })
   })
 
