@@ -1,12 +1,12 @@
 <template>
-  <ion-menu content-id="main-content">
+  <ion-menu content-id="main-content" ref="menuRef">
     <ion-header>
       <ion-toolbar>
         <ion-title>{{ tr.menu }}</ion-title>
       </ion-toolbar>
     </ion-header>
     <ion-content>
-      <ion-list>
+      <ion-list @click="menuRef.$el.close()">
         <IconText :icon="mailOutline" :text="tr.contactUs" @click="contactUs" />
         <IconText :icon="trashOutline" :text="tr.deleteAll" @click="deleteAll" />
         <IconText :icon="shareSocialOutline" :text="tr.share" @click="shareApp" />
@@ -53,8 +53,7 @@
           :color="filter.length === 3 && isEqual(filter, Object.keys(priorityType)) ? '' : 'primary'" />
       </ion-item>
       <ion-item>
-        <ion-input :placeholder="tr.newTask" v-model="title" maxlength="30" clear-input
-          @keyup.enter="addTask(title)" />
+        <ion-input :placeholder="tr.newTask" v-model="title" maxlength="30" clear-input @keyup.enter="addTask(title)" />
         <ion-icon :icon="addCircle" size="large" color="primary" @click="addTask(title)" />
       </ion-item>
     </ion-header>
@@ -70,6 +69,9 @@
           </ion-item-options>
           <ion-item button @click="openTask(task)">
             <ion-label>{{ task.title }}</ion-label>
+            <ion-icon v-if="task.archived" :icon="archiveOutline" size="small" />
+            <ion-icon v-if="new Date() < new Date(task.notification)" :icon="alarmOutline" size="small"
+              style="margin: 0 3px" />
             <ion-icon :icon="ellipse" size="small" :color="priorityType[task.priority]" />
           </ion-item>
           <ion-item-options side="end" @ion-swipe="removeTask(task)">
@@ -141,9 +143,9 @@ import {
   IonSelect, IonSelectOption, useBackButton, useIonRouter,
 } from '@ionic/vue';
 import {
-  addCircle, checkmark, close, ellipse, funnel, sunny, moon, mailOutline,
-  arrowDownCircleOutline, arrowUpCircleOutline, powerOutline,
+  addCircle, checkmark, close, ellipse, funnel, sunny, moon, mailOutline, powerOutline,
   informationCircleOutline, settingsOutline, starOutline, shareSocialOutline, trashOutline,
+  arrowUpCircleOutline, arrowDownCircleOutline, archiveOutline, alarmOutline,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
 import { Storage } from "@ionic/storage";
@@ -172,21 +174,26 @@ const selectParams = (label) => ({ cancelText: tr.cancel, interfaceOptions: { he
 // #region X// #endregion
 
 // #region Menu
+const menuRef = ref()
 const contactLink = 'mailto:azatgt96@gmail.com?subject=My%20Tasks%20Support&body='
 const appLink = 'https://play.google.com/store/apps/details?id=com.kvarta.memorytraining'
 
 const contactUs = () => window.location.href = contactLink
 
-const shareApp = () => Share.share({
-  title: 'Some title', text: 'Some text',
-  dialogTitle: 'Some dialogTitle', url: appLink
-})
+const shareApp = () => Share.share({ text: tr.shareText, url: appLink })
 
 const rateApp = () => window.location.href = appLink
 
-const showAppInfo = () => alert('Some text', 'App info')
+const showAppInfo = () => alert(tr.aboutText, tr.appInfo)
 
-const deleteAll = () => confirm('Are you sure?', () => toast('yes'))
+const deleteAll = () => {
+  if (!tasks.value.length) return toast(tr.noTasksToDelete)
+  confirm(tr.aysToDelete, () => {
+    tasks.value = []
+    saveTasks()
+    toast(tr.allDeleted)
+  })
+}
 
 // #endregion
 
@@ -354,6 +361,13 @@ onMounted(async () => {
 
 </script>
 
+<style scoped>
+ion-searchbar {
+  --box-shadow: 0px;
+  padding: 0px;
+}
+</style>
+
 <style>
 .options-group .alert-checkbox-icon {
   display: none !important;
@@ -361,5 +375,9 @@ onMounted(async () => {
 
 .options-group .alert-checkbox-label {
   padding-left: 10px !important;
+}
+
+.alert-message {
+  white-space: pre-wrap;
 }
 </style>
