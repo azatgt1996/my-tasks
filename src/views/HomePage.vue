@@ -185,6 +185,7 @@ import { nanoid, customAlphabet } from "nanoid";
 import { toast, confirm, alert, clone, isEqual, $, delay } from "@/utils.js";
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Share } from '@capacitor/share';
+import { Haptics } from "@capacitor/haptics"
 
 const getFlagImg = (name) => new URL(`../assets/flags/${name}.png`, import.meta.url).href
 
@@ -253,11 +254,14 @@ const filter = ref(Object.keys(priorityType))
 
 const filtered = computed(() => {
   const _filter = filter.value
+  const _keyword = keyword.value
+
   const onlyAllPriorities = _filter.length === 3 && isEqual(_filter, Object.keys(priorityType))
-  if (!keyword.value.trim() && onlyAllPriorities) return tasks.value.filter(it => !it.archived)
+  if (!_keyword.trim() && onlyAllPriorities) return tasks.value.filter(it => !it.archived)
 
   return tasks.value.filter(it => {
-    let result = it.title.toLowerCase().includes(keyword.value.toLowerCase())
+    let result = it.title.toLowerCase().includes(_keyword.toLowerCase())
+    if (params.searchInDesc) result ||= it.description.toLowerCase().includes(_keyword.toLowerCase())
     result &&= _filter.includes(it.priority)
     if (!_filter.includes('archived')) result &&= !it.archived
     if (_filter.includes('notificated')) result &&= new Date() < new Date(it.notification)
@@ -297,6 +301,7 @@ const saveTasks = async () => {
   const storedTasks = JSON.stringify(tasks.value)
   await storage.set('storedTasks', storedTasks)
   if (params.sound) $('#audio').play()
+  if (params.vibro) await Haptics.vibrate()
 }
 
 const openTask = (task) => {
