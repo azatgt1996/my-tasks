@@ -1,4 +1,5 @@
 <template>
+  <audio src="/src/assets/sounds/click.wav" id="audio" />
   <ion-menu content-id="main-content" ref="menuRef">
     <ion-header>
       <ion-toolbar>
@@ -12,11 +13,37 @@
         <IconText :icon="shareSocialOutline" :text="tr.share" @click="shareApp" />
         <IconText :icon="starOutline" :text="tr.rateApp" @click="rateApp" />
         <IconText :icon="informationCircleOutline" :text="tr.aboutApp" @click="showAppInfo" />
-        <IconText :icon="settingsOutline" :text="tr.settings" />
+        <IconText :icon="settingsOutline" :text="tr.settings" @click="isOpen2 = true" />
         <IconText :icon="powerOutline" :text="tr.exit" @click="App.exitApp()" />
       </ion-list>
     </ion-content>
   </ion-menu>
+
+  <ion-modal :is-open="isOpen2" @didDismiss="isOpen2 = false">
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>{{ tr.settings }}</ion-title>
+        <ion-buttons slot="end">
+          <ion-button @click="isOpen2 = false">
+            <ion-icon :icon="close" />
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content>
+      <ion-list>
+        <ion-item>
+          <ui-toggle :label="tr.vibro" v-model="params.vibro" />
+        </ion-item>
+        <ion-item>
+          <ui-toggle :label="tr.sound" v-model="params.sound" />
+        </ion-item>
+        <ion-item>
+          <ui-toggle :label="tr.searchInDescription" v-model="params.searchInDesc" />
+        </ion-item>
+      </ion-list>
+    </ion-content>
+  </ion-modal>
 
   <ion-page id="main-content">
     <ion-header>
@@ -38,7 +65,7 @@
           style="margin-right: 8px" />
       </ion-toolbar>
       <ion-item>
-        <ion-searchbar v-model="keyword" :placeholder="tr.search" :debounce="500" maxlength="40"
+        <ion-searchbar v-model="keyword" :placeholder="tr.search" :debounce="500" :maxlength="40"
           show-clear-button="always" style="padding: 5px 8px 5px 0" />
         <ion-select v-show="false" id="fSelect" v-model="filter" multiple v-bind="selectParams(tr.filter)">
           <OptionsGroup :label="tr.byPriorities" />
@@ -53,7 +80,8 @@
           :color="filter.length === 3 && isEqual(filter, Object.keys(priorityType)) ? '' : 'primary'" />
       </ion-item>
       <ion-item>
-        <ion-input :placeholder="tr.newTask" v-model="title" maxlength="30" clear-input @keyup.enter="addTask(title)" />
+        <ion-input :placeholder="tr.newTask" v-model="title" :maxlength="40" clear-input
+          @keyup.enter="addTask(title)" />
         <ion-icon :icon="addCircle" size="large" color="primary" @click="addTask(title)" />
       </ion-item>
     </ion-header>
@@ -67,7 +95,7 @@
             </ion-item-option>
           </ion-item-options>
           <ion-item button @click="openTask(task)">
-            <ion-label>{{ task.title }}</ion-label>
+            <ion-label class="task-title">{{ task.title }}</ion-label>
             <ion-icon v-if="task.archived" :icon="archiveOutline" size="small" style="margin-right: 2px" />
             <ion-icon v-if="new Date() < new Date(task.notification)" :icon="alarmOutline" size="small"
               style="margin-right: 2px" />
@@ -99,17 +127,25 @@
         <ion-content>
           <ion-list>
             <ion-item>
-              <ion-input :label="tr.created" v-model="current.created" readonly />
+              <ion-input :label="tr.created" v-model="current.created" readonly label-placement="fixed" />
             </ion-item>
             <ion-item>
-              <ion-input :label="tr.changed" v-model="current.changed" readonly />
+              <ion-input :label="tr.changed" v-model="current.changed" readonly label-placement="fixed" />
             </ion-item>
             <ion-item>
-              <ion-input :label="tr.title" :placeholder="tr.typeTask" v-model="current.title" />
+              <ion-input :label="tr.title" :placeholder="tr.typeTask" v-model="current.title" label-placement="fixed"
+                :maxlength="40" />
             </ion-item>
             <ion-item>
               <ion-textarea :label="tr.description" v-model="current.description" :rows="4"
-                :placeholder="tr.typeDescription" clear-input />
+                :placeholder="tr.typeDescription" clear-input label-placement="fixed" :maxlength="300" />
+            </ion-item>
+            <ion-item>
+              <ion-label>{{ tr.notification }}</ion-label>
+              <ion-datetime-button datetime="datetime" />
+              <ion-modal :keep-contents-mounted="true">
+                <ion-datetime id="datetime" hour-cycle="h24" v-model="current.notification" />
+              </ion-modal>
             </ion-item>
             <ion-item>
               <ion-label style="margin-right: 10px">{{ tr.priority }}</ion-label>
@@ -118,13 +154,6 @@
                   <ion-label :color="priorityType[key]">{{ tr[key] }}</ion-label>
                 </ion-segment-button>
               </ion-segment>
-            </ion-item>
-            <ion-item>
-              <ion-label>{{ tr.notification }}</ion-label>
-              <ion-datetime-button datetime="datetime" />
-              <ion-modal :keep-contents-mounted="true">
-                <ion-datetime id="datetime" hour-cycle="h24" v-model="current.notification" />
-              </ion-modal>
             </ion-item>
           </ion-list>
         </ion-content>
@@ -148,6 +177,7 @@ import {
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
 import { Storage } from "@ionic/storage";
+import UiToggle from "@/components/UiToggle.vue"
 import { computed, onMounted, reactive, ref, watch, h } from "vue";
 import { onClickOutside } from '@vueuse/core';
 import { Translations, langs } from "@/translations.js";
@@ -174,8 +204,13 @@ const selectParams = (label) => ({ cancelText: tr.cancel, interfaceOptions: { he
 
 // #region Menu
 const menuRef = ref()
+const isOpen2 = ref(false)
 const contactLink = 'mailto:azatgt96@gmail.com?subject=My%20Tasks%20Support&body='
 const appLink = 'https://play.google.com/store/apps/details?id=com.kvarta.memorytraining'
+
+const params = reactive({})
+
+watch(params, (val) => storage.set('params', JSON.stringify(val)), { deep: true })
 
 const contactUs = () => window.location.href = contactLink
 
@@ -261,6 +296,7 @@ class Task {
 const saveTasks = async () => {
   const storedTasks = JSON.stringify(tasks.value)
   await storage.set('storedTasks', storedTasks)
+  if (params.sound) $('#audio').play()
 }
 
 const openTask = (task) => {
@@ -348,12 +384,19 @@ const toggleDarkMode = async () => {
 onMounted(async () => {
   await storage.create()
   const storedTasks = await storage.get('storedTasks')
-  tasks.value = storedTasks ? JSON.parse(await storage.get('storedTasks')) : []
+  tasks.value = storedTasks ? JSON.parse(storedTasks) : []
 
   isDarkMode.value = await storage.get('darkMode')
   document.documentElement.classList.toggle('ion-palette-dark', isDarkMode.value)
 
-  lang.value = (await storage.get('lang')) ?? Object.keys(Translations)[0]
+  const navLang = window.navigator.language.split('-')[0].toUpperCase()
+  const _langs = Object.keys(Translations)
+
+  lang.value = (await storage.get('lang')) ?? (_langs.includes(navLang) ? navLang : _langs[0])
+
+  let _params = await storage.get('params')
+  _params = _params ? JSON.parse(_params) : { vibro: false, sound: false, searchInDesc: false }
+  Object.assign(params, _params)
 
   checkNotificationPermission()
 })
@@ -378,5 +421,11 @@ ion-searchbar {
 
 .alert-message {
   white-space: pre-wrap;
+}
+
+.task-title {
+  overflow: hidden;
+  white-space: nowrap;
+  padding-right: 5px
 }
 </style>
