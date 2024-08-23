@@ -62,21 +62,20 @@
       <ion-list ref="listRef" v-if="filtered.length">
         <ion-item-sliding v-for="task in filtered" :key="task.id">
           <ion-item-options side="start" @ion-swipe="toggleArchived(task)">
-            <ion-item-option color="success" expandable>
-              <ion-icon slot="icon-only" :icon="task.archived ? arrowUpCircleOutline : arrowDownCircleOutline"
-                @click="toggleArchived(task)" />
+            <ion-item-option color="success" expandable @click="toggleArchived(task)">
+              <ion-icon slot="icon-only" :icon="task.archived ? arrowUpCircleOutline : arrowDownCircleOutline" />
             </ion-item-option>
           </ion-item-options>
           <ion-item button @click="openTask(task)">
             <ion-label>{{ task.title }}</ion-label>
-            <ion-icon v-if="task.archived" :icon="archiveOutline" size="small" />
+            <ion-icon v-if="task.archived" :icon="archiveOutline" size="small" style="margin-right: 2px" />
             <ion-icon v-if="new Date() < new Date(task.notification)" :icon="alarmOutline" size="small"
-              style="margin: 0 3px" />
+              style="margin-right: 2px" />
             <ion-icon :icon="ellipse" size="small" :color="priorityType[task.priority]" />
           </ion-item>
           <ion-item-options side="end" @ion-swipe="removeTask(task)">
-            <ion-item-option color="danger" expandable>
-              <ion-icon slot="icon-only" :icon="trashOutline" @click="removeTask(task)" />
+            <ion-item-option color="danger" expandable @click="removeTask(task)">
+              <ion-icon slot="icon-only" :icon="trashOutline" />
             </ion-item-option>
           </ion-item-options>
         </ion-item-sliding>
@@ -153,7 +152,7 @@ import { computed, onMounted, reactive, ref, watch, h } from "vue";
 import { onClickOutside } from '@vueuse/core';
 import { Translations, langs } from "@/translations.js";
 import { nanoid, customAlphabet } from "nanoid";
-import { toast, confirm, alert, clone, isEqual, $ } from "@/utils.js";
+import { toast, confirm, alert, clone, isEqual, $, delay } from "@/utils.js";
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Share } from '@capacitor/share';
 
@@ -262,8 +261,6 @@ class Task {
 const saveTasks = async () => {
   const storedTasks = JSON.stringify(tasks.value)
   await storage.set('storedTasks', storedTasks)
-
-  listRef.value?.$el.closeSlidingItems()
 }
 
 const openTask = (task) => {
@@ -310,8 +307,10 @@ const removeTask = (task) => {
   saveTasks()
 }
 
-const toggleArchived = (task) => {
+const toggleArchived = async (task) => {
   const idx = tasks.value.findIndex(it => it.id === task.id)
+  listRef.value?.$el.closeSlidingItems()
+  await delay(200)
   const isArchived = !task.archived
   tasks.value[idx].archived = isArchived
 
