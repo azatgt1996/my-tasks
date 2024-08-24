@@ -1,62 +1,5 @@
 <template>
-  <ion-menu content-id="main-content" ref="menuRef">
-    <ion-header>
-      <ion-toolbar>
-        <ion-title>{{ tr.menu }}</ion-title>
-      </ion-toolbar>
-    </ion-header>
-    <ion-content>
-      <ion-list @click="menuRef.$el.close()">
-        <IconText :icon="mailOutline" :text="tr.contactUs" @click="contactUs" />
-        <IconText :icon="trashOutline" :text="tr.deleteAll" @click="deleteAll" />
-        <IconText :icon="shareSocialOutline" :text="tr.share" @click="shareApp" />
-        <IconText :icon="starOutline" :text="tr.rateApp" @click="rateApp" />
-        <IconText :icon="informationCircleOutline" :text="tr.aboutApp" @click="showAppInfo" />
-        <IconText :icon="settingsOutline" :text="tr.settings" @click="isOpen2 = true" />
-        <IconText :icon="powerOutline" :text="tr.exit" @click="App.exitApp()" />
-      </ion-list>
-    </ion-content>
-  </ion-menu>
-
-  <ion-modal :is-open="isOpen2" @didDismiss="isOpen2 = false">
-    <ion-header>
-      <ion-toolbar>
-        <ion-title>{{ tr.settings }}</ion-title>
-        <ion-buttons slot="end">
-          <ion-button @click="isOpen2 = false">
-            <ion-icon :icon="close" />
-          </ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-    <ion-content>
-      <ion-list>
-        <ion-item>
-          <ion-icon :icon="radioOutline" style="margin-right: 7px" />
-          <ui-toggle :label="tr.vibro" v-model="params.vibro" />
-        </ion-item>
-        <ion-item>
-          <ion-icon :icon="musicalNoteOutline" style="margin-right: 7px" />
-          <ui-toggle :label="tr.sound" v-model="params.sound" />
-        </ion-item>
-        <ion-item>
-          <ion-icon :icon="searchCircleOutline" style="margin-right: 7px" />
-          <ui-toggle :label="tr.searchInDescription" v-model="params.searchInDesc" />
-        </ion-item>
-        <ion-item>
-          <ion-icon :icon="filterSharp" style="margin-right: 7px" />
-          <ion-select :label="tr.sortBy" v-model="params.sortBy" v-bind="selectParams(tr.sortBy)">
-            <ion-select-option v-for="val in sorts" :value="val">{{ tr[val] }}</ion-select-option>
-          </ion-select>
-        </ion-item>
-        <!-- <ion-item button @click="exportToPdf">
-          <ion-icon :icon="documentTextOutline" style="margin-right: 7px" />
-          <ion-label>{{ tr.exportToPdf }}</ion-label>
-        </ion-item> -->
-      </ion-list>
-    </ion-content>
-  </ion-modal>
-
+  <Menu />
   <ion-page id="main-content">
     <ion-header>
       <ion-toolbar>
@@ -177,82 +120,37 @@
 
 <script setup>
 import {
-  IonMenuButton, IonMenu,
-  IonButton, IonContent, IonHeader, IonIcon, IonInput, IonToolbar, IonModal, IonSearchbar, IonDatetime,
-  IonItem, IonLabel, IonList, IonPage, IonTitle, IonButtons, IonDatetimeButton,
-  IonSegment, IonSegmentButton, IonTextarea, IonItemSliding, IonItemOptions, IonItemOption,
-  IonSelect, IonSelectOption, useBackButton, useIonRouter,
+  IonMenuButton, IonButton, IonContent, IonHeader, IonIcon, IonInput, IonToolbar, IonModal, IonSearchbar, IonDatetime,
+  IonItem, IonLabel, IonList, IonPage, IonTitle, IonButtons, IonDatetimeButton, IonSegment, IonSegmentButton, IonTextarea,
+  IonItemSliding, IonItemOptions, IonItemOption, IonSelect, IonSelectOption, useBackButton, useIonRouter,
 } from '@ionic/vue';
 import {
-  addCircle, checkmark, close, ellipse, funnel, sunny, moon, mailOutline, powerOutline,
-  informationCircleOutline, settingsOutline, starOutline, shareSocialOutline, trashOutline,
-  arrowUpCircleOutline, arrowDownCircleOutline, archiveOutline, alarmOutline,
-  radioOutline, musicalNoteOutline, searchCircleOutline, searchSharp, filterSharp, documentTextOutline,
+  addCircle, checkmark, close, ellipse, funnel, sunny, moon, trashOutline, arrowUpCircleOutline, arrowDownCircleOutline, archiveOutline,
+  alarmOutline, searchCircleOutline, searchSharp,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
 import { Storage } from "@ionic/storage";
-import UiToggle from "@/components/UiToggle.vue";
-import { computed, onMounted, reactive, ref, watch, h } from "vue";
+import { computed, onMounted, ref, watch, h } from "vue";
 import { onClickOutside } from '@vueuse/core';
 import { Translations, langs } from "@/translations.js";
 import { nanoid, customAlphabet } from "nanoid";
 import { clone, isEqual, $, delay } from "@/utils.js";
 import { useGlobalStore } from "@/global.js"
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { Share } from '@capacitor/share';
 import { Haptics } from "@capacitor/haptics";
+import Menu from "@/components/Menu.vue";
 
-const { tr, toast, confirm, alert } = useGlobalStore()
+const { tr, params, toast } = useGlobalStore()
 const getFlagImg = (name) => new URL(`../assets/flags/${name}.png`, import.meta.url).href
 
 const numNanoid = customAlphabet('123456789', 8)
+const audio = new Audio('/click.wav')
 const log = console.log
-
-const IconText = ({ text, icon }) =>
-  h(IonItem, { button: true }, () => [
-    h(IonIcon, { icon, style: 'margin-right: 10px' }), h(IonLabel, () => text)
-  ])
 
 const OptionsGroup = ({ label }) =>
   h(IonSelectOption, { disabled: true, class: 'options-group' }, () => label)
 
 const selectParams = (label) => ({ cancelText: tr.cancel, interfaceOptions: { header: label } })
-
-// #region X// #endregion
-
-// #region Menu
-const menuRef = ref()
-const isOpen2 = ref(false)
-const contactLink = 'mailto:azatgt96@gmail.com?subject=My%20Tasks%20Support&body='
-const appLink = 'https://play.google.com/store/apps/details?id=com.kvarta.memorytraining'
-
-const audio = new Audio('/click.wav')
-const params = reactive({})
-
-watch(params, (val) => storage.set('params', JSON.stringify(val)), { deep: true })
-
-const contactUs = () => window.location.href = contactLink
-
-const shareApp = () => Share.share({ text: tr.shareText, url: appLink })
-
-const rateApp = () => window.location.href = appLink
-
-const showAppInfo = () => {
-  const assetsLinks = `\n\n${tr.flagIcons}:\nhttps://www.flaticon.com\n${tr.sounds}:\nhttps://mixkit.co/free-sound-effects`
-  alert(tr.aboutText + assetsLinks, tr.appInfo)
-}
-
-const deleteAll = () => {
-  if (!tasks.value.length) return toast(tr.noTasksToDelete)
-  confirm(tr.aysToDelete, () => {
-    tasks.value = []
-    saveTasks()
-    toast(tr.allDeleted)
-  })
-}
-
-const exportToPdf = () => { }
-// #endregion
 
 // #region Others
 const storage = new Storage()
@@ -273,7 +171,6 @@ const priorityType = { low: 'success', medium: 'warning', high: 'danger' }
 const priorities = Object.keys(priorityType)
 const keyword = ref('')
 const filters = ref([])
-const sorts = ['createdDate', 'changedDate', 'titles', 'priorities', 'notifications']
 const priorityNum = { low: 0, medium: 1, high: 2 }
 
 watch(filters, (val) => {
@@ -437,15 +334,10 @@ onMounted(async () => {
   const _langs = Object.keys(Translations)
   lang.value = (await storage.get('lang')) ?? (_langs.includes(navLang) ? navLang : _langs[0])
 
-  let _params = await storage.get('params')
-  _params = _params ? JSON.parse(_params) : { vibro: true, sound: false, searchInDesc: false, sortBy: 'createdDate' }
-  Object.assign(params, _params)
-
   filters.value = JSON.parse(await storage.get('filters')) ?? priorities
 
   checkNotificationPermission()
 })
-
 </script>
 
 <style scoped>

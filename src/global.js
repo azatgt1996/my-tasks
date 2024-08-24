@@ -4,6 +4,7 @@ import { toastController, alertController } from '@ionic/vue'
 
 export const useGlobalStore = defineStore('global', () => {
     const tr = reactive({})
+    const params = reactive({}) // setting params
 
     const toast = (message, color = 'success') =>
         toastController.create({ message, duration: 1500, color, animated: true,  }).then(toast => toast.present())
@@ -19,5 +20,5 @@ export const useGlobalStore = defineStore('global', () => {
         }).then(alert => alert.present())
     
     
-    return { tr, toast, alert, confirm }
+    return { tr, params, toast, alert, confirm }
 })
