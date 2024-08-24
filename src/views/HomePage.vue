@@ -1,5 +1,4 @@
 <template>
-  <audio src="/src/assets/sounds/click.wav" id="audio" />
   <ion-menu content-id="main-content" ref="menuRef">
     <ion-header>
       <ion-toolbar>
@@ -33,14 +32,29 @@
     <ion-content>
       <ion-list>
         <ion-item>
+          <ion-icon :icon="radioOutline" style="margin-right: 7px" />
           <ui-toggle :label="tr.vibro" v-model="params.vibro" />
         </ion-item>
         <ion-item>
+          <ion-icon :icon="musicalNoteOutline" style="margin-right: 7px" />
           <ui-toggle :label="tr.sound" v-model="params.sound" />
         </ion-item>
         <ion-item>
+          <ion-icon :icon="searchCircleOutline" style="margin-right: 7px" />
           <ui-toggle :label="tr.searchInDescription" v-model="params.searchInDesc" />
         </ion-item>
+        <ion-item>
+          <ion-icon :icon="filterSharp" style="margin-right: 7px" />
+          <ion-select :label="tr.sortBy" v-model="params.sortBy" v-bind="selectParams(tr.sortBy)">
+            <ion-select-option v-for="val in ['createdDate', 'changedDate', 'priorities']" :value="val">
+              {{ tr[val] }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+        <!-- <ion-item button @click="exportToPdf">
+          <ion-icon :icon="documentTextOutline" style="margin-right: 7px" />
+          <ion-label>{{ tr.exportToPdf }}</ion-label>
+        </ion-item> -->
       </ion-list>
     </ion-content>
   </ion-modal>
@@ -57,7 +71,7 @@
         <img slot="end" :src="getFlagImg(lang)" :alt="lang" width="30" @click="$('#langSelect').click()"
           style="margin-right: 8px" />
         <ion-select v-show="false" v-model="lang" id="langSelect" v-bind="selectParams(tr.selectLang)">
-          <ion-select-option v-for="lang of langs" :value="lang.value">
+          <ion-select-option v-for="lang in langs" :value="lang.value">
             {{ lang.label }}
           </ion-select-option>
         </ion-select>
@@ -66,8 +80,9 @@
       </ion-toolbar>
       <ion-item>
         <ion-searchbar v-model="keyword" :placeholder="tr.search" :debounce="500" :maxlength="40"
-          show-clear-button="always" style="padding: 5px 8px 5px 0" />
-        <ion-select v-show="false" id="fSelect" v-model="filter" multiple v-bind="selectParams(tr.filter)">
+          show-clear-button="always" :search-icon="params.searchInDesc ? searchCircleOutline : searchSharp"
+          style="padding: 5px 8px 5px 0" />
+        <ion-select v-show="false" id="fSelect" v-model="filters" multiple v-bind="selectParams(tr.filters)">
           <OptionsGroup :label="tr.byPriorities" />
           <ion-select-option value="low">{{ tr.low }}</ion-select-option>
           <ion-select-option value="medium">{{ tr.medium }}</ion-select-option>
@@ -77,7 +92,7 @@
           <ion-select-option value="notificated">{{ tr.notificated }}</ion-select-option>
         </ion-select>
         <ion-icon :icon="funnel" @click="$('#fSelect').click()"
-          :color="filter.length === 3 && isEqual(filter, Object.keys(priorityType)) ? '' : 'primary'" />
+          :color="filters.length === 3 && isEqual(filters, priorities) ? '' : 'primary'" />
       </ion-item>
       <ion-item>
         <ion-input :placeholder="tr.newTask" v-model="title" :maxlength="40" clear-input
@@ -150,8 +165,8 @@
             <ion-item>
               <ion-label style="margin-right: 10px">{{ tr.priority }}</ion-label>
               <ion-segment v-model="current.priority" mode="ios">
-                <ion-segment-button v-for="key in Object.keys(priorityType)" :value="key">
-                  <ion-label :color="priorityType[key]">{{ tr[key] }}</ion-label>
+                <ion-segment-button v-for="value in priorities" :value="value">
+                  <ion-label :color="priorityType[value]">{{ tr[value] }}</ion-label>
                 </ion-segment-button>
               </ion-segment>
             </ion-item>
@@ -174,10 +189,11 @@ import {
   addCircle, checkmark, close, ellipse, funnel, sunny, moon, mailOutline, powerOutline,
   informationCircleOutline, settingsOutline, starOutline, shareSocialOutline, trashOutline,
   arrowUpCircleOutline, arrowDownCircleOutline, archiveOutline, alarmOutline,
+  radioOutline, musicalNoteOutline, searchCircleOutline, searchSharp, filterSharp, documentTextOutline,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
 import { Storage } from "@ionic/storage";
-import UiToggle from "@/components/UiToggle.vue"
+import UiToggle from "@/components/UiToggle.vue";
 import { computed, onMounted, reactive, ref, watch, h } from "vue";
 import { onClickOutside } from '@vueuse/core';
 import { Translations, langs } from "@/translations.js";
@@ -185,11 +201,12 @@ import { nanoid, customAlphabet } from "nanoid";
 import { toast, confirm, alert, clone, isEqual, $, delay } from "@/utils.js";
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Share } from '@capacitor/share';
-import { Haptics } from "@capacitor/haptics"
+import { Haptics } from "@capacitor/haptics";
 
 const getFlagImg = (name) => new URL(`../assets/flags/${name}.png`, import.meta.url).href
 
 const numNanoid = customAlphabet('123456789', 8)
+const log = console.log
 
 const IconText = ({ text, icon }) =>
   h(IonItem, { button: true }, () => [
@@ -209,6 +226,7 @@ const isOpen2 = ref(false)
 const contactLink = 'mailto:azatgt96@gmail.com?subject=My%20Tasks%20Support&body='
 const appLink = 'https://play.google.com/store/apps/details?id=com.kvarta.memorytraining'
 
+const audio = new Audio('/click.wav')
 const params = reactive({})
 
 watch(params, (val) => storage.set('params', JSON.stringify(val)), { deep: true })
@@ -219,7 +237,11 @@ const shareApp = () => Share.share({ text: tr.shareText, url: appLink })
 
 const rateApp = () => window.location.href = appLink
 
-const showAppInfo = () => alert(tr.aboutText, tr.appInfo)
+const showAppInfo = () => {
+  log(77, 99)
+  const assetsLinks = `\n\n${tr.flagIcons}:\nhttps://www.flaticon.com\n${tr.sounds}:\nhttps://mixkit.co/free-sound-effects`
+  alert(tr.aboutText + assetsLinks, tr.appInfo)
+}
 
 const deleteAll = () => {
   if (!tasks.value.length) return toast(tr.noTasksToDelete)
@@ -230,6 +252,7 @@ const deleteAll = () => {
   })
 }
 
+const exportToPdf = () => { }
 // #endregion
 
 // #region Others
@@ -249,19 +272,24 @@ watch(lang, async (val) => {
 
 // #region Filter
 const priorityType = { low: 'success', medium: 'warning', high: 'danger' }
+const priorities = Object.keys(priorityType)
 const keyword = ref('')
-const filter = ref(Object.keys(priorityType))
+const filters = ref([])
+
+watch(filters, (val) => {
+  storage.set('filters', JSON.stringify(val))
+})
 
 const filtered = computed(() => {
-  const _filter = filter.value
-  const _keyword = keyword.value
+  const _filter = filters.value
+  const _keyword = keyword.value.toLowerCase()
 
-  const onlyAllPriorities = _filter.length === 3 && isEqual(_filter, Object.keys(priorityType))
+  const onlyAllPriorities = _filter.length === 3 && isEqual(_filter, priorities)
   if (!_keyword.trim() && onlyAllPriorities) return tasks.value.filter(it => !it.archived)
 
   return tasks.value.filter(it => {
-    let result = it.title.toLowerCase().includes(_keyword.toLowerCase())
-    if (params.searchInDesc) result ||= it.description.toLowerCase().includes(_keyword.toLowerCase())
+    let result = it.title.toLowerCase().includes(_keyword)
+    if (params.searchInDesc) result ||= it.description.toLowerCase().includes(_keyword)
     result &&= _filter.includes(it.priority)
     if (!_filter.includes('archived')) result &&= !it.archived
     if (_filter.includes('notificated')) result &&= new Date() < new Date(it.notification)
@@ -300,8 +328,8 @@ class Task {
 const saveTasks = async () => {
   const storedTasks = JSON.stringify(tasks.value)
   await storage.set('storedTasks', storedTasks)
-  if (params.sound) $('#audio').play()
-  if (params.vibro) await Haptics.vibrate()
+  if (params.sound) audio.play()
+  if (params.vibro) await Haptics.vibrate({ duration: 40 })
 }
 
 const openTask = (task) => {
@@ -354,6 +382,7 @@ const toggleArchived = async (task) => {
   await delay(200)
   const isArchived = !task.archived
   tasks.value[idx].archived = isArchived
+  tasks.value[idx].changed = new Date().toLocaleString()
 
   saveTasks()
   toast(isArchived ? tr.taskArchived : tr.taskUnarchived)
@@ -400,8 +429,10 @@ onMounted(async () => {
   lang.value = (await storage.get('lang')) ?? (_langs.includes(navLang) ? navLang : _langs[0])
 
   let _params = await storage.get('params')
-  _params = _params ? JSON.parse(_params) : { vibro: false, sound: false, searchInDesc: false }
+  _params = _params ? JSON.parse(_params) : { vibro: true, sound: false, searchInDesc: false, sortBy: 'createdDate' }
   Object.assign(params, _params)
+
+  filters.value = JSON.parse(await storage.get('filters')) ?? priorities
 
   checkNotificationPermission()
 })
