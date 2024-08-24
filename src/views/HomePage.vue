@@ -1,5 +1,5 @@
 <template>
-  <Menu @deleteAll="deleteAll"/>
+  <Menu @deleteAll="deleteAll" />
   <ion-page id="main-content">
     <ion-header>
       <ion-toolbar>
@@ -11,10 +11,8 @@
         </ion-title>
         <img slot="end" :src="getFlagImg(lang)" :alt="lang" width="30" @click="$('#langSelect').click()"
           style="margin-right: 8px" />
-        <ion-select v-show="false" v-model="lang" id="langSelect" v-bind="selectParams(tr.selectLang)">
-          <ion-select-option v-for="lang in langs" :value="lang.value">
-            {{ lang.label }}
-          </ion-select-option>
+        <ion-select v-show="false" v-model="lang" id="langSelect" v-bind="selectProps(tr.selectLang)">
+          <ion-select-option v-for="lang in langs" :value="lang.value">{{ lang.label }}</ion-select-option>
         </ion-select>
         <ion-icon :icon="isDarkMode ? moon : sunny" slot="end" size="large" @click="toggleDarkMode"
           style="margin-right: 8px" />
@@ -23,7 +21,7 @@
         <ion-searchbar v-model="keyword" :placeholder="tr.search" :debounce="500" :maxlength="40"
           show-clear-button="always" :search-icon="params.searchInDesc ? searchCircleOutline : searchSharp"
           style="padding: 5px 8px 5px 0" />
-        <ion-select v-show="false" id="fSelect" v-model="filters" multiple v-bind="selectParams(tr.filters)">
+        <ion-select v-show="false" id="fSelect" v-model="filters" multiple v-bind="selectProps(tr.filters)">
           <OptionsGroup :label="tr.byPriorities" />
           <ion-select-option value="low">{{ tr.low }}</ion-select-option>
           <ion-select-option value="medium">{{ tr.medium }}</ion-select-option>
@@ -57,8 +55,8 @@
               style="margin-right: 2px" />
             <ion-icon :icon="ellipse" size="small" :color="priorityType[task.priority]" />
           </ion-item>
-          <ion-item-options side="end" @ion-swipe="removeTask(task)">
-            <ion-item-option color="danger" expandable @click="removeTask(task)">
+          <ion-item-options side="end" @ion-swipe="deleteTask(task)">
+            <ion-item-option color="danger" expandable @click="deleteTask(task)">
               <ion-icon slot="icon-only" :icon="trashOutline" />
             </ion-item-option>
           </ion-item-options>
@@ -129,8 +127,7 @@ import {
   alarmOutline, searchCircleOutline, searchSharp,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
-import { Storage } from "@ionic/storage";
-import { computed, onMounted, ref, watch, h, reactive } from "vue";
+import { computed, onMounted, ref, watch, reactive } from "vue";
 import { onClickOutside } from '@vueuse/core';
 import { Translations, langs } from "@/translations.js";
 import { nanoid, customAlphabet } from "nanoid";
@@ -138,22 +135,17 @@ import { clone, isEqual, $, delay } from "@/utils.js";
 import { useGlobalStore } from "@/global.js"
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Haptics } from "@capacitor/haptics";
+import { OptionsGroup } from "@/components/renderFunctions.js";
 import Menu from "@/components/Menu.vue";
 
-const { tr, params, toast, confirm } = useGlobalStore()
-const getFlagImg = (name) => new URL(`../assets/flags/${name}.png`, import.meta.url).href
+const { tr, params, storage, selectProps, toast, confirm } = useGlobalStore()
 
+const getFlagImg = (name) => new URL(`../assets/flags/${name}.png`, import.meta.url).href
 const numNanoid = customAlphabet('123456789', 8)
 const audio = new Audio('/click.wav')
 const log = console.log
 
-const OptionsGroup = ({ label }) =>
-  h(IonSelectOption, { disabled: true, class: 'options-group' }, () => label)
-
-const selectParams = (label) => ({ cancelText: tr.cancel, interfaceOptions: { header: label } })
-
 // #region Others
-const storage = new Storage()
 const ionRouter = useIonRouter()
 useBackButton(-1, () => {
   if (!ionRouter.canGoBack()) App.exitApp()
@@ -276,7 +268,7 @@ const addTask = (_title) => {
   saveTasks()
 }
 
-const removeTask = (task) => {
+const deleteTask = (task) => {
   const idx = tasks.findIndex(it => it.id === task.id)
   tasks.splice(idx, 1)
   toast(tr.taskDeleted)
@@ -303,7 +295,6 @@ const toggleArchived = async (task) => {
   saveTasks()
   toast(isArchived ? tr.taskArchived : tr.taskUnarchived)
 }
-
 // #endregion
 
 // #region Notification
@@ -333,7 +324,7 @@ const toggleDarkMode = () => {
 
 onMounted(async () => {
   await storage.create()
-  
+
   const _tasks = await storage.get('storedTasks')
   tasks.push(...(_tasks ? JSON.parse(_tasks) : []))
 

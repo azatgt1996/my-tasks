@@ -45,7 +45,7 @@
         </ion-item>
         <ion-item>
           <ion-icon :icon="filterSharp" style="margin-right: 7px" />
-          <ion-select :label="tr.sortBy" v-model="params.sortBy" v-bind="selectParams(tr.sortBy)">
+          <ion-select :label="tr.sortBy" v-model="params.sortBy" v-bind="selectProps(tr.sortBy)">
             <ion-select-option v-for="val in sorts" :value="val">{{ tr[val] }}</ion-select-option>
           </ion-select>
         </ion-item>
@@ -64,25 +64,17 @@ import {
   trashOutline, radioOutline, musicalNoteOutline, searchCircleOutline, filterSharp,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
-import { Storage } from "@ionic/storage";
-import { onMounted, ref, watch, h } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { useGlobalStore } from "@/global.js"
 import { Share } from '@capacitor/share';
+import { IconText } from "@/components/renderFunctions.js";
 import UiToggle from "@/components/UiToggle.vue";
 
 const emit = defineEmits(['deleteAll'])
 
-const { tr, params, alert } = useGlobalStore()
-const storage = new Storage()
+const { tr, params, storage, selectProps, alert } = useGlobalStore()
+
 const sorts = ['createdDate', 'changedDate', 'titles', 'priorities', 'notifications']
-
-const IconText = ({ text, icon }) =>
-  h(IonItem, { button: true }, () => [
-    h(IonIcon, { icon, style: 'margin-right: 10px' }), h(IonLabel, () => text)
-  ])
-
-const selectParams = (label) => ({ cancelText: tr.cancel, interfaceOptions: { header: label } })
-
 const menuRef = ref()
 const isOpen = ref(false)
 const contactLink = 'mailto:azatgt96@gmail.com?subject=My%20Tasks%20Support&body='

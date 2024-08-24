@@ -1,10 +1,14 @@
 import { defineStore } from 'pinia'
 import { reactive } from 'vue'
 import { toastController, alertController } from '@ionic/vue'
+import { Storage } from "@ionic/storage";
 
 export const useGlobalStore = defineStore('global', () => {
+    const storage = new Storage()
     const tr = reactive({})
     const params = reactive({}) // setting params
+
+    const selectProps = (label) => ({ cancelText: tr.cancel, interfaceOptions: { header: label } })
 
     const toast = (message, color = 'success') =>
         toastController.create({ message, duration: 1500, color, animated: true,  }).then(toast => toast.present())
@@ -20,5 +24,5 @@ export const useGlobalStore = defineStore('global', () => {
         }).then(alert => alert.present())
     
     
-    return { tr, params, toast, alert, confirm }
+    return { tr, params, storage, selectProps, toast, alert, confirm }
 })
