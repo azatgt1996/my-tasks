@@ -8,7 +8,7 @@
     <ion-content>
       <ion-list @click="menuRef.$el.close()">
         <IconText :icon="mailOutline" :text="tr.contactUs" @click="contactUs" />
-        <IconText :icon="trashOutline" :text="tr.deleteAll" @click="deleteAll" />
+        <IconText :icon="trashOutline" :text="tr.deleteAll" @click="emit('deleteAll')" />
         <IconText :icon="shareSocialOutline" :text="tr.share" @click="shareApp" />
         <IconText :icon="starOutline" :text="tr.rateApp" @click="rateApp" />
         <IconText :icon="informationCircleOutline" :text="tr.aboutApp" @click="showAppInfo" />
@@ -70,7 +70,9 @@ import { useGlobalStore } from "@/global.js"
 import { Share } from '@capacitor/share';
 import UiToggle from "@/components/UiToggle.vue";
 
-const { tr, params, toast, confirm, alert } = useGlobalStore()
+const emit = defineEmits(['deleteAll'])
+
+const { tr, params, alert } = useGlobalStore()
 const storage = new Storage()
 const sorts = ['createdDate', 'changedDate', 'titles', 'priorities', 'notifications']
 
@@ -97,15 +99,6 @@ const rateApp = () => window.location.href = appLink
 const showAppInfo = () => {
   const assetsLinks = `\n\n${tr.flagIcons}:\nhttps://www.flaticon.com\n${tr.sounds}:\nhttps://mixkit.co/free-sound-effects`
   alert(tr.aboutText + assetsLinks, tr.appInfo)
-}
-
-const deleteAll = () => {
-  // if (!tasks.value.length) return toast(tr.noTasksToDelete)
-  // confirm(tr.aysToDelete, () => {
-  //   tasks.value = []
-  //   saveTasks()
-  //   toast(tr.allDeleted)
-  // })
 }
 
 onMounted(async () => {

@@ -1,5 +1,5 @@
 <template>
-  <Menu />
+  <Menu @deleteAll="deleteAll"/>
   <ion-page id="main-content">
     <ion-header>
       <ion-toolbar>
@@ -130,7 +130,7 @@ import {
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
 import { Storage } from "@ionic/storage";
-import { computed, onMounted, ref, watch, h } from "vue";
+import { computed, onMounted, ref, watch, h, reactive } from "vue";
 import { onClickOutside } from '@vueuse/core';
 import { Translations, langs } from "@/translations.js";
 import { nanoid, customAlphabet } from "nanoid";
@@ -140,7 +140,7 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { Haptics } from "@capacitor/haptics";
 import Menu from "@/components/Menu.vue";
 
-const { tr, params, toast } = useGlobalStore()
+const { tr, params, toast, confirm } = useGlobalStore()
 const getFlagImg = (name) => new URL(`../assets/flags/${name}.png`, import.meta.url).href
 
 const numNanoid = customAlphabet('123456789', 8)
@@ -183,9 +183,9 @@ const filtered = computed(() => {
   let result = []
 
   const onlyAllPriorities = _filter.length === 3 && isEqual(_filter, priorities)
-  if (!_keyword.trim() && onlyAllPriorities) result = tasks.value.filter(it => !it.archived)
+  if (!_keyword.trim() && onlyAllPriorities) result = tasks.filter(it => !it.archived)
 
-  result = tasks.value.filter(it => {
+  result = tasks.filter(it => {
     let result = it.title.toLowerCase().includes(_keyword)
     if (params.searchInDesc) result ||= it.description.toLowerCase().includes(_keyword)
     result &&= _filter.includes(it.priority)
@@ -205,13 +205,13 @@ const filtered = computed(() => {
 })
 
 const listTitle = computed(() => {
-  if (!tasks.value.length) return tr.emptyList
+  if (!tasks.length) return tr.emptyList
   if (!filtered.value.length) return tr.tasksNotFound
 })
 // #endregion
 
 // #region Main
-const tasks = ref([])
+const tasks = reactive([])
 const title = ref('')
 const current = ref({})
 const isOpen = ref(false)
@@ -233,7 +233,7 @@ class Task {
 }
 
 const saveTasks = () => {
-  const storedTasks = JSON.stringify(tasks.value)
+  const storedTasks = JSON.stringify(tasks)
   storage.set('storedTasks', storedTasks)
   if (params.sound) audio.play().catch(log)
   if (params.vibro) Haptics.vibrate({ duration: 40 })
@@ -247,12 +247,12 @@ const openTask = (task) => {
 const changeTask = (cur) => {
   cur.title = cur.title.trim()
   if (!cur.title) return toast(tr.titleIsEmpty, 'warning')
-  if (tasks.value.find(it => it.title === cur.title && it.id !== cur.id))
+  if (tasks.find(it => it.title === cur.title && it.id !== cur.id))
     return toast(tr.taskExists, 'warning')
-  const idx = tasks.value.findIndex(it => it.id === cur.id)
-  if (!isEqual(cur, tasks.value[idx])) {
-    tasks.value[idx] = cur
-    tasks.value[idx].changed = new Date().toLocaleString()
+  const idx = tasks.findIndex(it => it.id === cur.id)
+  if (!isEqual(cur, tasks[idx])) {
+    tasks[idx] = cur
+    tasks[idx].changed = new Date().toLocaleString()
     if (new Date() < new Date(cur.notification))
       scheduleNotification(+numNanoid(), 'My Tasks', cur.notification, cur.title)
 
@@ -265,31 +265,40 @@ const changeTask = (cur) => {
 
 const addTask = (_title) => {
   _title = _title.trim()
-  if (tasks.value.find(it => it.title === _title))
+  if (tasks.find(it => it.title === _title))
     return toast(tr.taskExists, 'warning')
   title.value = ''
   if (!_title) return toast(tr.titleIsEmpty, 'warning')
 
   const newTask = new Task(_title)
-  tasks.value.push(newTask)
+  tasks.push(newTask)
   toast(tr.taskAdded)
   saveTasks()
 }
 
 const removeTask = (task) => {
-  const idx = tasks.value.findIndex(it => it.id === task.id)
-  tasks.value.splice(idx, 1)
+  const idx = tasks.findIndex(it => it.id === task.id)
+  tasks.splice(idx, 1)
   toast(tr.taskDeleted)
   saveTasks()
 }
 
+const deleteAll = () => {
+  if (!tasks.length) return toast(tr.noTasksToDelete)
+  confirm(tr.aysToDelete, () => {
+    tasks.length = 0
+    saveTasks()
+    toast(tr.allDeleted)
+  })
+}
+
 const toggleArchived = async (task) => {
-  const idx = tasks.value.findIndex(it => it.id === task.id)
+  const idx = tasks.findIndex(it => it.id === task.id)
   listRef.value?.$el.closeSlidingItems()
   await delay(200)
   const isArchived = !task.archived
-  tasks.value[idx].archived = isArchived
-  tasks.value[idx].changed = new Date().toLocaleString()
+  tasks[idx].archived = isArchived
+  tasks[idx].changed = new Date().toLocaleString()
 
   saveTasks()
   toast(isArchived ? tr.taskArchived : tr.taskUnarchived)
@@ -324,8 +333,9 @@ const toggleDarkMode = () => {
 
 onMounted(async () => {
   await storage.create()
-  const storedTasks = await storage.get('storedTasks')
-  tasks.value = storedTasks ? JSON.parse(storedTasks) : []
+  
+  const _tasks = await storage.get('storedTasks')
+  tasks.push(...(_tasks ? JSON.parse(_tasks) : []))
 
   isDarkMode.value = await storage.get('darkMode')
   document.documentElement.classList.toggle('ion-palette-dark', isDarkMode.value)
