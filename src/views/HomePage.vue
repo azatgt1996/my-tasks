@@ -196,11 +196,13 @@ import { computed, onMounted, reactive, ref, watch, h } from "vue";
 import { onClickOutside } from '@vueuse/core';
 import { Translations, langs } from "@/translations.js";
 import { nanoid, customAlphabet } from "nanoid";
-import { toast, confirm, alert, clone, isEqual, $, delay } from "@/utils.js";
+import { clone, isEqual, $, delay } from "@/utils.js";
+import { useGlobalStore } from "@/global.js"
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Share } from '@capacitor/share';
 import { Haptics } from "@capacitor/haptics";
 
+const { tr, toast, confirm, alert } = useGlobalStore()
 const getFlagImg = (name) => new URL(`../assets/flags/${name}.png`, import.meta.url).href
 
 const numNanoid = customAlphabet('123456789', 8)
@@ -260,9 +262,8 @@ useBackButton(-1, () => {
 })
 
 const lang = ref()
-const tr = reactive({})
-watch(lang, async (val) => {
-  await storage.set('lang', val)
+watch(lang, (val) => {
+  storage.set('lang', val)
   Object.assign(tr, Translations[val])
 })
 // #endregion
@@ -334,11 +335,11 @@ class Task {
   }
 }
 
-const saveTasks = async () => {
+const saveTasks = () => {
   const storedTasks = JSON.stringify(tasks.value)
-  await storage.set('storedTasks', storedTasks)
-  if (params.sound) audio.play()
-  if (params.vibro) await Haptics.vibrate({ duration: 40 })
+  storage.set('storedTasks', storedTasks)
+  if (params.sound) audio.play().catch(log)
+  if (params.vibro) Haptics.vibrate({ duration: 40 })
 }
 
 const openTask = (task) => {
@@ -417,9 +418,9 @@ const scheduleNotification = (id, title, dateTime, body) => {
 // #region Dark mode
 const isDarkMode = ref(false)
 
-const toggleDarkMode = async () => {
+const toggleDarkMode = () => {
   isDarkMode.value = !isDarkMode.value
-  await storage.set('darkMode', isDarkMode.value)
+  storage.set('darkMode', isDarkMode.value)
   document.documentElement.classList.toggle('ion-palette-dark', isDarkMode.value)
 }
 // #endregion
@@ -434,7 +435,6 @@ onMounted(async () => {
 
   const navLang = window.navigator.language.split('-')[0].toUpperCase()
   const _langs = Object.keys(Translations)
-
   lang.value = (await storage.get('lang')) ?? (_langs.includes(navLang) ? navLang : _langs[0])
 
   let _params = await storage.get('params')
