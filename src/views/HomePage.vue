@@ -46,9 +46,7 @@
         <ion-item>
           <ion-icon :icon="filterSharp" style="margin-right: 7px" />
           <ion-select :label="tr.sortBy" v-model="params.sortBy" v-bind="selectParams(tr.sortBy)">
-            <ion-select-option v-for="val in ['createdDate', 'changedDate', 'priorities']" :value="val">
-              {{ tr[val] }}
-            </ion-select-option>
+            <ion-select-option v-for="val in sorts" :value="val">{{ tr[val] }}</ion-select-option>
           </ion-select>
         </ion-item>
         <!-- <ion-item button @click="exportToPdf">
@@ -238,7 +236,6 @@ const shareApp = () => Share.share({ text: tr.shareText, url: appLink })
 const rateApp = () => window.location.href = appLink
 
 const showAppInfo = () => {
-  log(77, 99)
   const assetsLinks = `\n\n${tr.flagIcons}:\nhttps://www.flaticon.com\n${tr.sounds}:\nhttps://mixkit.co/free-sound-effects`
   alert(tr.aboutText + assetsLinks, tr.appInfo)
 }
@@ -275,6 +272,8 @@ const priorityType = { low: 'success', medium: 'warning', high: 'danger' }
 const priorities = Object.keys(priorityType)
 const keyword = ref('')
 const filters = ref([])
+const sorts = ['createdDate', 'changedDate', 'titles', 'priorities', 'notifications']
+const priorityNum = { low: 0, medium: 1, high: 2 }
 
 watch(filters, (val) => {
   storage.set('filters', JSON.stringify(val))
@@ -283,17 +282,27 @@ watch(filters, (val) => {
 const filtered = computed(() => {
   const _filter = filters.value
   const _keyword = keyword.value.toLowerCase()
+  let result = []
 
   const onlyAllPriorities = _filter.length === 3 && isEqual(_filter, priorities)
-  if (!_keyword.trim() && onlyAllPriorities) return tasks.value.filter(it => !it.archived)
+  if (!_keyword.trim() && onlyAllPriorities) result = tasks.value.filter(it => !it.archived)
 
-  return tasks.value.filter(it => {
+  result = tasks.value.filter(it => {
     let result = it.title.toLowerCase().includes(_keyword)
     if (params.searchInDesc) result ||= it.description.toLowerCase().includes(_keyword)
     result &&= _filter.includes(it.priority)
     if (!_filter.includes('archived')) result &&= !it.archived
     if (_filter.includes('notificated')) result &&= new Date() < new Date(it.notification)
     return result
+  })
+
+  return result.sort((t1, t2) => {
+    const sortBy = params.sortBy
+    if (sortBy === 'createdDate') return new Date(t1.created) - new Date(t2.created)
+    if (sortBy === 'changedDate') return new Date(t1.changed) - new Date(t2.changed)
+    if (sortBy === 'titles') return t1.title.localeCompare(t2.title)
+    if (sortBy === 'priorities') return priorityNum[t1.priority] - priorityNum[t2.priority]
+    if (sortBy === 'notifications') return new Date(t1.notification) - new Date(t2.notification)
   })
 })
 
