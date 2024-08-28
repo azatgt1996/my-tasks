@@ -8,7 +8,6 @@
     <ion-content>
       <ion-list @click="menuRef.$el.close()">
         <IconText :icon="mailOutline" :text="tr.contactUs" @click="contactUs" />
-        <IconText :icon="trashOutline" :text="tr.deleteAll" @click="emit('deleteAll')" />
         <IconText :icon="shareSocialOutline" :text="tr.share" @click="shareApp" />
         <IconText :icon="starOutline" :text="tr.rateApp" @click="rateApp" />
         <IconText :icon="informationCircleOutline" :text="tr.aboutApp" @click="showAppInfo" />
@@ -49,7 +48,7 @@
         <ion-item>
           <ion-icon :icon="filterSharp" />
           <ion-select :label="tr.sortBy" v-model="$params.sortBy" v-bind="selectProps(tr.sortBy)">
-            <ion-select-option v-for="val in sorts" :value="val">{{ tr[val] }}</ion-select-option>
+            <ion-select-option v-for="val in sorts" :value="val">{{ tr[val].toLowerCase() }}</ion-select-option>
           </ion-select>
         </ion-item>
         <ion-item>
@@ -63,6 +62,10 @@
             @ionChange="trModal = true">
             <ion-select-option v-for="lang in langs" :value="lang.value">{{ lang.label }}</ion-select-option>
           </ion-select>
+        </ion-item>
+        <ion-item button @click="emit('deleteAll')">
+          <ion-icon :icon="trashOutline" color="danger" />
+          <ion-label color="danger">{{ tr.deleteAll }}</ion-label>
         </ion-item>
       </ion-list>
     </ion-content>
@@ -121,7 +124,7 @@ const emit = defineEmits(['deleteAll'])
 
 const { tr, params, storage, selectProps, alert, toast } = useGlobalStore()
 
-const sorts = ['createdDate', 'changedDate', 'titles', 'priorities', 'notifications']
+const sorts = ['created', 'changed', 'title', 'priority', 'notification']
 const menuRef = ref()
 const isOpen = ref(false)
 const trModal = ref(false)
@@ -150,7 +153,7 @@ const showAppInfo = () => {
 const sendTranslation = () => {
   for (const key of Object.keys(Translations[lang.value]))
     if (!trData.value[key]?.trim()) return toast(tr.fillAllFields, 'warning')
-  
+
   sendToEmail(JSON.stringify(trData.value), tr.translation)
   trModal.value = false
 }
@@ -175,7 +178,7 @@ onMounted(async () => {
   let _params = await storage.get('params')
   const defaultParams = {
     vibro: true, sound: false, searchInDesc: false,
-    sortBy: 'createdDate', orderByDesc: false,
+    sortBy: 'created', orderByDesc: false,
   }
   _params = _params ? JSON.parse(_params) : defaultParams
   Object.assign(params, _params)

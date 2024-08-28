@@ -81,10 +81,10 @@
         <ion-content>
           <ion-list>
             <ion-item>
-              <ion-input :label="tr.created" v-model="current.created" readonly label-placement="fixed" />
+              <ion-input :label="tr.created" v-model="current.created" readonly class="full-label" />
             </ion-item>
             <ion-item>
-              <ion-input :label="tr.changed" v-model="current.changed" readonly label-placement="fixed" />
+              <ion-input :label="tr.changed" v-model="current.changed" readonly class="full-label" />
             </ion-item>
             <ion-item>
               <ion-input :label="tr.title" :placeholder="tr.typeTask" v-model="current.title" label-placement="fixed"
@@ -200,11 +200,11 @@ const filtered = computed(() => {
   return result.sort((t1, t2) => {
     if (params.orderByDesc) [t1, t2] = [t2, t1]
     const sortBy = params.sortBy
-    if (sortBy === 'createdDate') return new Date(t1.created) - new Date(t2.created)
-    if (sortBy === 'changedDate') return new Date(t1.changed) - new Date(t2.changed)
-    if (sortBy === 'titles') return t1.title.localeCompare(t2.title)
-    if (sortBy === 'priorities') return priorityNum[t1.priority] - priorityNum[t2.priority]
-    if (sortBy === 'notifications') return new Date(t1.notification) - new Date(t2.notification)
+    if (sortBy === 'created') return new Date(t1.created) - new Date(t2.created)
+    if (sortBy === 'changed') return new Date(t1.changed) - new Date(t2.changed)
+    if (sortBy === 'title') return t1.title.localeCompare(t2.title)
+    if (sortBy === 'priority') return priorityNum[t1.priority] - priorityNum[t2.priority]
+    if (sortBy === 'notification') return new Date(t1.notification) - new Date(t2.notification)
   })
 })
 
@@ -388,5 +388,13 @@ ion-searchbar {
   overflow: hidden;
   white-space: nowrap;
   padding-right: 5px
+}
+
+.full-label>label {
+  justify-content: space-between;
+}
+
+.full-label>label>.native-wrapper {
+  max-width: fit-content;
 }
 </style>
