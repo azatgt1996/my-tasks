@@ -1,5 +1,5 @@
 <template>
-  <Menu @deleteAll="deleteAll" />
+  <Menu :language="lang" @deleteAll="deleteAll" />
   <ion-page id="main-content">
     <ion-header>
       <ion-toolbar>
@@ -70,10 +70,10 @@
             <ion-title>{{ tr.detailInfo }}</ion-title>
             <ion-buttons slot="end">
               <ion-button @click="changeTask(current)">
-                <ion-icon :icon="checkmark" color="success" />
+                <ion-icon :icon="saveSharp" />
               </ion-button>
               <ion-button @click="isOpen = false">
-                <ion-icon :icon="close" color="primary" />
+                <ion-icon :icon="closeCircleOutline" />
               </ion-button>
             </ion-buttons>
           </ion-toolbar>
@@ -111,6 +111,16 @@
             </ion-item>
           </ion-list>
         </ion-content>
+        <ion-footer style="display: flex">
+          <ion-button size="small" style="width: 100%" fill="outline" @click="prevTask">
+            <ion-icon slot="start" :icon="arrowBackOutline" />
+            {{ tr.prev }}
+          </ion-button>
+          <ion-button size="small" style="width: 100%" fill="outline" @click="nextTask">
+            <ion-icon slot="end" :icon="arrowForwardOutline" />
+            {{ tr.next }}
+          </ion-button>
+        </ion-footer>
       </ion-modal>
     </ion-content>
   </ion-page>
@@ -120,18 +130,18 @@
 import {
   IonMenuButton, IonButton, IonContent, IonHeader, IonIcon, IonInput, IonToolbar, IonModal, IonSearchbar, IonDatetime,
   IonItem, IonLabel, IonList, IonPage, IonTitle, IonButtons, IonDatetimeButton, IonSegment, IonSegmentButton, IonTextarea,
-  IonItemSliding, IonItemOptions, IonItemOption, IonSelect, IonSelectOption, useBackButton, useIonRouter,
+  IonItemSliding, IonItemOptions, IonItemOption, IonSelect, IonSelectOption, useBackButton, useIonRouter, IonFooter
 } from '@ionic/vue';
 import {
-  addCircle, checkmark, close, ellipse, funnel, sunny, moon, trashOutline, arrowUpCircleOutline, arrowDownCircleOutline, archiveOutline,
-  alarmOutline, searchCircleOutline, searchSharp,
+  addCircle, ellipse, funnel, sunny, moon, trashOutline, arrowUpCircleOutline, arrowDownCircleOutline, archiveOutline,
+  alarmOutline, searchCircleOutline, searchSharp, arrowBackOutline, arrowForwardOutline, saveSharp, closeCircleOutline
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
 import { computed, onMounted, ref, watch, reactive } from "vue";
 import { onClickOutside } from '@vueuse/core';
 import { Translations, langs } from "@/translations.js";
 import { nanoid, customAlphabet } from "nanoid";
-import { clone, isEqual, $, delay } from "@/utils.js";
+import { clone, isEqual, $, delay, log } from "@/utils.js";
 import { useGlobalStore } from "@/global.js"
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Haptics } from "@capacitor/haptics";
@@ -143,7 +153,6 @@ const { tr, params, storage, selectProps, toast, confirm } = useGlobalStore()
 const getFlagImg = (name) => new URL(`../assets/flags/${name}.png`, import.meta.url).href
 const numNanoid = customAlphabet('123456789', 8)
 const audio = new Audio('/click.wav')
-const log = console.log
 
 // #region Others
 const ionRouter = useIonRouter()
@@ -170,6 +179,8 @@ watch(filters, (val) => {
 })
 
 const filtered = computed(() => {
+  if (!tasks.length) return []
+
   const _filter = filters.value
   const _keyword = keyword.value.toLowerCase()
   let result = []
@@ -187,6 +198,7 @@ const filtered = computed(() => {
   })
 
   return result.sort((t1, t2) => {
+    if (params.orderByDesc) [t1, t2] = [t2, t1]
     const sortBy = params.sortBy
     if (sortBy === 'createdDate') return new Date(t1.created) - new Date(t2.created)
     if (sortBy === 'changedDate') return new Date(t1.changed) - new Date(t2.changed)
@@ -225,8 +237,7 @@ class Task {
 }
 
 const saveTasks = () => {
-  const storedTasks = JSON.stringify(tasks)
-  storage.set('storedTasks', storedTasks)
+  storage.set('tasks', JSON.stringify(tasks))
   if (params.sound) audio.play().catch(log)
   if (params.vibro) Haptics.vibrate({ duration: 40 })
 }
@@ -295,6 +306,18 @@ const toggleArchived = async (task) => {
   saveTasks()
   toast(isArchived ? tr.taskArchived : tr.taskUnarchived)
 }
+
+const prevTask = () => {
+  const idx = filtered.value.findIndex(it => it.id === current.value.id)
+  const prev = idx === 0 ? filtered.value.at(-1) : filtered.value[idx - 1]
+  current.value = clone(prev)
+}
+
+const nextTask = () => {
+  const idx = filtered.value.findIndex(it => it.id === current.value.id)
+  const next = idx === (filtered.value.length - 1) ? filtered.value[0] : filtered.value[idx + 1]
+  current.value = clone(next)
+}
 // #endregion
 
 // #region Notification
@@ -325,7 +348,7 @@ const toggleDarkMode = () => {
 onMounted(async () => {
   await storage.create()
 
-  const _tasks = await storage.get('storedTasks')
+  const _tasks = await storage.get('tasks')
   tasks.push(...(_tasks ? JSON.parse(_tasks) : []))
 
   isDarkMode.value = await storage.get('darkMode')

@@ -8,7 +8,7 @@ export const useGlobalStore = defineStore('global', () => {
     const tr = reactive({})
     const params = reactive({}) // setting params
 
-    const selectProps = (label) => ({ cancelText: tr.cancel, interfaceOptions: { header: label } })
+    const selectProps = (label, message) => ({ cancelText: tr.cancel, interfaceOptions: { header: label, message } })
 
     const toast = (message, color = 'success') =>
         toastController.create({ message, duration: 1500, color, animated: true,  }).then(toast => toast.present())

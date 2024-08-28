@@ -5,3 +5,10 @@ export const isEqual = (obj1, obj2) => JSON.stringify(obj1) === JSON.stringify(o
 export const $ = (_) => document.querySelector(_), $$ = (_) => document.querySelectorAll(_)
 
 export const delay = (ms = 0) => new Promise(resolve => setTimeout(resolve, ms))
+
+export const str = (template, ...args) => template.replace(/%s/g, () => args.shift())
+
+export const log = console.log
+
+export const sendToEmail = (body, subj, email = 'azatgt96@gmail.com') =>
+    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`
