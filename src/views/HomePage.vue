@@ -27,7 +27,7 @@
           <ion-select-option value="medium">{{ tr.medium }}</ion-select-option>
           <ion-select-option value="high">{{ tr.high }}</ion-select-option>
           <OptionsGroup :label="tr.others" />
-          <ion-select-option value="archived">{{ tr.archived }}</ion-select-option>
+          <ion-select-option value="completed">{{ tr.completed }}</ion-select-option>
           <ion-select-option value="notificated">{{ tr.notificated }}</ion-select-option>
         </ion-select>
         <ion-icon :icon="funnel" @click="$('#fSelect').click()"
@@ -43,14 +43,14 @@
     <ion-content>
       <ion-list ref="listRef" v-if="filtered.length">
         <ion-item-sliding v-for="task in filtered" :key="task.id">
-          <ion-item-options side="start" @ion-swipe="toggleArchived(task)">
-            <ion-item-option color="success" expandable @click="toggleArchived(task)">
-              <ion-icon slot="icon-only" :icon="task.archived ? arrowUpCircleOutline : arrowDownCircleOutline" />
+          <ion-item-options side="start" @ion-swipe="toggleCompleted(task)">
+            <ion-item-option color="primary" expandable @click="toggleCompleted(task)">
+              <ion-icon slot="icon-only" :icon="task.completed ? arrowUndoCircleOutline : checkmarkCircleOutline" />
             </ion-item-option>
           </ion-item-options>
           <ion-item button @click="openTask(task)">
             <ion-label class="task-title">{{ task.title }}</ion-label>
-            <ion-icon v-if="task.archived" :icon="archiveOutline" size="small" style="margin-right: 2px" />
+            <ion-icon v-if="task.completed" :icon="checkmarkCircleOutline" size="small" style="margin-right: 2px" />
             <ion-icon v-if="new Date() < new Date(task.notification)" :icon="alarmOutline" size="small"
               style="margin-right: 2px" />
             <ion-icon :icon="ellipse" size="small" :color="priorityType[task.priority]" />
@@ -133,7 +133,7 @@ import {
   IonItemSliding, IonItemOptions, IonItemOption, IonSelect, IonSelectOption, useBackButton, useIonRouter, IonFooter
 } from '@ionic/vue';
 import {
-  addCircle, ellipse, funnel, sunny, moon, trashOutline, arrowUpCircleOutline, arrowDownCircleOutline, archiveOutline,
+  addCircle, ellipse, funnel, sunny, moon, trashOutline, arrowUndoCircleOutline, checkmarkCircleOutline,
   alarmOutline, searchCircleOutline, searchSharp, arrowBackOutline, arrowForwardOutline, saveSharp, closeCircleOutline
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
@@ -186,13 +186,13 @@ const filtered = computed(() => {
   let result = []
 
   const onlyAllPriorities = _filter.length === 3 && isEqual(_filter, priorities)
-  if (!_keyword.trim() && onlyAllPriorities) result = tasks.filter(it => !it.archived)
+  if (!_keyword.trim() && onlyAllPriorities) result = tasks.filter(it => !it.completed)
 
   result = tasks.filter(it => {
     let result = it.title.toLowerCase().includes(_keyword)
     if (params.searchInDesc) result ||= it.description.toLowerCase().includes(_keyword)
     result &&= _filter.includes(it.priority)
-    if (!_filter.includes('archived')) result &&= !it.archived
+    if (!_filter.includes('completed')) result &&= !it.completed
     if (_filter.includes('notificated')) result &&= new Date() < new Date(it.notification)
     return result
   })
@@ -231,7 +231,7 @@ class Task {
     this.changed = new Date().toLocaleString()
     this.description = description
     this.priority = 'low'
-    this.archived = false
+    this.completed = false
     this.notification = notification ?? '2020-01-01T18:00:00'
   }
 }
@@ -295,16 +295,16 @@ const deleteAll = () => {
   })
 }
 
-const toggleArchived = async (task) => {
+const toggleCompleted = async (task) => {
   const idx = tasks.findIndex(it => it.id === task.id)
   listRef.value?.$el.closeSlidingItems()
   await delay(200)
-  const isArchived = !task.archived
-  tasks[idx].archived = isArchived
+  const isCompleted = !task.completed
+  tasks[idx].completed = isCompleted
   tasks[idx].changed = new Date().toLocaleString()
 
   saveTasks()
-  toast(isArchived ? tr.taskArchived : tr.taskUnarchived)
+  toast(isCompleted ? tr.taskCompleted : tr.taskUncompleted)
 }
 
 const prevTask = () => {

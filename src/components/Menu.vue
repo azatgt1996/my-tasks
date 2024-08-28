@@ -84,7 +84,7 @@
       </ion-toolbar>
     </ion-header>
     <ion-content>
-      <ion-list>
+      <ion-list lines="none">
         <ion-item class="tr-item">
           <ion-input :label="tr.lang" v-model="trData._language" fill="outline" />
         </ion-item>
