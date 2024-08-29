@@ -88,7 +88,10 @@
         <ion-item class="tr-item">
           <ion-input :label="tr.lang" v-model="trData._language" fill="outline" />
         </ion-item>
-        <ion-item v-for="key in Object.keys(Translations[lang]).slice(1)" class="tr-item">
+        <ion-item class="tr-item">
+          <ion-input :label="tr.trAuthor" v-model="trData._trAuthor" fill="outline" />
+        </ion-item>
+        <ion-item v-for="key in Object.keys(Translations[lang]).slice(2)" class="tr-item">
           <ion-input :value="Translations[lang][key]" readonly fill="outline" />
           <ion-input v-model="trData[key]" style="margin-left: 5px" fill="outline" />
         </ion-item>
@@ -146,7 +149,10 @@ const showAppInfo = () => {
   const flagIconsLink = 'https://www.flaticon.com'
   const soundsLink = 'https://mixkit.co/free-sound-effects'
 
-  const msg = str(tr.aboutText, author, techStack, flagIconsLink, soundsLink)
+  const trAuthors = Object.keys(Translations).map(key => ` ${Translations[key]._language}: ${Translations[key]._trAuthor}`).join('\n')
+  const fullText = tr.aboutText + `${tr.translation}:\n` + trAuthors
+
+  const msg = str(fullText, author, techStack, flagIconsLink, soundsLink)
   alert(msg, tr.appInfo)
 }
 
@@ -154,7 +160,8 @@ const sendTranslation = () => {
   for (const key of Object.keys(Translations[lang.value]))
     if (!trData.value[key]?.trim()) return toast(tr.fillAllFields, 'warning')
 
-  sendToEmail(JSON.stringify(trData.value), tr.translation)
+  const trText = JSON.stringify(trData.value, null, 2).replace(/"([^"]+)":/g, '$1:')
+  sendToEmail(trText, tr.translation)
   trModal.value = false
 }
 

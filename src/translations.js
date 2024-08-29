@@ -1,4 +1,5 @@
 const EN = {
+    _trAuthor: 'Galyautdinov Ilyas',
     _language: 'English',
     needNotifyPermission: 'Need a notification permission to set reminder',
     menu: 'Menu',
@@ -12,7 +13,7 @@ const EN = {
     rateApp: 'Rate the app',
     aboutApp: 'About the app',
     appInfo: 'App info',
-    aboutText: 'Author: %s\n\nUsed stacks: %s\n\nFlag icons: %s\n\nSounds: %s\n\n',
+    aboutText: 'Author: %s\n\nUsed stacks:\n%s\n\nFlag icons:\n%s\n\nSounds:\n%s\n\n',
     settings: 'Settings',
     exit: 'Close the app',
     attention: 'Attention',
@@ -30,6 +31,7 @@ const EN = {
     send: 'Send',
     lang: 'Language',
     selectLang: 'Select the language',
+    trAuthor: 'Author of the translation',
     fillAllFields: 'Fill in all fields',
 
     myTasks: 'My Tasks',
@@ -66,6 +68,7 @@ const EN = {
 }
 
 const RU = {
+    _trAuthor: 'Galyautdinov Azat',
     _language: 'Русский',
     needNotifyPermission: 'Для установки напоминания необходимо разрешение на получение уведомлений',
     menu: 'Меню',
@@ -79,7 +82,7 @@ const RU = {
     rateApp: 'Оценить приложение',
     aboutApp: 'О приложении',
     appInfo: 'Информация о приложении',
-    aboutText: 'Автор: %s\n\nИспользованные технологии: %s\n\nИконки флагов: %s\n\nЗвуки: %s\n\n',
+    aboutText: 'Автор: %s\n\nИспользованные технологии:\n%s\n\nИконки флагов:\n%s\n\nЗвуки:\n%s\n\n',
     settings: 'Настройки',
     exit: 'Закрыть приложение',
     attention: 'Внимание',
@@ -97,6 +100,7 @@ const RU = {
     send: 'Отправить',
     lang: 'Язык',
     selectLang: 'Выберите язык',
+    trAuthor: 'Автор перевода',
     fillAllFields: 'Заполните все поля',
 
     myTasks: 'Мои задачи',
@@ -133,6 +137,7 @@ const RU = {
 }
 
 const ES = {
+    _trAuthor: 'Galyautdinov Azat',
     _language: 'Español',
     needNotifyPermission: 'Necesita un permiso de notificación para configurar un recordatorio',
     menu: 'Menú',
@@ -146,7 +151,7 @@ const ES = {
     rateApp: 'Califica la aplicación',
     aboutApp: 'Acerca de la aplicación',
     appInfo: 'Información de la aplicación',
-    aboutText: 'Autor: %s\n\nTecnologías utilizadas: %s\n\nIconos de bandera: %s\n\nSonidos: %s\n\n',
+    aboutText: 'Autor: %s\n\nTecnologías utilizadas:\n%s\n\nIconos de bandera:\n%s\n\nSonidos:\n%s\n\n',
     settings: 'Ajustes',
     exit: 'Cerrar aplicación',
     attention: 'Atención',
@@ -164,6 +169,7 @@ const ES = {
     send: 'Enviar',
     lang: 'Idioma',
     selectLang: 'Selecciona el idioma',
+    trAuthor: 'Autor de la traducción',
     fillAllFields: 'Complete todos los campos',
 
     myTasks: 'Mis Tareas',
