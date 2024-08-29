@@ -41,7 +41,10 @@
     </ion-header>
 
     <ion-content>
-      <ion-list ref="listRef" v-if="filtered.length">
+      <div v-if="loading" class="spinner-container">
+        <ion-spinner name="lines" />
+      </div>
+      <ion-list v-else-if="filtered.length" ref="listRef">
         <ion-item-sliding v-for="task in filtered" :key="task.id">
           <ion-item-options side="start" @ion-swipe="toggleCompleted(task)">
             <ion-item-option color="primary" expandable @click="toggleCompleted(task)">
@@ -62,7 +65,7 @@
           </ion-item-options>
         </ion-item-sliding>
       </ion-list>
-      <h1 v-else class="ion-text-center">{{ listTitle }}</h1>
+      <h1 v-else class="list-status">{{ listStatus }}</h1>
 
       <ion-modal :is-open="isOpen" @didDismiss="isOpen = false">
         <ion-header>
@@ -130,11 +133,11 @@
 import {
   IonMenuButton, IonButton, IonContent, IonHeader, IonIcon, IonInput, IonToolbar, IonModal, IonSearchbar, IonDatetime,
   IonItem, IonLabel, IonList, IonPage, IonTitle, IonButtons, IonDatetimeButton, IonSegment, IonSegmentButton, IonTextarea,
-  IonItemSliding, IonItemOptions, IonItemOption, IonSelect, IonSelectOption, useBackButton, useIonRouter, IonFooter
+  IonItemSliding, IonItemOptions, IonItemOption, IonSelect, IonSelectOption, useBackButton, useIonRouter, IonFooter, IonSpinner,
 } from '@ionic/vue';
 import {
   addCircle, ellipse, funnel, sunny, moon, trashOutline, arrowUndoCircleOutline, checkmarkCircleOutline,
-  alarmOutline, searchCircleOutline, searchSharp, caretBackOutline, caretForwardOutline, saveSharp, closeCircleOutline
+  alarmOutline, searchCircleOutline, searchSharp, caretBackOutline, caretForwardOutline, saveSharp, closeCircleOutline,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
 import { computed, onMounted, ref, watch, reactive } from "vue";
@@ -208,7 +211,7 @@ const filtered = computed(() => {
   })
 })
 
-const listTitle = computed(() => {
+const listStatus = computed(() => {
   if (!tasks.length) return tr.emptyList
   if (!filtered.value.length) return tr.tasksNotFound
 })
@@ -356,11 +359,11 @@ const toggleDarkMode = () => {
 }
 // #endregion
 
-onMounted(async () => {
-  await storage.create()
+const loading = ref(false)
 
-  const _tasks = await storage.get('tasks')
-  tasks.push(...(_tasks ? JSON.parse(_tasks) : []))
+onMounted(async () => {
+  loading.value = true
+  await storage.create()
 
   isDarkMode.value = await storage.get('darkMode')
   document.documentElement.classList.toggle('ion-palette-dark', isDarkMode.value)
@@ -370,6 +373,10 @@ onMounted(async () => {
   lang.value = (await storage.get('lang')) ?? (_langs.includes(navLang) ? navLang : _langs[0])
 
   filters.value = JSON.parse(await storage.get('filters')) ?? priorities
+
+  const _tasks = await storage.get('tasks')
+  tasks.push(...(_tasks ? JSON.parse(_tasks) : []))
+  loading.value = false
 
   checkNotificationPermission()
 })
@@ -403,9 +410,24 @@ ion-searchbar {
 
 .full-label>label {
   justify-content: space-between;
+
+  &>.native-wrapper {
+    max-width: fit-content;
+  }
 }
 
-.full-label>label>.native-wrapper {
-  max-width: fit-content;
+.spinner-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.list-status {
+  height: 100%;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>
