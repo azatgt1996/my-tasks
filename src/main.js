@@ -35,6 +35,12 @@ import '@ionic/vue/css/palettes/dark.class.css';
 /* Theme variables */
 import './theme/variables.css';
 
+Date.toLocale = (date, noTime = false) => {
+  const dt = date ? new Date(date) : new Date()
+  if (noTime) return dt.toLocaleDateString()
+  return dt.toLocaleString().replace(',', '').slice(0, -3)
+}
+
 const pinia = createPinia()
 
 const app = createApp(App)

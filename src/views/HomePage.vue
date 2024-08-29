@@ -69,7 +69,7 @@
           <ion-toolbar>
             <ion-title>{{ tr.detailInfo }}</ion-title>
             <ion-buttons slot="end">
-              <ion-button @click="changeTask(current)">
+              <ion-button @click="changeTask(current)" :disabled="disabledSave">
                 <ion-icon :icon="saveSharp" />
               </ion-button>
               <ion-button @click="isOpen = false">
@@ -81,10 +81,10 @@
         <ion-content>
           <ion-list>
             <ion-item>
-              <ion-input :label="tr.created" v-model="current.created" readonly class="full-label" />
+              <ion-input :label="tr.created" :value="Date.toLocale(current.created)" readonly class="full-label" />
             </ion-item>
             <ion-item>
-              <ion-input :label="tr.changed" v-model="current.changed" readonly class="full-label" />
+              <ion-input :label="tr.changed" :value="Date.toLocale(current.changed)" readonly class="full-label" />
             </ion-item>
             <ion-item>
               <ion-input :label="tr.title" :placeholder="tr.typeTask" v-model="current.title" label-placement="fixed"
@@ -112,12 +112,12 @@
           </ion-list>
         </ion-content>
         <ion-footer style="display: flex">
-          <ion-button size="small" style="width: 100%" fill="outline" @click="prevTask">
-            <ion-icon slot="start" :icon="arrowBackOutline" />
+          <ion-button size="small" style="width: 100%" fill="clear" @click="prevTask">
+            <ion-icon slot="start" :icon="caretBackOutline" />
             {{ tr.prev }}
           </ion-button>
-          <ion-button size="small" style="width: 100%" fill="outline" @click="nextTask">
-            <ion-icon slot="end" :icon="arrowForwardOutline" />
+          <ion-button size="small" style="width: 100%" fill="clear" @click="nextTask">
+            <ion-icon slot="end" :icon="caretForwardOutline" />
             {{ tr.next }}
           </ion-button>
         </ion-footer>
@@ -134,7 +134,7 @@ import {
 } from '@ionic/vue';
 import {
   addCircle, ellipse, funnel, sunny, moon, trashOutline, arrowUndoCircleOutline, checkmarkCircleOutline,
-  alarmOutline, searchCircleOutline, searchSharp, arrowBackOutline, arrowForwardOutline, saveSharp, closeCircleOutline
+  alarmOutline, searchCircleOutline, searchSharp, caretBackOutline, caretForwardOutline, saveSharp, closeCircleOutline
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
 import { computed, onMounted, ref, watch, reactive } from "vue";
@@ -217,9 +217,13 @@ const listTitle = computed(() => {
 // #region Main
 const tasks = reactive([])
 const title = ref('')
-const current = ref({})
 const isOpen = ref(false)
 const listRef = ref()
+
+const current = ref({})
+let originalCurrent = {}
+
+const disabledSave = computed(() => isEqual(originalCurrent, current.value))
 
 onClickOutside(listRef, () => listRef.value.$el.closeSlidingItems())
 
@@ -227,12 +231,12 @@ class Task {
   constructor(title, description = '', notification = null) {
     this.id = nanoid()
     this.title = title
-    this.created = new Date().toLocaleString()
-    this.changed = new Date().toLocaleString()
+    this.created = new Date().toISOString()
+    this.changed = new Date().toISOString()
     this.description = description
     this.priority = 'low'
     this.completed = false
-    this.notification = notification ?? '2020-01-01T18:00:00'
+    this.notification = notification ?? '2020-01-01T18:00:00.000Z'
   }
 }
 
@@ -243,6 +247,7 @@ const saveTasks = () => {
 }
 
 const openTask = (task) => {
+  originalCurrent = clone(task)
   current.value = clone(task)
   isOpen.value = true
 }
@@ -252,18 +257,22 @@ const changeTask = (cur) => {
   if (!cur.title) return toast(tr.titleIsEmpty, 'warning')
   if (tasks.find(it => it.title === cur.title && it.id !== cur.id))
     return toast(tr.taskExists, 'warning')
-  const idx = tasks.findIndex(it => it.id === cur.id)
-  if (!isEqual(cur, tasks[idx])) {
-    tasks[idx] = cur
-    tasks[idx].changed = new Date().toLocaleString()
-    if (new Date() < new Date(cur.notification))
-      scheduleNotification(+numNanoid(), 'My Tasks', cur.notification, cur.title)
 
-    toast(tr.taskChanged)
-    saveTasks()
+  const idx = tasks.findIndex(it => it.id === cur.id)
+  tasks[idx] = cur
+  tasks[idx].changed = new Date().toISOString()
+
+  if (new Date() < new Date(cur.notification)) {
+    const color = ({ low: 'green', medium: 'yellow', high: 'red' })[cur.priority]
+    scheduleNotification(+numNanoid(), tr.myTasks, cur.notification, cur.title, color)
   }
 
-  isOpen.value = false
+  toast(tr.taskChanged)
+  saveTasks()
+  originalCurrent = clone(cur)
+  current.value = clone(cur)
+
+  if (params.autoCloseAfterSave) isOpen.value = false
 }
 
 const addTask = (_title) => {
@@ -301,7 +310,7 @@ const toggleCompleted = async (task) => {
   await delay(200)
   const isCompleted = !task.completed
   tasks[idx].completed = isCompleted
-  tasks[idx].changed = new Date().toLocaleString()
+  tasks[idx].changed = new Date().toISOString()
 
   saveTasks()
   toast(isCompleted ? tr.taskCompleted : tr.taskUncompleted)
@@ -310,12 +319,14 @@ const toggleCompleted = async (task) => {
 const prevTask = () => {
   const idx = filtered.value.findIndex(it => it.id === current.value.id)
   const prev = idx === 0 ? filtered.value.at(-1) : filtered.value[idx - 1]
+  originalCurrent = clone(prev)
   current.value = clone(prev)
 }
 
 const nextTask = () => {
   const idx = filtered.value.findIndex(it => it.id === current.value.id)
   const next = idx === (filtered.value.length - 1) ? filtered.value[0] : filtered.value[idx + 1]
+  originalCurrent = clone(next)
   current.value = clone(next)
 }
 // #endregion
@@ -329,8 +340,8 @@ const checkNotificationPermission = () =>
     })
   })
 
-const scheduleNotification = (id, title, dateTime, body) => {
-  const notification = { id, title, body, schedule: { at: new Date(dateTime) } }
+const scheduleNotification = (id, title, dateTime, body, color) => {
+  const notification = { id, title, body, color, schedule: { at: new Date(dateTime) } }
   LocalNotifications.schedule({ notifications: [notification] })
 }
 // #endregion

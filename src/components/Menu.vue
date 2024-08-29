@@ -10,6 +10,8 @@
         <IconText :icon="mailOutline" :text="tr.contactUs" @click="contactUs" />
         <IconText :icon="shareSocialOutline" :text="tr.share" @click="shareApp" />
         <IconText :icon="starOutline" :text="tr.rateApp" @click="rateApp" />
+        <IconText :icon="helpCircleOutline" :text="tr.guide" @click="showGuide" />
+        <IconText :icon="diamondOutline" :text="tr.buyPrem" @click="buyPremium" />
         <IconText :icon="informationCircleOutline" :text="tr.aboutApp" @click="showAppInfo" />
         <IconText :icon="settingsOutline" :text="tr.settings" @click="openSettingsModal" />
         <IconText :icon="powerOutline" :text="tr.exit" @click="App.exitApp()" />
@@ -22,7 +24,7 @@
       <ion-toolbar>
         <ion-title>{{ tr.settings }}</ion-title>
         <ion-buttons slot="end">
-          <ion-button @click="saveParams">
+          <ion-button @click="saveParams" :disabled="isEqual($params, params)">
             <ion-icon :icon="saveSharp" />
           </ion-button>
           <ion-button @click="isOpen = false">
@@ -55,6 +57,10 @@
           <ion-icon :icon="swapVerticalOutline" />
           <ui-toggle :label="tr.orderByDesc" v-model="$params.orderByDesc" />
         </ion-item>
+        <ion-item>
+          <ion-icon :icon="returnUpBackOutline" />
+          <ui-toggle :label="tr.autoCloseAfterSave" v-model="$params.autoCloseAfterSave" />
+        </ion-item>
         <ion-item button @click="$('#langSelect2').click()">
           <ion-icon :icon="languageOutline" />
           <ion-label>{{ tr.helpWithTranslation }}</ion-label>
@@ -84,14 +90,14 @@
       </ion-toolbar>
     </ion-header>
     <ion-content>
-      <ion-list lines="none">
-        <ion-item class="tr-item">
+      <ion-list lines="none" class="tr-list">
+        <ion-item>
           <ion-input :label="tr.lang" v-model="trData._language" fill="outline" />
         </ion-item>
-        <ion-item class="tr-item">
+        <ion-item>
           <ion-input :label="tr.trAuthor" v-model="trData._trAuthor" fill="outline" />
         </ion-item>
-        <ion-item v-for="key in Object.keys(Translations[lang]).slice(2)" class="tr-item">
+        <ion-item v-for="key in Object.keys(Translations[lang]).slice(2)">
           <ion-input :value="Translations[lang][key]" readonly fill="outline" />
           <ion-input v-model="trData[key]" style="margin-left: 5px" fill="outline" />
         </ion-item>
@@ -107,11 +113,11 @@ import {
 } from '@ionic/vue';
 import {
   closeCircleOutline, mailOutline, powerOutline, informationCircleOutline, settingsOutline, starOutline, shareSocialOutline,
-  trashOutline, radioOutline, searchCircleOutline, filterSharp, volumeLowOutline, swapVerticalOutline, saveSharp,
-  languageOutline,
+  trashOutline, radioOutline, searchCircleOutline, filterSharp, volumeLowOutline, swapVerticalOutline, saveSharp, returnUpBackOutline,
+  languageOutline, helpCircleOutline, diamondOutline,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
-import { $, str, sendToEmail } from "@/utils.js";
+import { $, str, isEqual, sendToEmail } from "@/utils.js";
 import { langs, Translations } from "@/translations.js";
 import { onMounted, reactive, ref, watch } from "vue";
 import { useGlobalStore } from "@/global.js"
@@ -139,7 +145,7 @@ watch(params, (val) => storage.set('params', JSON.stringify(val)), { deep: true 
 
 const contactUs = () => sendToEmail('', 'Support')
 
-const shareApp = () => Share.share({ text: tr.shareText, url: appLink })
+const shareApp = () => Share.share({ text: tr.shareText, url: appLink, dialogTitle: 'Share', title: 'Share2' })
 
 const rateApp = () => window.location.href = appLink
 
@@ -160,10 +166,14 @@ const sendTranslation = () => {
   for (const key of Object.keys(Translations[lang.value]))
     if (!trData.value[key]?.trim()) return toast(tr.fillAllFields, 'warning')
 
+  trData.value._baseLang = lang.value
   const trText = JSON.stringify(trData.value, null, 2).replace(/"([^"]+)":/g, '$1:')
   sendToEmail(trText, tr.translation)
   trModal.value = false
 }
+
+const showGuide = () => {}
+const buyPremium = () => {}
 
 const $params = reactive({})
 
@@ -185,7 +195,7 @@ onMounted(async () => {
   let _params = await storage.get('params')
   const defaultParams = {
     vibro: true, sound: false, searchInDesc: false,
-    sortBy: 'created', orderByDesc: false,
+    sortBy: 'created', orderByDesc: false, autoCloseAfterSave: true,
   }
   _params = _params ? JSON.parse(_params) : defaultParams
   Object.assign(params, _params)
@@ -197,11 +207,7 @@ onMounted(async () => {
   margin-right: 10px;
 }
 
-.tr-item ion-input {
-  min-height: 36px;
-}
-
-.tr-item ion-input label.input-wrapper {
-  padding: 5px !important;
+.tr-list ion-input {
+  min-height: 36px; 
 }
 </style>
