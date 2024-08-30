@@ -1,5 +1,6 @@
 <template>
-  <Menu :language="lang" @deleteAll="deleteAll" />
+  <div> <!-- need only one root node -->
+  <Menu @deleteAll="deleteAll" />
   <ion-page id="main-content">
     <ion-header>
       <ion-toolbar>
@@ -9,13 +10,6 @@
         <ion-title style="padding: 0">
           {{ tr.myTasks }}{{ filtered.length ? `: ${filtered.length}` : '' }}
         </ion-title>
-        <img slot="end" :src="getFlagImg(lang)" :alt="lang" width="30" @click="$('#langSelect').click()"
-          style="margin-right: 8px" />
-        <ion-select v-show="false" v-model="lang" id="langSelect" v-bind="selectProps(tr.selectLang)">
-          <ion-select-option v-for="lang in langs" :value="lang.value">{{ lang.label }}</ion-select-option>
-        </ion-select>
-        <ion-icon :icon="isDarkMode ? moon : sunny" slot="end" size="large" @click="toggleDarkMode"
-          style="margin-right: 8px" />
       </ion-toolbar>
       <ion-item>
         <ion-searchbar v-model="keyword" :placeholder="tr.search" :debounce="500" :maxlength="40"
@@ -44,7 +38,7 @@
       <div v-if="loading" class="spinner-container">
         <ion-spinner name="lines" />
       </div>
-      <ion-list v-else-if="filtered.length" ref="listRef">
+      <TransitionGroup v-else-if="filtered.length" ref="listRef" name="list" tag="ion-list">
         <ion-item-sliding v-for="task in filtered" :key="task.id">
           <ion-item-options side="start" @ion-swipe="toggleCompleted(task)">
             <ion-item-option color="primary" expandable @click="toggleCompleted(task)">
@@ -64,7 +58,7 @@
             </ion-item-option>
           </ion-item-options>
         </ion-item-sliding>
-      </ion-list>
+      </TransitionGroup>
       <h1 v-else class="list-status">{{ listStatus }}</h1>
 
       <ion-modal :is-open="isOpen" @didDismiss="isOpen = false">
@@ -127,6 +121,7 @@
       </ion-modal>
     </ion-content>
   </ion-page>
+  </div>
 </template>
 
 <script setup>
@@ -136,13 +131,12 @@ import {
   IonItemSliding, IonItemOptions, IonItemOption, IonSelect, IonSelectOption, useBackButton, useIonRouter, IonFooter, IonSpinner,
 } from '@ionic/vue';
 import {
-  addCircle, ellipse, funnel, sunny, moon, trashOutline, arrowUndoCircleOutline, checkmarkCircleOutline,
+  addCircle, ellipse, funnel, trashOutline, arrowUndoCircleOutline, checkmarkCircleOutline,
   alarmOutline, searchCircleOutline, searchSharp, caretBackOutline, caretForwardOutline, saveSharp, closeCircleOutline,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
 import { computed, onMounted, ref, watch, reactive } from "vue";
 import { onClickOutside } from '@vueuse/core';
-import { Translations, langs } from "@/translations.js";
 import { nanoid, customAlphabet } from "nanoid";
 import { clone, isEqual, $, delay, log } from "@/utils.js";
 import { useGlobalStore } from "@/global.js"
@@ -153,20 +147,14 @@ import Menu from "@/components/Menu.vue";
 
 const { tr, params, storage, selectProps, toast, confirm } = useGlobalStore()
 
-const getFlagImg = (name) => new URL(`../assets/flags/${name}.png`, import.meta.url).href
+// #region Others
 const numNanoid = customAlphabet('123456789', 8)
 const audio = new Audio('/click.wav')
+const loading = ref(false)
 
-// #region Others
 const ionRouter = useIonRouter()
 useBackButton(-1, () => {
   if (!ionRouter.canGoBack()) App.exitApp()
-})
-
-const lang = ref()
-watch(lang, (val) => {
-  storage.set('lang', val)
-  Object.assign(tr, Translations[val])
 })
 // #endregion
 
@@ -177,9 +165,7 @@ const keyword = ref('')
 const filters = ref([])
 const priorityNum = { low: 0, medium: 1, high: 2 }
 
-watch(filters, (val) => {
-  storage.set('filters', JSON.stringify(val))
-})
+watch(filters, (val) => storage.set('filters', JSON.stringify(val)))
 
 const filtered = computed(() => {
   if (!tasks.length) return []
@@ -349,28 +335,9 @@ const scheduleNotification = (id, title, dateTime, body, color) => {
 }
 // #endregion
 
-// #region Dark mode
-const isDarkMode = ref(false)
-
-const toggleDarkMode = () => {
-  isDarkMode.value = !isDarkMode.value
-  storage.set('darkMode', isDarkMode.value)
-  document.documentElement.classList.toggle('ion-palette-dark', isDarkMode.value)
-}
-// #endregion
-
-const loading = ref(false)
-
 onMounted(async () => {
   loading.value = true
   await storage.create()
-
-  isDarkMode.value = await storage.get('darkMode')
-  document.documentElement.classList.toggle('ion-palette-dark', isDarkMode.value)
-
-  const navLang = window.navigator.language.split('-')[0].toUpperCase()
-  const _langs = Object.keys(Translations)
-  lang.value = (await storage.get('lang')) ?? (_langs.includes(navLang) ? navLang : _langs[0])
 
   filters.value = JSON.parse(await storage.get('filters')) ?? priorities
 
@@ -442,5 +409,13 @@ ion-searchbar {
 .high-item[aria-checked="true"] .alert-checkbox-icon {
   border-color: #c5000f !important;
   background-color: #c5000f !important;
+}
+
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.6s ease;
+}
+.list-enter-from, .list-leave-to {
+  opacity: 0;
 }
 </style>

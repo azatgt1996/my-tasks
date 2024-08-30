@@ -3,15 +3,23 @@
     <ion-header>
       <ion-toolbar>
         <ion-title>{{ tr.menu }}</ion-title>
+
+        <img slot="end" :src="getFlagImg(lang)" :alt="lang" width="30" @click="$('#langSelect').click()"
+          style="margin-right: 8px" />
+        <ion-select v-show="false" v-model="lang" id="langSelect" v-bind="selectProps(tr.selectLang)">
+          <ion-select-option v-for="lang in langs" :value="lang.value">{{ lang.label }}</ion-select-option>
+        </ion-select>
+        <ion-icon :icon="isDarkMode ? moon : sunny" slot="end" size="large" @click="toggleDarkMode"
+          style="margin-right: 8px" />
       </ion-toolbar>
     </ion-header>
     <ion-content>
-      <ion-list @click="menuRef.$el.close()">
+      <ion-list>
         <IconText :icon="mailOutline" :text="tr.contactUs" @click="contactUs" />
         <IconText :icon="shareSocialOutline" :text="tr.share" @click="shareApp" />
         <IconText :icon="starOutline" :text="tr.rateApp" @click="rateApp" />
         <IconText :icon="languageOutline" :text="tr.helpWithTranslation" @click="openSelect" />
-        <ion-select v-show="false" v-model="lang" id="langSelect2" v-bind="selectProps(tr.selectExLang, tr.msg)"
+        <ion-select v-show="false" v-model="baseLang" id="langSelect2" v-bind="selectProps(tr.selectExLang, tr.msg)"
           @ionChange="trModal = true">
           <ion-select-option v-for="lang in langs" :value="lang.value">{{ lang.label }}</ion-select-option>
         </ion-select>
@@ -24,7 +32,7 @@
     </ion-content>
   </ion-menu>
 
-  <ion-modal :is-open="isOpen" @didDismiss="isOpen = false">
+  <ion-modal :is-open="isOpen" @didDismiss="isOpen = false" @didPresent="closeMenu">
     <ion-header>
       <ion-toolbar>
         <ion-title>{{ tr.settings }}</ion-title>
@@ -74,7 +82,7 @@
     </ion-content>
   </ion-modal>
 
-  <ion-modal :is-open="trModal" @didDismiss="trModal = false">
+  <ion-modal :is-open="trModal" @didDismiss="trModal = false" @didPresent="closeMenu">
     <ion-header>
       <ion-toolbar>
         <ion-title>{{ tr.translation }}</ion-title>
@@ -94,8 +102,8 @@
         <ion-item>
           <ion-input :label="tr.trAuthor" v-model="trData._trAuthor" fill="outline" />
         </ion-item>
-        <ion-item v-for="key in Object.keys(Translations[lang]).slice(2)">
-          <ion-input :value="Translations[lang][key]" readonly fill="outline" />
+        <ion-item v-for="key in Object.keys(Translations[baseLang]).slice(2)">
+          <ion-input :value="Translations[baseLang][key]" readonly fill="outline" />
           <ion-input v-model="trData[key]" style="margin-left: 5px" fill="outline" />
         </ion-item>
       </ion-list>
@@ -111,32 +119,47 @@ import {
 import {
   closeCircleOutline, mailOutline, powerOutline, informationCircleOutline, settingsOutline, starOutline, shareSocialOutline,
   trashOutline, radioOutline, searchCircleOutline, filterSharp, volumeLowOutline, swapVerticalOutline, saveSharp, returnUpBackOutline,
-  languageOutline, helpCircleOutline, diamondOutline,
+  languageOutline, helpCircleOutline, diamondOutline, sunny, moon,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
 import { $, str, isEqual, sendToEmail, delay } from "@/utils.js";
 import { langs, Translations } from "@/translations.js";
 import { onMounted, reactive, ref, watch } from "vue";
-import { useGlobalStore } from "@/global.js"
+import { useGlobalStore } from "@/global.js";
 import { Share } from '@capacitor/share';
 import { IconText } from "@/components/renderFunctions.js";
 import UiToggle from "@/components/UiToggle.vue";
-
-const props = defineProps({
-  language: String,
-})
 
 const emit = defineEmits(['deleteAll'])
 
 const { tr, params, storage, selectProps, alert, toast } = useGlobalStore()
 
+// #region Dark mode
+const isDarkMode = ref(false)
+
+const toggleDarkMode = () => {
+  isDarkMode.value = !isDarkMode.value
+  storage.set('darkMode', isDarkMode.value)
+  document.documentElement.classList.toggle('ion-palette-dark', isDarkMode.value)
+}
+// #endregion
+
+const lang = ref()
+watch(lang, (val) => {
+  storage.set('lang', val)
+  Object.assign(tr, Translations[val])
+})
+
+const getFlagImg = (name) => new URL(`../assets/flags/${name}.png`, import.meta.url).href
 const sorts = ['created', 'changed', 'title', 'priority', 'notification']
 const menuRef = ref()
 const isOpen = ref(false)
 const trModal = ref(false)
-const lang = ref()
+const baseLang = ref()
 const trData = ref({})
 const appLink = 'https://play.google.com/store/apps/details?id=com.kvarta.mytasks'
+
+const closeMenu = () => menuRef.value.$el.close()
 
 watch(params, (val) => storage.set('params', JSON.stringify(val)), { deep: true })
 
@@ -160,16 +183,16 @@ const showAppInfo = () => {
 }
 
 const openSelect = async () => {
-  lang.value = props.language
+  baseLang.value = lang.value
   await delay(100)
   $('#langSelect2').click()
 }
 
 const sendTranslation = () => {
-  for (const key of Object.keys(Translations[lang.value]))
+  for (const key of Object.keys(Translations[baseLang.value]))
     if (!trData.value[key]?.trim()) return toast(tr.fillAllFields, 'warning')
 
-  trData.value._baseLang = lang.value
+  trData.value._baseLang = baseLang.value
   const trText = JSON.stringify(trData.value, null, 2).replace(/"([^"]+)":/g, '$1:')
   sendToEmail(trText, tr.translation)
   trModal.value = false
@@ -201,6 +224,13 @@ onMounted(async () => {
   }
   _params = _params ? JSON.parse(_params) : defaultParams
   Object.assign(params, _params)
+
+  isDarkMode.value = await storage.get('darkMode')
+  document.documentElement.classList.toggle('ion-palette-dark', isDarkMode.value)
+
+  const navLang = window.navigator.language.split('-')[0].toUpperCase()
+  const _langs = Object.keys(Translations)
+  lang.value = (await storage.get('lang')) ?? (_langs.includes(navLang) ? navLang : _langs[0])
 })
 </script>
 
