@@ -1,126 +1,126 @@
 <template>
   <div> <!-- need only one root node -->
-  <Menu @deleteAll="deleteAll" />
-  <ion-page id="main-content">
-    <ion-header>
-      <ion-toolbar>
-        <ion-buttons slot="start">
-          <ion-menu-button />
-        </ion-buttons>
-        <ion-title style="padding: 0">
-          {{ tr.myTasks }}{{ filtered.length ? `: ${filtered.length}` : '' }}
-        </ion-title>
-      </ion-toolbar>
-      <ion-item>
-        <ion-searchbar v-model="keyword" :placeholder="tr.search" :debounce="500" :maxlength="40"
-          show-clear-button="always" :search-icon="params.searchInDesc ? searchCircleOutline : searchSharp"
-          style="padding: 5px 8px 5px 0" />
-        <ion-select v-show="false" id="fSelect" v-model="filters" multiple v-bind="selectProps(tr.filters)">
-          <OptionsGroup :label="tr.byPriorities" />
-          <ion-select-option v-for="pr in priorities" :value="pr" :class="`${pr}-item`">
-            {{ tr[pr] }}
-          </ion-select-option>
-          <OptionsGroup :label="tr.others" />
-          <ion-select-option value="completed">{{ tr.completed }}</ion-select-option>
-          <ion-select-option value="notificated">{{ tr.notificated }}</ion-select-option>
-        </ion-select>
-        <ion-icon :icon="funnel" @click="$('#fSelect').click()"
-          :color="filters.length === 3 && isEqual(filters, priorities) ? '' : 'primary'" />
-      </ion-item>
-      <ion-item>
-        <ion-input :placeholder="tr.newTask" v-model="title" :maxlength="40" clear-input
-          @keyup.enter="addTask(title)" />
-        <ion-icon :icon="addCircle" size="large" color="primary" @click="addTask(title)" />
-      </ion-item>
-    </ion-header>
+    <Menu @deleteAll="deleteAll" />
+    <ion-page id="main-content">
+      <ion-header>
+        <ion-toolbar>
+          <ion-buttons slot="start">
+            <ion-menu-button />
+          </ion-buttons>
+          <ion-title style="padding: 0">
+            {{ tr.myTasks }}{{ filtered.length ? `: ${filtered.length}` : '' }}
+          </ion-title>
+        </ion-toolbar>
+        <ion-item>
+          <ion-searchbar v-model="keyword" :placeholder="tr.search" :debounce="500" :maxlength="40"
+            show-clear-button="always" :search-icon="params.searchInDesc ? searchCircleOutline : searchSharp"
+            style="padding: 5px 8px 5px 0" />
+          <ion-select v-show="false" id="fSelect" v-model="filters" multiple v-bind="selectProps(tr.filters)">
+            <OptionsGroup :label="tr.byPriorities" />
+            <ion-select-option v-for="pr in priorities" :value="pr" :class="`${pr}-item`">
+              {{ tr[pr] }}
+            </ion-select-option>
+            <OptionsGroup :label="tr.others" />
+            <ion-select-option value="completed">{{ tr.completed }}</ion-select-option>
+            <ion-select-option value="notificated">{{ tr.notificated }}</ion-select-option>
+          </ion-select>
+          <ion-icon :icon="funnel" @click="$('#fSelect').click()"
+            :color="filters.length === 3 && isEqual(filters, priorities) ? '' : 'primary'" />
+        </ion-item>
+        <ion-item>
+          <ion-input :placeholder="tr.newTask" v-model="title" :maxlength="40" clear-input
+            @keyup.enter="addTask(title)" />
+          <ion-icon :icon="addCircle" size="large" color="primary" @click="addTask(title)" />
+        </ion-item>
+      </ion-header>
 
-    <ion-content>
-      <div v-if="loading" class="spinner-container">
-        <ion-spinner name="lines" />
-      </div>
-      <TransitionGroup v-else-if="filtered.length" ref="listRef" name="list" tag="ion-list">
-        <ion-item-sliding v-for="task in filtered" :key="task.id">
-          <ion-item-options side="start" @ion-swipe="toggleCompleted(task)">
-            <ion-item-option color="primary" expandable @click="toggleCompleted(task)">
-              <ion-icon slot="icon-only" :icon="task.completed ? arrowUndoCircleOutline : checkmarkCircleOutline" />
-            </ion-item-option>
-          </ion-item-options>
-          <ion-item button @click="openTask(task)">
-            <ion-label class="task-title">{{ task.title }}</ion-label>
-            <ion-icon v-if="task.completed" :icon="checkmarkCircleOutline" size="small" style="margin-right: 2px" />
-            <ion-icon v-if="new Date() < new Date(task.notification)" :icon="alarmOutline" size="small"
-              style="margin-right: 2px" />
-            <ion-icon :icon="ellipse" size="small" :color="priorityType[task.priority]" />
-          </ion-item>
-          <ion-item-options side="end" @ion-swipe="deleteTask(task)">
-            <ion-item-option color="danger" expandable @click="deleteTask(task)">
-              <ion-icon slot="icon-only" :icon="trashOutline" />
-            </ion-item-option>
-          </ion-item-options>
-        </ion-item-sliding>
-      </TransitionGroup>
-      <h1 v-else class="list-status">{{ listStatus }}</h1>
+      <ion-content>
+        <div v-if="loading" class="spinner-container">
+          <ion-spinner name="lines" />
+        </div>
+        <TransitionGroup v-else-if="filtered.length" ref="listRef" name="list" tag="ion-list">
+          <ion-item-sliding v-for="task in filtered" :key="task.id">
+            <ion-item-options side="start" @ion-swipe="toggleCompleted(task)">
+              <ion-item-option color="primary" expandable @click="toggleCompleted(task)">
+                <ion-icon slot="icon-only" :icon="task.completed ? arrowUndoCircleOutline : checkmarkCircleOutline" />
+              </ion-item-option>
+            </ion-item-options>
+            <ion-item button @click="openTask(task)">
+              <ion-label class="task-title">{{ task.title }}</ion-label>
+              <ion-icon v-if="task.completed" :icon="checkmarkCircleOutline" size="small" style="margin-right: 2px" />
+              <ion-icon v-if="new Date() < new Date(task.notification)" :icon="alarmOutline" size="small"
+                style="margin-right: 2px" />
+              <ion-icon :icon="ellipse" size="small" :color="priorityType[task.priority]" />
+            </ion-item>
+            <ion-item-options side="end" @ion-swipe="deleteTask(task)">
+              <ion-item-option color="danger" expandable @click="deleteTask(task)">
+                <ion-icon slot="icon-only" :icon="trashOutline" />
+              </ion-item-option>
+            </ion-item-options>
+          </ion-item-sliding>
+        </TransitionGroup>
+        <h1 v-else class="list-status">{{ listStatus }}</h1>
 
-      <ion-modal :is-open="isOpen" @didDismiss="isOpen = false">
-        <ion-header>
-          <ion-toolbar>
-            <ion-title>{{ tr.detailInfo }}</ion-title>
-            <ion-buttons slot="end">
-              <ion-button @click="changeTask(current)" :disabled="disabledSave">
-                <ion-icon :icon="saveSharp" />
-              </ion-button>
-              <ion-button @click="isOpen = false">
-                <ion-icon :icon="closeCircleOutline" />
-              </ion-button>
-            </ion-buttons>
-          </ion-toolbar>
-        </ion-header>
-        <ion-content>
-          <ion-list>
-            <ion-item>
-              <ion-input :label="tr.created" :value="Date.toLocale(current.created)" readonly class="full-label" />
-            </ion-item>
-            <ion-item>
-              <ion-input :label="tr.changed" :value="Date.toLocale(current.changed)" readonly class="full-label" />
-            </ion-item>
-            <ion-item>
-              <ion-input :label="tr.title" :placeholder="tr.typeTask" v-model="current.title" label-placement="fixed"
-                :maxlength="40" />
-            </ion-item>
-            <ion-item>
-              <ion-textarea :label="tr.description" v-model="current.description" :rows="4"
-                :placeholder="tr.typeDescription" clear-input label-placement="fixed" :maxlength="300" />
-            </ion-item>
-            <ion-item>
-              <ion-label>{{ tr.notification }}</ion-label>
-              <ion-datetime-button datetime="datetime" />
-              <ion-modal :keep-contents-mounted="true">
-                <ion-datetime id="datetime" hour-cycle="h24" v-model="current.notification" />
-              </ion-modal>
-            </ion-item>
-            <ion-item>
-              <ion-label style="margin-right: 10px">{{ tr.priority }}</ion-label>
-              <ion-segment v-model="current.priority" mode="ios">
-                <ion-segment-button v-for="value in priorities" :value="value">
-                  <ion-label :color="priorityType[value]">{{ tr[value] }}</ion-label>
-                </ion-segment-button>
-              </ion-segment>
-            </ion-item>
-          </ion-list>
-        </ion-content>
-        <ion-footer style="display: flex">
-          <ion-button size="small" style="width: 100%" fill="clear" @click="prevTask">
-            <ion-icon slot="start" :icon="caretBackOutline" />
-            {{ tr.prev }}
-          </ion-button>
-          <ion-button size="small" style="width: 100%" fill="clear" @click="nextTask">
-            <ion-icon slot="end" :icon="caretForwardOutline" />
-            {{ tr.next }}
-          </ion-button>
-        </ion-footer>
-      </ion-modal>
-    </ion-content>
-  </ion-page>
+        <ion-modal :is-open="isOpen" @didDismiss="isOpen = false">
+          <ion-header>
+            <ion-toolbar>
+              <ion-title>{{ tr.detailInfo }}</ion-title>
+              <ion-buttons slot="end">
+                <ion-button @click="changeTask(current)" :disabled="disabledSave">
+                  <ion-icon :icon="saveSharp" />
+                </ion-button>
+                <ion-button @click="isOpen = false">
+                  <ion-icon :icon="closeCircleOutline" />
+                </ion-button>
+              </ion-buttons>
+            </ion-toolbar>
+          </ion-header>
+          <ion-content>
+            <ion-list>
+              <ion-item>
+                <ion-input :label="tr.created" :value="Date.toLocale(current.created)" readonly class="full-label" />
+              </ion-item>
+              <ion-item>
+                <ion-input :label="tr.changed" :value="Date.toLocale(current.changed)" readonly class="full-label" />
+              </ion-item>
+              <ion-item>
+                <ion-input :label="tr.title" :placeholder="tr.typeTask" v-model="current.title" label-placement="fixed"
+                  :maxlength="40" />
+              </ion-item>
+              <ion-item>
+                <ion-textarea :label="tr.description" v-model="current.description" :rows="4"
+                  :placeholder="tr.typeDescription" clear-input label-placement="fixed" :maxlength="300" />
+              </ion-item>
+              <ion-item>
+                <ion-label>{{ tr.notification }}</ion-label>
+                <ion-datetime-button datetime="datetime" />
+                <ion-modal :keep-contents-mounted="true">
+                  <ion-datetime id="datetime" hour-cycle="h24" v-model="current.notification" />
+                </ion-modal>
+              </ion-item>
+              <ion-item>
+                <ion-label style="margin-right: 10px">{{ tr.priority }}</ion-label>
+                <ion-segment v-model="current.priority" mode="ios">
+                  <ion-segment-button v-for="value in priorities" :value="value">
+                    <ion-label :color="priorityType[value]">{{ tr[value] }}</ion-label>
+                  </ion-segment-button>
+                </ion-segment>
+              </ion-item>
+            </ion-list>
+          </ion-content>
+          <ion-footer style="display: flex">
+            <ion-button size="small" style="width: 100%" fill="clear" @click="prevTask">
+              <ion-icon slot="start" :icon="caretBackOutline" />
+              {{ tr.prev }}
+            </ion-button>
+            <ion-button size="small" style="width: 100%" fill="clear" @click="nextTask">
+              <ion-icon slot="end" :icon="caretForwardOutline" />
+              {{ tr.next }}
+            </ion-button>
+          </ion-footer>
+        </ion-modal>
+      </ion-content>
+    </ion-page>
   </div>
 </template>
 
@@ -402,10 +402,12 @@ ion-searchbar {
   border-color: #2dd55b !important;
   background-color: #2dd55b !important;
 }
+
 .medium-item[aria-checked="true"] .alert-checkbox-icon {
   border-color: #ffc409 !important;
   background-color: #ffc409 !important;
 }
+
 .high-item[aria-checked="true"] .alert-checkbox-icon {
   border-color: #c5000f !important;
   background-color: #c5000f !important;
@@ -415,7 +417,9 @@ ion-searchbar {
 .list-leave-active {
   transition: all 0.6s ease;
 }
-.list-enter-from, .list-leave-to {
+
+.list-enter-from,
+.list-leave-to {
   opacity: 0;
 }
 </style>

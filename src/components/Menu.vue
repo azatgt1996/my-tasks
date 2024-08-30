@@ -3,7 +3,6 @@
     <ion-header>
       <ion-toolbar>
         <ion-title>{{ tr.menu }}</ion-title>
-
         <img slot="end" :src="getFlagImg(lang)" :alt="lang" width="30" @click="$('#langSelect').click()"
           style="margin-right: 8px" />
         <ion-select v-show="false" v-model="lang" id="langSelect" v-bind="selectProps(tr.selectLang)">
@@ -198,8 +197,8 @@ const sendTranslation = () => {
   trModal.value = false
 }
 
-const showGuide = () => {}
-const buyPremium = () => {}
+const showGuide = () => { }
+const buyPremium = () => { }
 
 const $params = reactive({})
 
