@@ -98,7 +98,7 @@ const RU = {
     searchInDescription: 'Искать также среди описания',
     sortBy: 'Сортировать по полю',
     orderByDesc: 'Сортировать по убыванию',
-    autoCloseAfterSave: 'Автоматически закрыть после сохранения',
+    autoCloseAfterSave: 'Автозакрытие после сохранения',
 
     helpWithTranslation: 'Помочь с переводом',
     selectExLang: 'Выберите язык для примера',
@@ -170,7 +170,7 @@ const ES = {
     searchInDescription: 'Buscar también entre descripciones',
     sortBy: 'Ordenar por',
     orderByDesc: 'Ordenar de manera descendente',
-    autoCloseAfterSave: 'Cierre automático después de guardar',
+    autoCloseAfterSave: 'Autocerrar después de guardar',
 
     helpWithTranslation: 'Ayuda con la traducción',
     selectExLang: 'Seleccione el idioma por ejemplo',

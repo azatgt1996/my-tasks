@@ -10,6 +10,11 @@
         <IconText :icon="mailOutline" :text="tr.contactUs" @click="contactUs" />
         <IconText :icon="shareSocialOutline" :text="tr.share" @click="shareApp" />
         <IconText :icon="starOutline" :text="tr.rateApp" @click="rateApp" />
+        <IconText :icon="languageOutline" :text="tr.helpWithTranslation" @click="openSelect" />
+        <ion-select v-show="false" v-model="lang" id="langSelect2" v-bind="selectProps(tr.selectExLang, tr.msg)"
+          @ionChange="trModal = true">
+          <ion-select-option v-for="lang in langs" :value="lang.value">{{ lang.label }}</ion-select-option>
+        </ion-select>
         <IconText :icon="helpCircleOutline" :text="tr.guide" @click="showGuide" />
         <IconText :icon="diamondOutline" :text="tr.buyPrem" @click="buyPremium" />
         <IconText :icon="informationCircleOutline" :text="tr.aboutApp" @click="showAppInfo" />
@@ -61,14 +66,6 @@
           <ion-icon :icon="returnUpBackOutline" />
           <ui-toggle :label="tr.autoCloseAfterSave" v-model="$params.autoCloseAfterSave" />
         </ion-item>
-        <ion-item button @click="$('#langSelect2').click()">
-          <ion-icon :icon="languageOutline" />
-          <ion-label>{{ tr.helpWithTranslation }}</ion-label>
-          <ion-select v-show="false" v-model="lang" id="langSelect2" v-bind="selectProps(tr.selectExLang, tr.msg)"
-            @ionChange="trModal = true">
-            <ion-select-option v-for="lang in langs" :value="lang.value">{{ lang.label }}</ion-select-option>
-          </ion-select>
-        </ion-item>
         <ion-item button @click="emit('deleteAll')">
           <ion-icon :icon="trashOutline" color="danger" />
           <ion-label color="danger">{{ tr.deleteAll }}</ion-label>
@@ -117,7 +114,7 @@ import {
   languageOutline, helpCircleOutline, diamondOutline,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
-import { $, str, isEqual, sendToEmail } from "@/utils.js";
+import { $, str, isEqual, sendToEmail, delay } from "@/utils.js";
 import { langs, Translations } from "@/translations.js";
 import { onMounted, reactive, ref, watch } from "vue";
 import { useGlobalStore } from "@/global.js"
@@ -145,7 +142,7 @@ watch(params, (val) => storage.set('params', JSON.stringify(val)), { deep: true 
 
 const contactUs = () => sendToEmail('', 'Support')
 
-const shareApp = () => Share.share({ text: tr.shareText, url: appLink, dialogTitle: 'Share', title: 'Share2' })
+const shareApp = () => Share.share({ text: tr.shareText, url: appLink, dialogTitle: tr.share.split(' ')[0] })
 
 const rateApp = () => window.location.href = appLink
 
@@ -160,6 +157,12 @@ const showAppInfo = () => {
 
   const msg = str(fullText, author, techStack, flagIconsLink, soundsLink)
   alert(msg, tr.appInfo)
+}
+
+const openSelect = async () => {
+  lang.value = props.language
+  await delay(100)
+  $('#langSelect2').click()
 }
 
 const sendTranslation = () => {
@@ -178,7 +181,6 @@ const buyPremium = () => {}
 const $params = reactive({})
 
 const openSettingsModal = () => {
-  lang.value = props.language
   Object.assign($params, params)
   isOpen.value = true
 }

@@ -23,9 +23,9 @@
           style="padding: 5px 8px 5px 0" />
         <ion-select v-show="false" id="fSelect" v-model="filters" multiple v-bind="selectProps(tr.filters)">
           <OptionsGroup :label="tr.byPriorities" />
-          <ion-select-option value="low">{{ tr.low }}</ion-select-option>
-          <ion-select-option value="medium">{{ tr.medium }}</ion-select-option>
-          <ion-select-option value="high">{{ tr.high }}</ion-select-option>
+          <ion-select-option v-for="pr in priorities" :value="pr" :class="`${pr}-item`">
+            {{ tr[pr] }}
+          </ion-select-option>
           <OptionsGroup :label="tr.others" />
           <ion-select-option value="completed">{{ tr.completed }}</ion-select-option>
           <ion-select-option value="notificated">{{ tr.notificated }}</ion-select-option>
@@ -429,5 +429,18 @@ ion-searchbar {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.low-item[aria-checked="true"] .alert-checkbox-icon {
+  border-color: #2dd55b !important;
+  background-color: #2dd55b !important;
+}
+.medium-item[aria-checked="true"] .alert-checkbox-icon {
+  border-color: #ffc409 !important;
+  background-color: #ffc409 !important;
+}
+.high-item[aria-checked="true"] .alert-checkbox-icon {
+  border-color: #c5000f !important;
+  background-color: #c5000f !important;
 }
 </style>

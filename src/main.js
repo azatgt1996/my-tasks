@@ -38,7 +38,7 @@ import './theme/variables.css';
 Date.toLocale = (date, noTime = false) => {
   const dt = date ? new Date(date) : new Date()
   if (noTime) return dt.toLocaleDateString()
-  return dt.toLocaleString().replace(',', '').slice(0, -3)
+  return dt.toLocaleString()
 }
 
 const pinia = createPinia()
