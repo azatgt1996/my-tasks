@@ -73,7 +73,7 @@
           <ion-icon :icon="returnUpBackOutline" />
           <ui-toggle :label="tr.autoCloseAfterSave" v-model="$params.autoCloseAfterSave" />
         </ion-item>
-        <ion-item button @click="emit('deleteAll')">
+        <ion-item button @click="emit('deleteAll')" :disabled="!taskLength">
           <ion-icon :icon="trashOutline" color="danger" />
           <ion-label color="danger">{{ tr.deleteAll }}</ion-label>
         </ion-item>
@@ -128,6 +128,10 @@ import { useGlobalStore } from "@/global.js";
 import { Share } from '@capacitor/share';
 import { IconText } from "@/components/renderFunctions.js";
 import UiToggle from "@/components/UiToggle.vue";
+
+const props = defineProps({
+  taskLength: Number
+})
 
 const emit = defineEmits(['deleteAll'])
 

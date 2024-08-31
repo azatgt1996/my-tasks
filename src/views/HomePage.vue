@@ -1,6 +1,6 @@
 <template>
   <div> <!-- need only one root node -->
-    <Menu @deleteAll="deleteAll" />
+    <Menu :taskLength="tasks.length" @deleteAll="deleteAll" />
     <ion-page id="main-content">
       <ion-header>
         <ion-toolbar>
@@ -10,12 +10,19 @@
           <ion-title style="padding: 0">
             {{ tr.myTasks }}{{ filtered.length ? `: ${filtered.length}` : '' }}
           </ion-title>
+          <ion-select slot="end" interface="popover" value="all" style="margin-right: 10px">
+            <OptionsGroup :label="tr.categories" />
+            <ion-select-option value="all">{{ tr.allCategories }}</ion-select-option>
+            <ion-select-option value="private">{{ tr.private }}</ion-select-option>
+            <ion-select-option value="work">{{ tr.work }}</ion-select-option>
+            <ion-select-option class="new-category" value="">+ {{ tr.newCategory }}</ion-select-option>
+          </ion-select>
         </ion-toolbar>
         <ion-item>
           <ion-searchbar v-model="keyword" :placeholder="tr.search" :debounce="500" :maxlength="40"
             show-clear-button="always" :search-icon="params.searchInDesc ? searchCircleOutline : searchSharp"
             style="padding: 5px 8px 5px 0" />
-          <ion-select v-show="false" id="fSelect" v-model="filters" multiple v-bind="selectProps(tr.filters)">
+          <ion-select v-show="false" id="filterSelect" v-model="filters" multiple v-bind="selectProps(tr.filters)">
             <OptionsGroup :label="tr.byPriorities" />
             <ion-select-option v-for="pr in priorities" :value="pr" :class="`${pr}-item`">
               {{ tr[pr] }}
@@ -24,7 +31,7 @@
             <ion-select-option value="completed">{{ tr.completed }}</ion-select-option>
             <ion-select-option value="notificated">{{ tr.notificated }}</ion-select-option>
           </ion-select>
-          <ion-icon :icon="funnel" @click="$('#fSelect').click()"
+          <ion-icon :icon="funnel" @click="$('#filterSelect').click()"
             :color="filters.length === 3 && isEqual(filters, priorities) ? '' : 'primary'" />
         </ion-item>
         <ion-item>
@@ -149,7 +156,8 @@ const { tr, params, storage, selectProps, toast, confirm } = useGlobalStore()
 
 // #region Others
 const numNanoid = customAlphabet('123456789', 8)
-const audio = new Audio('/click.wav')
+const audio = new Audio('/main.wav')
+const audio2 = new Audio('/trash.wav')
 const loading = ref(false)
 
 const ionRouter = useIonRouter()
@@ -229,9 +237,9 @@ class Task {
   }
 }
 
-const saveTasks = () => {
+const saveTasks = (isDel) => {
   storage.set('tasks', JSON.stringify(tasks))
-  if (params.sound) audio.play().catch(log)
+  if (params.sound) (isDel ? audio2 : audio).play().catch(log)
   if (params.vibro) Haptics.vibrate({ duration: 40 })
 }
 
@@ -281,14 +289,13 @@ const deleteTask = (task) => {
   const idx = tasks.findIndex(it => it.id === task.id)
   tasks.splice(idx, 1)
   toast(tr.taskDeleted)
-  saveTasks()
+  saveTasks(1)
 }
 
 const deleteAll = () => {
-  if (!tasks.length) return toast(tr.noTasksToDelete)
   confirm(tr.aysToDelete, () => {
     tasks.length = 0
-    saveTasks()
+    saveTasks(1)
     toast(tr.allDeleted)
   })
 }
@@ -357,12 +364,20 @@ ion-searchbar {
 </style>
 
 <style>
-.options-group .alert-checkbox-icon {
-  display: none !important;
+.options-group {
+  pointer-events: none;
+
+  & .alert-checkbox-icon {
+    display: none !important;
+  }
+
+  & .alert-checkbox-label {
+    padding-left: 10px !important;
+  }
 }
 
-.options-group .alert-checkbox-label {
-  padding-left: 10px !important;
+.new-category {
+  color: var(--ion-color-primary);
 }
 
 .alert-message {
@@ -399,18 +414,18 @@ ion-searchbar {
 }
 
 .low-item[aria-checked="true"] .alert-checkbox-icon {
-  border-color: #2dd55b !important;
-  background-color: #2dd55b !important;
+  border-color: var(--ion-color-success) !important;
+  background-color: var(--ion-color-success) !important;
 }
 
 .medium-item[aria-checked="true"] .alert-checkbox-icon {
-  border-color: #ffc409 !important;
-  background-color: #ffc409 !important;
+  border-color: var(--ion-color-warning) !important;
+  background-color: var(--ion-color-warning) !important;
 }
 
 .high-item[aria-checked="true"] .alert-checkbox-icon {
-  border-color: #c5000f !important;
-  background-color: #c5000f !important;
+  border-color: var(--ion-color-danger) !important;
+  background-color: var(--ion-color-danger) !important;
 }
 
 .list-enter-active,
