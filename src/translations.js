@@ -62,9 +62,12 @@ const translations = {
   trAuthor: ['Author of the translation', 'Autor de la traducción', 'Автор перевода'],
   fillAllFields: ['Fill in all fields', 'Complete todos los campos', 'Заполните все поля'],
 
+  category: ['Category', 'Categoría', 'Категория'],
+  selectCategory: ['Select the category', 'Seleccione la categoría', 'Выберите категорию'],
   categories: ['Categories', 'Categorías', 'Категории'],
   allCategories: ['All categories', 'Todas las categorias', 'Все категории'],
-  private: ['Private', 'Privada', 'Личное'],
+  common: ['Common', 'Comunes', 'Общие'],
+  private: ['Private', 'Privadas', 'Личные'],
   work: ['Work', 'Trabajar', 'Работа'],
   newCategory: ['New category', 'Nueva categoria', 'Новая категория'],
 

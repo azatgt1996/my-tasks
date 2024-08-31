@@ -10,16 +10,16 @@
           <ion-title style="padding: 0">
             {{ tr.myTasks }}{{ filtered.length ? `: ${filtered.length}` : '' }}
           </ion-title>
-          <ion-select slot="end" interface="popover" value="all" style="margin-right: 10px">
+          <ion-select :key="categorySelectKey" slot="end" interface="popover" v-model="category" style="margin-right: 10px">
             <OptionsGroup :label="tr.categories" />
-            <ion-select-option value="all">{{ tr.allCategories }}</ion-select-option>
-            <ion-select-option value="private">{{ tr.private }}</ion-select-option>
-            <ion-select-option value="work">{{ tr.work }}</ion-select-option>
-            <ion-select-option class="new-category" value="">+ {{ tr.newCategory }}</ion-select-option>
+            <ion-select-option v-for="_category in categories" :value="_category">
+              {{ tr[_category] }}
+            </ion-select-option>
+            <!-- <ion-select-option class="new-category" value="">+ {{ tr.newCategory }}</ion-select-option> -->
           </ion-select>
         </ion-toolbar>
         <ion-item>
-          <ion-searchbar v-model="keyword" :placeholder="tr.search" :debounce="500" :maxlength="40"
+          <ion-searchbar v-model.trim="keyword" :placeholder="tr.search" :debounce="500" :maxlength="40"
             show-clear-button="always" :search-icon="params.searchInDesc ? searchCircleOutline : searchSharp"
             style="padding: 5px 8px 5px 0" />
           <ion-select v-show="false" id="filterSelect" v-model="filters" multiple v-bind="selectProps(tr.filters)">
@@ -97,6 +97,13 @@
               <ion-item>
                 <ion-textarea :label="tr.description" v-model="current.description" :rows="4"
                   :placeholder="tr.typeDescription" clear-input label-placement="fixed" :maxlength="300" />
+              </ion-item>
+              <ion-item>
+                <ion-select :label="tr.category" v-model="current.category" v-bind="selectProps(tr.selectCategory)">
+                  <ion-select-option v-for="_category in categories.slice(1)" :value="_category">
+                    {{ tr[_category] }}
+                  </ion-select-option>
+                </ion-select>
               </ion-item>
               <ion-item>
                 <ion-label>{{ tr.notification }}</ion-label>
@@ -178,17 +185,21 @@ watch(filters, (val) => storage.set('filters', JSON.stringify(val)))
 const filtered = computed(() => {
   if (!tasks.length) return []
 
+  const _category = category.value
   const _filter = filters.value
-  const _keyword = keyword.value.toLowerCase()
+  const _keyword = keyword.value.toLowerCase().trim()
   let result = []
 
   const onlyAllPriorities = _filter.length === 3 && isEqual(_filter, priorities)
-  if (!_keyword.trim() && onlyAllPriorities) result = tasks.filter(it => !it.completed)
+
+  if (!_keyword && onlyAllPriorities && _category === 'allCategories')
+    result = tasks.filter(it => !it.completed)
 
   result = tasks.filter(it => {
     let result = it.title.toLowerCase().includes(_keyword)
     if (params.searchInDesc) result ||= it.description.toLowerCase().includes(_keyword)
     result &&= _filter.includes(it.priority)
+    if (_category !== 'allCategories') result &&= (it.category === _category)
     if (!_filter.includes('completed')) result &&= !it.completed
     if (_filter.includes('notificated')) result &&= new Date() < new Date(it.notification)
     return result
@@ -196,7 +207,7 @@ const filtered = computed(() => {
 
   return result.sort((t1, t2) => {
     if (params.orderByDesc) [t1, t2] = [t2, t1]
-    const sortBy = params.sortBy
+    const { sortBy } = params
     if (sortBy === 'created') return new Date(t1.created) - new Date(t2.created)
     if (sortBy === 'changed') return new Date(t1.changed) - new Date(t2.changed)
     if (sortBy === 'title') return t1.title.localeCompare(t2.title)
@@ -206,9 +217,19 @@ const filtered = computed(() => {
 })
 
 const listStatus = computed(() => {
-  if (!tasks.length) return tr.emptyList
+  if (!tasks.length || !filtered.value.length && !keyword.value.trim()) return tr.emptyList
   if (!filtered.value.length) return tr.tasksNotFound
 })
+// #endregion
+
+// #region Category
+const categories = ['allCategories', 'common', 'private', 'work']
+const category = ref('allCategories')
+const categorySelectKey = ref(0)
+
+watch(category, val => storage.set('category', val))
+
+watch(tr, () => categorySelectKey.value++)
 // #endregion
 
 // #region Main
@@ -225,13 +246,14 @@ const disabledSave = computed(() => isEqual(originalCurrent, current.value))
 onClickOutside(listRef, () => listRef.value.$el.closeSlidingItems())
 
 class Task {
-  constructor(title, description = '', notification = null) {
+  constructor(title, category, description = '', notification = null) {
     this.id = nanoid()
     this.title = title
     this.created = new Date().toISOString()
     this.changed = new Date().toISOString()
     this.description = description
     this.priority = 'low'
+    this.category = category
     this.completed = false
     this.notification = notification ?? '2020-01-01T18:00:00.000Z'
   }
@@ -279,7 +301,8 @@ const addTask = (_title) => {
   title.value = ''
   if (!_title) return toast(tr.titleIsEmpty, 'warning')
 
-  const newTask = new Task(_title)
+  const _category = category.value === 'allCategories' ? 'common' : category.value
+  const newTask = new Task(_title, _category)
   tasks.push(newTask)
   toast(tr.taskAdded)
   saveTasks()
@@ -347,6 +370,7 @@ onMounted(async () => {
   await storage.create()
 
   filters.value = JSON.parse(await storage.get('filters')) ?? priorities
+  category.value = await storage.get('category') ?? 'allCategories'
 
   const _tasks = await storage.get('tasks')
   tasks.push(...(_tasks ? JSON.parse(_tasks) : []))
@@ -430,7 +454,7 @@ ion-searchbar {
 
 .list-enter-active,
 .list-leave-active {
-  transition: all 0.6s ease;
+  transition: all 0.4s ease;
 }
 
 .list-enter-from,
