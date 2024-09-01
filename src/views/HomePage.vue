@@ -19,7 +19,7 @@
           </ion-select>
         </ion-toolbar>
         <ion-item>
-          <ion-searchbar v-model.trim="keyword" :placeholder="tr.search" :debounce="500" :maxlength="40"
+          <ion-searchbar v-model.trim="keyword" :placeholder="tr.search" :debounce="500" :maxlength="taskLength"
             show-clear-button="always" :search-icon="params.searchInDesc ? searchCircleOutline : searchSharp"
             style="padding: 5px 8px 5px 0" />
           <ion-select v-show="false" id="filterSelect" v-model="filters" multiple v-bind="selectProps(tr.filters)">
@@ -35,7 +35,7 @@
             :color="filters.length === 3 && isEqual(filters, priorities) ? '' : 'primary'" />
         </ion-item>
         <ion-item>
-          <ion-input :placeholder="tr.newTask" v-model="title" :maxlength="40" clear-input
+          <ion-input :placeholder="tr.newTask" v-model="title" :maxlength="taskLength" clear-input
             @keyup.enter="addTask(title)" />
           <ion-icon :icon="addCircle" size="large" color="primary" @click="addTask(title)" />
         </ion-item>
@@ -92,7 +92,7 @@
               </ion-item>
               <ion-item>
                 <ion-input :label="tr.title" :placeholder="tr.typeTask" v-model="current.title" label-placement="fixed"
-                  :maxlength="40" />
+                  :maxlength="taskLength" />
               </ion-item>
               <ion-item>
                 <ion-textarea :label="tr.description" v-model="current.description" :rows="4"
@@ -193,7 +193,7 @@ const { tr, params, storage, selectProps, toast, confirm, prompt } = useGlobalSt
 // #region Others
 const numNanoid = customAlphabet('123456789', 8)
 const audio = new Audio('/main.wav')
-const audio2 = new Audio('/trash.wav')
+const audio2 = new Audio('/trash.mp3')
 const loading = ref(false)
 
 const ionRouter = useIonRouter()
@@ -318,6 +318,7 @@ const tasks = reactive([])
 const title = ref('')
 const isOpen = ref(false)
 const listRef = ref()
+const taskLength = 50
 
 const current = ref({})
 let originalCurrent = {}
