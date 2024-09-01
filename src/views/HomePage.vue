@@ -1,6 +1,6 @@
 <template>
   <div> <!-- need only one root node -->
-    <Menu :taskLength="tasks.length" @deleteAll="deleteAll" />
+    <Menu :taskLength="tasks.length" @deleteAll="deleteAll" @openCategories="openCategories" />
     <ion-page id="main-content">
       <ion-header>
         <ion-toolbar>
@@ -10,12 +10,12 @@
           <ion-title style="padding: 0">
             {{ tr.myTasks }}{{ filtered.length ? `: ${filtered.length}` : '' }}
           </ion-title>
-          <ion-select :key="categorySelectKey" slot="end" interface="popover" v-model="category" style="margin-right: 10px">
-            <OptionsGroup :label="tr.categories" />
+          <ion-select :key="categorySelectKey" slot="end" interface="popover" v-model="category"
+            style="margin-right: 10px">
             <ion-select-option v-for="_category in categories" :value="_category">
-              {{ tr[_category] }}
+              {{ baseCategories.includes(_category) ? tr[_category] : _category }}
             </ion-select-option>
-            <!-- <ion-select-option class="new-category" value="">+ {{ tr.newCategory }}</ion-select-option> -->
+            <ion-select-option class="new-category" value="">+ {{ tr.newCategory }}</ion-select-option>
           </ion-select>
         </ion-toolbar>
         <ion-item>
@@ -101,13 +101,14 @@
               <ion-item>
                 <ion-select :label="tr.category" v-model="current.category" v-bind="selectProps(tr.selectCategory)">
                   <ion-select-option v-for="_category in categories.slice(1)" :value="_category">
-                    {{ tr[_category] }}
+                    {{ baseCategories.includes(_category) ? tr[_category] : _category }}
                   </ion-select-option>
                 </ion-select>
               </ion-item>
               <ion-item>
                 <ion-label>{{ tr.notification }}</ion-label>
-                <ion-datetime-button datetime="datetime" />
+                <!-- <ion-icon v-show="!current.notification" :icon="alarmOutline" @click="$('#dt-btn').click()" /> -->
+                <ion-datetime-button id="dt-btn" datetime="datetime" />
                 <ion-modal :keep-contents-mounted="true">
                   <ion-datetime id="datetime" hour-cycle="h24" v-model="current.notification" />
                 </ion-modal>
@@ -133,6 +134,33 @@
             </ion-button>
           </ion-footer>
         </ion-modal>
+
+        <ion-modal :is-open="categoriesModal" @didDismiss="categoriesModal = false">
+          <ion-header>
+            <ion-toolbar>
+              <ion-title>{{ tr.categories }}</ion-title>
+              <ion-buttons slot="end">
+                <ion-button @click="addCategory">{{ tr.add }}</ion-button>
+                <ion-button @click="categoriesModal = false">
+                  <ion-icon :icon="closeCircleOutline" />
+                </ion-button>
+              </ion-buttons>
+            </ion-toolbar>
+          </ion-header>
+          <ion-content>
+            <ion-list v-if="categories.slice(2).length">
+              <ion-reorder-group :disabled="false" @ionItemReorder="onReorder">
+                <ion-item v-for="_category in categories.slice(2)" :key="_category">
+                  <ion-label style="margin-right: 10px">
+                    {{ baseCategories.includes(_category) ? tr[_category] : _category }}
+                  </ion-label>
+                  <ion-icon :icon="trashOutline" color="danger" @click="deleteCategory(_category)" />
+                  <ion-reorder slot="end" />
+                </ion-item>
+              </ion-reorder-group>
+            </ion-list>
+          </ion-content>
+        </ion-modal>
       </ion-content>
     </ion-page>
   </div>
@@ -143,6 +171,7 @@ import {
   IonMenuButton, IonButton, IonContent, IonHeader, IonIcon, IonInput, IonToolbar, IonModal, IonSearchbar, IonDatetime,
   IonItem, IonLabel, IonList, IonPage, IonTitle, IonButtons, IonDatetimeButton, IonSegment, IonSegmentButton, IonTextarea,
   IonItemSliding, IonItemOptions, IonItemOption, IonSelect, IonSelectOption, useBackButton, useIonRouter, IonFooter, IonSpinner,
+  IonReorderGroup, IonReorder,
 } from '@ionic/vue';
 import {
   addCircle, ellipse, funnel, trashOutline, arrowUndoCircleOutline, checkmarkCircleOutline,
@@ -152,14 +181,14 @@ import { App } from '@capacitor/app';
 import { computed, onMounted, ref, watch, reactive } from "vue";
 import { onClickOutside } from '@vueuse/core';
 import { nanoid, customAlphabet } from "nanoid";
-import { clone, isEqual, $, delay, log } from "@/utils.js";
+import { clone, isEqual, $, delay, log, arrayMove } from "@/utils.js";
 import { useGlobalStore } from "@/global.js"
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Haptics } from "@capacitor/haptics";
 import { OptionsGroup } from "@/components/renderFunctions.js";
 import Menu from "@/components/Menu.vue";
 
-const { tr, params, storage, selectProps, toast, confirm } = useGlobalStore()
+const { tr, params, storage, selectProps, toast, confirm, prompt } = useGlobalStore()
 
 // #region Others
 const numNanoid = customAlphabet('123456789', 8)
@@ -223,11 +252,63 @@ const listStatus = computed(() => {
 // #endregion
 
 // #region Category
-const categories = ['allCategories', 'common', 'private', 'work']
+const baseCategories = ['allCategories', 'common', 'private', 'work']
+const categories = ref([])
 const category = ref('allCategories')
 const categorySelectKey = ref(0)
+const categoriesModal = ref(false)
 
-watch(category, val => storage.set('category', val))
+const openCategories = () => categoriesModal.value = true
+
+const saveCategories = () => storage.set('categories', JSON.stringify(categories.value))
+
+const addCategory = (isToggle) =>
+  prompt(tr.newCategory, '', tr.typeCategory, (val) => {
+    categories.value.push(val)
+    if (isToggle) category.value = val
+    saveCategories()
+  })
+
+const deleteCategory = (_category) => {
+  const deleteAllTasksByCategory = (deleteTasks) => {
+    if (deleteTasks) {
+      const _tasks = tasks.filter(it => it.category !== _category)
+      tasks.length = 0
+      Object.assign(tasks, _tasks)
+      saveTasks(1)
+      toast(tr.tasksOfCategoryDeleted)
+    }
+
+    if (category.value === _category) category.value = 'allCategories'
+
+    const idx = categories.value.findIndex(it => it === _category)
+    categories.value.splice(idx, 1)
+    saveCategories()
+  }
+
+  const categoryTasksSize = tasks.filter(it => it.category === _category).length
+
+  if (categoryTasksSize > 0) confirm(tr.aysToDeleteCategory, () => deleteAllTasksByCategory(1))
+  else deleteAllTasksByCategory(0)
+}
+
+const onReorder = (ev) => {
+  const { from, to } = ev.detail
+  
+  const _categories = clone(categories.value)
+  arrayMove(_categories, from + 2, to + 2)
+  categories.value = _categories
+
+  saveCategories()
+  ev.detail.complete()
+}
+
+watch(category, (val, old) => {
+  if (!val) {
+    category.value = old
+    addCategory(1)
+  } else storage.set('category', val)
+})
 
 watch(tr, () => categorySelectKey.value++)
 // #endregion
@@ -255,14 +336,14 @@ class Task {
     this.priority = 'low'
     this.category = category
     this.completed = false
-    this.notification = notification ?? '2020-01-01T18:00:00.000Z'
+    this.notification = notification ?? '1980-01-01T00:00:00.000Z'
   }
 }
 
 const saveTasks = (isDel) => {
   storage.set('tasks', JSON.stringify(tasks))
   if (params.sound) (isDel ? audio2 : audio).play().catch(log)
-  if (params.vibro) Haptics.vibrate({ duration: 40 })
+  if (params.vibro) Haptics.vibrate({ duration: 28 })
 }
 
 const openTask = (task) => {
@@ -370,6 +451,8 @@ onMounted(async () => {
   await storage.create()
 
   filters.value = JSON.parse(await storage.get('filters')) ?? priorities
+
+  categories.value = JSON.parse(await storage.get('categories')) ?? baseCategories
   category.value = await storage.get('category') ?? 'allCategories'
 
   const _tasks = await storage.get('tasks')

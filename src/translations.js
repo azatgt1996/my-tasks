@@ -12,9 +12,9 @@ const translations = {
   contactUs: ['Contact us', 'Contacta con nosotros', 'Связаться с нами'],
   deleteAll: ['Delete all tasks', 'Eliminar tareas', 'Удалить все задачи'],
   aysToDelete: [
-    'Are you sure? All tasks will be deleted permanently!',
-    'Está seguro? Todas las tareas se eliminarán permanentemente!',
-    'Вы уверены? Все задачи будут удалены безвозвратно!'
+    'Are you sure? All tasks will be deleted!',
+    'Está seguro? Se eliminarán todas las tareas!',
+    'Вы уверены? Все задачи будут удалены!'
   ],
   allDeleted: ['All tasks deleted', 'Todas las tareas eliminadas', 'Все задачи удалены'],
   share: ['Share the app', 'Comparte la aplicación', 'Поделиться приложением'],
@@ -57,10 +57,12 @@ const translations = {
   ],
   translation: ['Translation', 'Traducción', 'Перевод'],
   send: ['Send', 'Enviar', 'Отправить'],
+  add: ['Add', 'Agregar', 'Добавить'],
   lang: ['Language', 'Idioma', 'Язык'],
   selectLang: ['Select the language', 'Selecciona el idioma', 'Выберите язык'],
   trAuthor: ['Author of the translation', 'Autor de la traducción', 'Автор перевода'],
   fillAllFields: ['Fill in all fields', 'Complete todos los campos', 'Заполните все поля'],
+  fillField: ['Fill in the field', 'Complete el campo', 'Заполните поле'],
 
   category: ['Category', 'Categoría', 'Категория'],
   selectCategory: ['Select the category', 'Seleccione la categoría', 'Выберите категорию'],
@@ -70,6 +72,17 @@ const translations = {
   private: ['Private', 'Privadas', 'Личные'],
   work: ['Work', 'Trabajar', 'Работа'],
   newCategory: ['New category', 'Nueva categoria', 'Новая категория'],
+  typeCategory: ['Type the category', 'Escriba la categoría', 'Введите категорию'],
+  aysToDeleteCategory: [
+    'Are you sure? All tasks in the category will be deleted!',
+    'Está seguro? Se eliminarán todas las tareas de la categoría!',
+    'Вы уверены? Все задачи категории будут удалены!'
+  ],
+  tasksOfCategoryDeleted: [
+    'Tasks in the category removed',
+    'Tareas en la categoría eliminadas',
+    'Задачи в категории удалены'
+  ],
 
   myTasks: ['My Tasks', 'Mis Tareas', 'Мои задачи'],
   search: ['Search...', 'Buscar...', 'Поиск...'],
@@ -116,7 +129,6 @@ languages.forEach((lang, index) => {
     Translations[lang][key] = translations[key][index]
 })
 
-const langs = Object.keys(Translations)
-  .map(key => ({ value: key, label: Translations[key]._language }))
+const langs = languages.map(lang => ({ value: lang, label: Translations[lang]._language }))
 
 export { Translations, langs }

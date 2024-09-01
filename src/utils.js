@@ -12,3 +12,9 @@ export const log = console.log
 
 export const sendToEmail = (body, subj, email = 'azatgt96@gmail.com') =>
     window.location.href = `mailto:${email}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`
+
+export const arrayMove = (arr, fromIndex, toIndex) => {
+    const element = arr[fromIndex]
+    arr.splice(fromIndex, 1)
+    arr.splice(toIndex, 0, element)
+}

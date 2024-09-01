@@ -14,6 +14,7 @@
     </ion-header>
     <ion-content>
       <ion-list>
+        <IconText :icon="albumsOutline" :text="tr.categories" @click="closeMenu(); emit('openCategories')" />
         <IconText :icon="mailOutline" :text="tr.contactUs" @click="contactUs" />
         <IconText :icon="shareSocialOutline" :text="tr.share" @click="shareApp" />
         <IconText :icon="starOutline" :text="tr.rateApp" @click="rateApp" />
@@ -118,7 +119,7 @@ import {
 import {
   closeCircleOutline, mailOutline, powerOutline, informationCircleOutline, settingsOutline, starOutline, shareSocialOutline,
   trashOutline, radioOutline, searchCircleOutline, filterSharp, volumeLowOutline, swapVerticalOutline, saveSharp, returnUpBackOutline,
-  languageOutline, helpCircleOutline, diamondOutline, sunny, moon,
+  languageOutline, helpCircleOutline, diamondOutline, sunny, moon, albumsOutline,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
 import { $, str, isEqual, sendToEmail, delay } from "@/utils.js";
@@ -133,7 +134,7 @@ const props = defineProps({
   taskLength: Number
 })
 
-const emit = defineEmits(['deleteAll'])
+const emit = defineEmits(['deleteAll', 'openCategories'])
 
 const { tr, params, storage, selectProps, alert, toast } = useGlobalStore()
 

@@ -14,15 +14,31 @@ export const useGlobalStore = defineStore('global', () => {
         toastController.create({ message, duration: 1500, color, animated: true,  }).then(toast => toast.present())
     
     const alert = (message, header = tr.attention) =>
-        alertController.create({ message, header, buttons: ['Ok'] })
+        alertController.create({ header, message, buttons: ['Ok'] })
             .then(alert => alert.present())
     
     const confirm = (message, callback) =>
         alertController.create({
-            message, header: tr.attention,
+            header: tr.attention, message,
             buttons: [tr.cancel, { text: 'Ok', handler: callback }]
         }).then(alert => alert.present())
     
     
-    return { tr, params, storage, selectProps, toast, alert, confirm }
+    const onOkClick = (data, callback) => {
+        if (!data[0].trim()) {
+            toast(tr.fillField, 'warning')
+            return false
+        }
+        callback(data[0])
+        return true
+    }
+    
+    const prompt = (header, message, placeholder, callback) =>
+        alertController.create({
+            header, message,
+            inputs: [{ placeholder, max: 20 }],
+            buttons: [tr.cancel, { text: 'Ok', handler: data => onOkClick(data, callback) }],
+        }).then(alert => alert.present())
+    
+    return { tr, params, storage, selectProps, toast, alert, confirm, prompt }
 })
