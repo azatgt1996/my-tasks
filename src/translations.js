@@ -18,6 +18,7 @@ const translations = {
   ],
   allDeleted: ['All tasks deleted', 'Todas las tareas eliminadas', 'Все задачи удалены'],
   share: ['Share the app', 'Comparte la aplicación', 'Поделиться приложением'],
+  shareUsing: ['Share using', 'Compartir usando', 'Поделиться с помощью'],
   shareText: [
     'I want to share this app with you',
     'Quiero compartir esta aplicación contigo',
@@ -32,7 +33,8 @@ const translations = {
     'Автор: %s\n\nИспользованные технологии:\n%s\n\nИконки флагов:\n%s\n\nЗвуки:\n%s\n\n'
   ],
   settings: ['Settings', 'Ajustes', 'Настройки'],
-  guide: ['Show guide', 'Mostrar entrenamiento', 'Показать обучение'],
+  guide: ['Show demonstration', 'Mostrar demostración', 'Показать демонстрацию'],
+  demo: ['Demonstration of the app', 'Demostración de la aplicación', 'Демонстрация приложения'],
   buyPrem: ['Buy premium', 'Comprar prima', 'Купить премиум'],
   exit: ['Close the app', 'Cerrar aplicación', 'Закрыть приложение'],
   attention: ['Attention', 'Atención', 'Внимание'],
@@ -40,14 +42,15 @@ const translations = {
   paramsSaved: ['Params saved', 'Parámetros guardados', 'Параметры сохранены'],
   vibro: ['Vibration', 'Vibración', 'Вибрация'],
   sound: ['Sound', 'Sonido', 'Звук'],
-  searchInDescription: [
+  offToastAlerts: ['Disable toast alerts', 'Desactivar alertas de notificaciones', 'Отключить всплывающие оповещения'],
+  searchInDesc: [
     'Search also in description',
     'Buscar también entre descripciones',
     'Искать также среди описания'
   ],
   sortBy: ['Sort by', 'Ordenar por', 'Сортировать по полю'],
   orderByDesc: ['Order by descending', 'Ordenar de manera descendente', 'Сортировать по убыванию'],
-  autoCloseAfterSave: ['Auto close after save', 'Autocerrar después de guardar', 'Автозакрытие после сохранения'],
+  autoClose: ['Auto close after save', 'Autocerrar después de guardar', 'Автозакрытие после сохранения'],
 
   helpWithTranslation: ['Help with translation', 'Ayuda con la traducción', 'Помочь с переводом'],
   selectExLang: [
@@ -73,15 +76,16 @@ const translations = {
   work: ['Work', 'Trabajar', 'Работа'],
   newCategory: ['New category', 'Nueva categoria', 'Новая категория'],
   typeCategory: ['Type the category', 'Escriba la categoría', 'Введите категорию'],
+  categoryExists: ['This category already exists', 'Esta categoría ya existe', 'Данная категория уже существует'],
   aysToDeleteCategory: [
     'Are you sure? All tasks in the category will be deleted!',
     'Está seguro? Se eliminarán todas las tareas de la categoría!',
     'Вы уверены? Все задачи категории будут удалены!'
   ],
   tasksOfCategoryDeleted: [
-    'Tasks in the category removed',
-    'Tareas en la categoría eliminadas',
-    'Задачи в категории удалены'
+    'Category with tasks deleted',
+    'La categoría de tarea ha sido eliminada',
+    'Категория с задачами удалена'
   ],
 
   myTasks: ['My Tasks', 'Mis Tareas', 'Мои задачи'],

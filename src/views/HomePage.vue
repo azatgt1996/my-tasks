@@ -42,10 +42,10 @@
       </ion-header>
 
       <ion-content>
-        <div v-if="loading" class="spinner-container">
+        <div v-show="loading" class="spinner-container">
           <ion-spinner name="lines" />
         </div>
-        <TransitionGroup v-else-if="filtered.length" ref="listRef" name="list" tag="ion-list">
+        <TransitionGroup v-show="filtered.length" ref="listRef" name="list" tag="ion-list">
           <ion-item-sliding v-for="task in filtered" :key="task.id">
             <ion-item-options side="start" @ion-swipe="toggleCompleted(task)">
               <ion-item-option color="primary" expandable @click="toggleCompleted(task)">
@@ -66,7 +66,7 @@
             </ion-item-options>
           </ion-item-sliding>
         </TransitionGroup>
-        <h1 v-else class="list-status">{{ listStatus }}</h1>
+        <h1 v-show="!filtered.length" class="list-status">{{ listStatus }}</h1>
 
         <ion-modal :is-open="isOpen" @didDismiss="isOpen = false">
           <ion-header>
@@ -107,8 +107,11 @@
               </ion-item>
               <ion-item>
                 <ion-label>{{ tr.notification }}</ion-label>
-                <!-- <ion-icon v-show="!current.notification" :icon="alarmOutline" @click="$('#dt-btn').click()" /> -->
-                <ion-datetime-button id="dt-btn" datetime="datetime" />
+                <ion-button v-if="current.notification === '1980-01-01T00:00:00.000Z'" color="light" @click="setAlarm">
+                  <ion-icon :icon="addOutline" />
+                  <ion-icon :icon="alarmOutline" size="small" />
+                </ion-button>
+                <ion-datetime-button v-else id="dt-btn" datetime="datetime" />
                 <ion-modal :keep-contents-mounted="true">
                   <ion-datetime id="datetime" hour-cycle="h24" v-model="current.notification" />
                 </ion-modal>
@@ -140,7 +143,7 @@
             <ion-toolbar>
               <ion-title>{{ tr.categories }}</ion-title>
               <ion-buttons slot="end">
-                <ion-button @click="addCategory">{{ tr.add }}</ion-button>
+                <ion-button @click="addCategory()">{{ tr.add }}</ion-button>
                 <ion-button @click="categoriesModal = false">
                   <ion-icon :icon="closeCircleOutline" />
                 </ion-button>
@@ -155,7 +158,7 @@
                     {{ baseCategories.includes(_category) ? tr[_category] : _category }}
                   </ion-label>
                   <ion-icon :icon="trashOutline" color="danger" @click="deleteCategory(_category)" />
-                  <ion-reorder slot="end" />
+                  <ion-reorder slot="end" :style="categories.slice(2).length === 1 ? 'pointer-events: none' : ''" />
                 </ion-item>
               </ion-reorder-group>
             </ion-list>
@@ -174,7 +177,7 @@ import {
   IonReorderGroup, IonReorder,
 } from '@ionic/vue';
 import {
-  addCircle, ellipse, funnel, trashOutline, arrowUndoCircleOutline, checkmarkCircleOutline,
+  addCircle, ellipse, funnel, trashOutline, arrowUndoCircleOutline, checkmarkCircleOutline, addOutline,
   alarmOutline, searchCircleOutline, searchSharp, caretBackOutline, caretForwardOutline, saveSharp, closeCircleOutline,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
@@ -192,7 +195,7 @@ const { tr, params, storage, selectProps, toast, confirm, prompt } = useGlobalSt
 
 // #region Others
 const numNanoid = customAlphabet('123456789', 8)
-const audio = new Audio('/main.wav')
+const audio = new Audio('/change.wav')
 const audio2 = new Audio('/trash.mp3')
 const loading = ref(false)
 
@@ -264,6 +267,7 @@ const saveCategories = () => storage.set('categories', JSON.stringify(categories
 
 const addCategory = (isToggle) =>
   prompt(tr.newCategory, '', tr.typeCategory, (val) => {
+    if (categories.value.includes(val)) return toast(tr.categoryExists, 'warning')
     categories.value.push(val)
     if (isToggle) category.value = val
     saveCategories()
@@ -294,7 +298,7 @@ const deleteCategory = (_category) => {
 
 const onReorder = (ev) => {
   const { from, to } = ev.detail
-  
+
   const _categories = clone(categories.value)
   arrayMove(_categories, from + 2, to + 2)
   categories.value = _categories
@@ -342,6 +346,7 @@ class Task {
 }
 
 const saveTasks = (isDel) => {
+  tasks.length = tasks.length
   storage.set('tasks', JSON.stringify(tasks))
   if (params.sound) (isDel ? audio2 : audio).play().catch(log)
   if (params.vibro) Haptics.vibrate({ duration: 28 })
@@ -360,8 +365,8 @@ const changeTask = (cur) => {
     return toast(tr.taskExists, 'warning')
 
   const idx = tasks.findIndex(it => it.id === cur.id)
+  cur.changed = new Date().toISOString()
   tasks[idx] = cur
-  tasks[idx].changed = new Date().toISOString()
 
   if (new Date() < new Date(cur.notification)) {
     const color = ({ low: 'green', medium: 'yellow', high: 'red' })[cur.priority]
@@ -373,7 +378,7 @@ const changeTask = (cur) => {
   originalCurrent = clone(cur)
   current.value = clone(cur)
 
-  if (params.autoCloseAfterSave) isOpen.value = false
+  if (params.autoClose) isOpen.value = false
 }
 
 const addTask = (_title) => {
@@ -403,6 +408,13 @@ const deleteAll = () => {
     saveTasks(1)
     toast(tr.allDeleted)
   })
+}
+
+const setAlarm = () => {
+  const tzo = new Date().getTimezoneOffset() * 60000
+  const now = new Date()
+  const next = new Date(now.setTime(now.getTime() + 3_600_000))
+  current.value.notification = new Date(next - tzo).toISOString()
 }
 
 const toggleCompleted = async (task) => {

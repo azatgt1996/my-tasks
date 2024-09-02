@@ -10,8 +10,10 @@ export const useGlobalStore = defineStore('global', () => {
 
     const selectProps = (label, message) => ({ cancelText: tr.cancel, interfaceOptions: { header: label, message } })
 
-    const toast = (message, color = 'success') =>
+    const toast = (message, color = 'success') => {
+        if (params.offToastAlerts) return
         toastController.create({ message, duration: 1500, color, animated: true,  }).then(toast => toast.present())
+    }
     
     const alert = (message, header = tr.attention) =>
         alertController.create({ header, message, buttons: ['Ok'] })
@@ -25,11 +27,12 @@ export const useGlobalStore = defineStore('global', () => {
     
     
     const onOkClick = (data, callback) => {
-        if (!data[0].trim()) {
+        const result = data[0].trim()
+        if (!result) {
             toast(tr.fillField, 'warning')
             return false
         }
-        callback(data[0])
+        callback(result)
         return true
     }
     

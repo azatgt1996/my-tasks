@@ -23,7 +23,7 @@
           @ionChange="trModal = true">
           <ion-select-option v-for="lang in langs" :value="lang.value">{{ lang.label }}</ion-select-option>
         </ion-select>
-        <IconText :icon="helpCircleOutline" :text="tr.guide" @click="showGuide" />
+        <IconText :icon="helpCircleOutline" :text="tr.guide" @click="demoModal = true" />
         <IconText :icon="diamondOutline" :text="tr.buyPrem" @click="buyPremium" />
         <IconText :icon="informationCircleOutline" :text="tr.aboutApp" @click="showAppInfo" />
         <IconText :icon="settingsOutline" :text="tr.settings" @click="openSettingsModal" />
@@ -48,31 +48,17 @@
     </ion-header>
     <ion-content>
       <ion-list class="params-list">
-        <ion-item>
-          <ion-icon :icon="radioOutline" />
-          <ui-toggle :label="tr.vibro" v-model="$params.vibro" />
-        </ion-item>
-        <ion-item>
-          <ion-icon :icon="volumeLowOutline" />
-          <ui-toggle :label="tr.sound" v-model="$params.sound" />
-        </ion-item>
-        <ion-item>
-          <ion-icon :icon="searchCircleOutline" />
-          <ui-toggle :label="tr.searchInDescription" v-model="$params.searchInDesc" />
-        </ion-item>
+        <ToggleIconItem :icon="radioOutline" :label="tr.vibro" v-model="$params.vibro" />
+        <ToggleIconItem :icon="volumeLowOutline" :label="tr.sound" v-model="$params.sound" />
+        <ToggleIconItem :icon="alertCircleOutline" :label="tr.offToastAlerts" v-model="$params.offToastAlerts" />
+        <ToggleIconItem :icon="searchCircleOutline" :label="tr.searchInDesc" v-model="$params.searchInDesc" />
+        <ToggleIconItem :icon="returnUpBackOutline" :label="tr.autoClose" v-model="$params.autoClose" />
+        <ToggleIconItem :icon="swapVerticalOutline" :label="tr.orderByDesc" v-model="$params.orderByDesc" />
         <ion-item>
           <ion-icon :icon="filterSharp" />
           <ion-select :label="tr.sortBy" v-model="$params.sortBy" v-bind="selectProps(tr.sortBy)">
             <ion-select-option v-for="val in sorts" :value="val">{{ tr[val].toLowerCase() }}</ion-select-option>
           </ion-select>
-        </ion-item>
-        <ion-item>
-          <ion-icon :icon="swapVerticalOutline" />
-          <ui-toggle :label="tr.orderByDesc" v-model="$params.orderByDesc" />
-        </ion-item>
-        <ion-item>
-          <ion-icon :icon="returnUpBackOutline" />
-          <ui-toggle :label="tr.autoCloseAfterSave" v-model="$params.autoCloseAfterSave" />
         </ion-item>
         <ion-item button @click="emit('deleteAll')" :disabled="!taskLength">
           <ion-icon :icon="trashOutline" color="danger" />
@@ -109,6 +95,22 @@
       </ion-list>
     </ion-content>
   </ion-modal>
+
+  <ion-modal :is-open="demoModal" @didDismiss="demoModal = false" @didPresent="closeMenu">
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>{{ tr.demo }}</ion-title>
+        <ion-buttons slot="end">
+          <ion-button @click="demoModal = false">
+            <ion-icon :icon="closeCircleOutline" />
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content>
+      <img src="/public/demo.gif" style="height: 100%; margin: 0 auto; display: block"/>
+    </ion-content>
+  </ion-modal>
 </template>
 
 <script setup>
@@ -119,7 +121,7 @@ import {
 import {
   closeCircleOutline, mailOutline, powerOutline, informationCircleOutline, settingsOutline, starOutline, shareSocialOutline,
   trashOutline, radioOutline, searchCircleOutline, filterSharp, volumeLowOutline, swapVerticalOutline, saveSharp, returnUpBackOutline,
-  languageOutline, helpCircleOutline, diamondOutline, sunny, moon, albumsOutline,
+  languageOutline, helpCircleOutline, diamondOutline, sunny, moon, albumsOutline, alertCircleOutline,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
 import { $, str, isEqual, sendToEmail, delay } from "@/utils.js";
@@ -128,7 +130,7 @@ import { onMounted, reactive, ref, watch } from "vue";
 import { useGlobalStore } from "@/global.js";
 import { Share } from '@capacitor/share';
 import { IconText } from "@/components/renderFunctions.js";
-import UiToggle from "@/components/UiToggle.vue";
+import ToggleIconItem from "@/components/ToggleIconItem.vue";
 
 const props = defineProps({
   taskLength: Number
@@ -159,6 +161,7 @@ const sorts = ['created', 'changed', 'title', 'priority', 'notification']
 const menuRef = ref()
 const isOpen = ref(false)
 const trModal = ref(false)
+const demoModal = ref(false)
 const baseLang = ref()
 const trData = ref({})
 const appLink = 'https://play.google.com/store/apps/details?id=com.kvarta.mytasks'
@@ -169,7 +172,7 @@ watch(params, (val) => storage.set('params', JSON.stringify(val)), { deep: true 
 
 const contactUs = () => sendToEmail('', 'Support')
 
-const shareApp = () => Share.share({ text: tr.shareText, url: appLink, dialogTitle: tr.share.split(' ')[0] })
+const shareApp = () => Share.share({ text: tr.shareText, url: appLink, dialogTitle: tr.shareUsing })
 
 const rateApp = () => window.location.href = appLink
 
@@ -202,7 +205,6 @@ const sendTranslation = () => {
   trModal.value = false
 }
 
-const showGuide = () => { }
 const buyPremium = () => { }
 
 const $params = reactive({})
@@ -223,8 +225,8 @@ onMounted(async () => {
 
   let _params = await storage.get('params')
   const defaultParams = {
-    vibro: true, sound: false, searchInDesc: false,
-    sortBy: 'created', orderByDesc: false, autoCloseAfterSave: true,
+    vibro: true, sound: false, offToastAlerts: false, searchInDesc: false,
+    sortBy: 'created', orderByDesc: false, autoClose: true,
   }
   _params = _params ? JSON.parse(_params) : defaultParams
   Object.assign(params, _params)
@@ -244,6 +246,6 @@ onMounted(async () => {
 }
 
 .tr-list ion-input {
-  min-height: 36px; 
+  min-height: 36px;
 }
 </style>
