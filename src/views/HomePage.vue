@@ -55,7 +55,7 @@
             <ion-item button @click="openTask(task)">
               <ion-label class="task-title">{{ task.title }}</ion-label>
               <ion-icon v-if="task.completed" :icon="checkmarkCircleOutline" size="small" style="margin-right: 2px" />
-              <ion-icon v-if="new Date() < new Date(task.notification)" :icon="alarmOutline" size="small"
+              <ion-icon v-if="new Date() < new Date(task.notification == emptyDatetime ? 0 : task.notification)" :icon="alarmOutline" size="small"
                 style="margin-right: 2px" />
               <ion-icon :icon="ellipse" size="small" :color="priorityType[task.priority]" />
             </ion-item>
@@ -107,13 +107,13 @@
               </ion-item>
               <ion-item>
                 <ion-label>{{ tr.notification }}</ion-label>
-                <ion-button v-if="current.notification === '1980-01-01T00:00:00.000Z'" color="light" @click="setAlarm">
+                <ion-button v-if="current.notification === emptyDatetime" color="light" @click="setAlarm">
                   <ion-icon :icon="addOutline" />
                   <ion-icon :icon="alarmOutline" size="small" />
                 </ion-button>
                 <ion-datetime-button v-else id="dt-btn" datetime="datetime" />
                 <ion-modal :keep-contents-mounted="true">
-                  <ion-datetime id="datetime" hour-cycle="h24" v-model="current.notification" />
+                  <ion-datetime id="datetime" hour-cycle="h23" :min="minDate" v-model="current.notification" />
                 </ion-modal>
               </ion-item>
               <ion-item>
@@ -233,7 +233,7 @@ const filtered = computed(() => {
     result &&= _filter.includes(it.priority)
     if (_category !== 'allCategories') result &&= (it.category === _category)
     if (!_filter.includes('completed')) result &&= !it.completed
-    if (_filter.includes('notificated')) result &&= new Date() < new Date(it.notification)
+    if (_filter.includes('notificated')) result &&= new Date() < new Date(it.notification == emptyDatetime ? 0 : it.notification)
     return result
   })
 
@@ -244,7 +244,8 @@ const filtered = computed(() => {
     if (sortBy === 'changed') return new Date(t1.changed) - new Date(t2.changed)
     if (sortBy === 'title') return t1.title.localeCompare(t2.title)
     if (sortBy === 'priority') return priorityNum[t1.priority] - priorityNum[t2.priority]
-    if (sortBy === 'notification') return new Date(t1.notification) - new Date(t2.notification)
+    if (sortBy === 'notification')
+      return new Date(t1.notification == emptyDatetime ? 0 : t1.notification) - new Date(t2.notification == emptyDatetime ? 0 : t2.notification)
   })
 })
 
@@ -323,9 +324,15 @@ const title = ref('')
 const isOpen = ref(false)
 const listRef = ref()
 const taskLength = 50
+const emptyDatetime = '2100-01-01T00:00:00.000Z'
+const minDate = ref(null)
 
 const current = ref({})
 let originalCurrent = {}
+
+watch(current, () => {
+  minDate.value = getLocaleDate().toISOString()
+})
 
 const disabledSave = computed(() => isEqual(originalCurrent, current.value))
 
@@ -341,7 +348,7 @@ class Task {
     this.priority = 'low'
     this.category = category
     this.completed = false
-    this.notification = notification ?? '1980-01-01T00:00:00.000Z'
+    this.notification = notification ?? emptyDatetime
   }
 }
 
@@ -368,7 +375,7 @@ const changeTask = (cur) => {
   cur.changed = new Date().toISOString()
   tasks[idx] = cur
 
-  if (new Date() < new Date(cur.notification)) {
+  if (new Date() < new Date(cur.notification) && cur.notification !== emptyDatetime) {
     const color = ({ low: 'green', medium: 'yellow', high: 'red' })[cur.priority]
     scheduleNotification(+numNanoid(), tr.myTasks, cur.notification, cur.title, color)
   }
@@ -410,11 +417,15 @@ const deleteAll = () => {
   })
 }
 
-const setAlarm = () => {
+const getLocaleDate = () => {
   const tzo = new Date().getTimezoneOffset() * 60000
-  const now = new Date()
+  return new Date(new Date() - tzo)
+}
+
+const setAlarm = () => {
+  const now = getLocaleDate()
   const next = new Date(now.setTime(now.getTime() + 3_600_000))
-  current.value.notification = new Date(next - tzo).toISOString()
+  current.value.notification = new Date(next).toISOString()
 }
 
 const toggleCompleted = async (task) => {
