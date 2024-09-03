@@ -23,7 +23,6 @@
           @ionChange="trModal = true">
           <ion-select-option v-for="lang in langs" :value="lang.value">{{ lang.label }}</ion-select-option>
         </ion-select>
-        <IconText :icon="helpCircleOutline" :text="tr.guide" @click="demoModal = true" />
         <IconText :icon="diamondOutline" :text="tr.buyPrem" @click="buyPremium" />
         <IconText :icon="informationCircleOutline" :text="tr.aboutApp" @click="showAppInfo" />
         <IconText :icon="settingsOutline" :text="tr.settings" @click="openSettingsModal" />
@@ -37,12 +36,8 @@
       <ion-toolbar>
         <ion-title>{{ tr.settings }}</ion-title>
         <ion-buttons slot="end">
-          <ion-button @click="saveParams" :disabled="isEqual($params, params)">
-            <ion-icon :icon="saveSharp" />
-          </ion-button>
-          <ion-button @click="isOpen = false">
-            <ion-icon :icon="closeCircleOutline" />
-          </ion-button>
+          <IconBtn :icon="saveSharp" :disabled="isEqual($params, params)" @click="saveParams" />
+          <IconBtn :icon="closeCircleOutline" @click="isOpen = false" />
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -74,9 +69,7 @@
         <ion-title>{{ tr.translation }}</ion-title>
         <ion-buttons slot="end">
           <ion-button @click="sendTranslation">{{ tr.send }}</ion-button>
-          <ion-button @click="trModal = false">
-            <ion-icon :icon="closeCircleOutline" />
-          </ion-button>
+          <IconBtn :icon="closeCircleOutline" @click="trModal = false" />
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -95,22 +88,6 @@
       </ion-list>
     </ion-content>
   </ion-modal>
-
-  <ion-modal :is-open="demoModal" @didDismiss="demoModal = false" @didPresent="closeMenu">
-    <ion-header>
-      <ion-toolbar>
-        <ion-title>{{ tr.demo }}</ion-title>
-        <ion-buttons slot="end">
-          <ion-button @click="demoModal = false">
-            <ion-icon :icon="closeCircleOutline" />
-          </ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-    <ion-content>
-      <img src="/public/demo.gif" style="height: 100%; margin: 0 auto; display: block"/>
-    </ion-content>
-  </ion-modal>
 </template>
 
 <script setup>
@@ -121,7 +98,7 @@ import {
 import {
   closeCircleOutline, mailOutline, powerOutline, informationCircleOutline, settingsOutline, starOutline, shareSocialOutline,
   trashOutline, radioOutline, searchCircleOutline, filterSharp, volumeLowOutline, swapVerticalOutline, saveSharp, returnUpBackOutline,
-  languageOutline, helpCircleOutline, diamondOutline, sunny, moon, albumsOutline, alertCircleOutline,
+  languageOutline, diamondOutline, sunny, moon, albumsOutline, alertCircleOutline,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
 import { $, str, isEqual, sendToEmail, delay } from "@/utils.js";
@@ -129,7 +106,7 @@ import { langs, Translations } from "@/translations.js";
 import { onMounted, reactive, ref, watch } from "vue";
 import { useGlobalStore } from "@/global.js";
 import { Share } from '@capacitor/share';
-import { IconText } from "@/components/renderFunctions.js";
+import { IconText, IconBtn } from "@/components/renderFunctions.js";
 import ToggleIconItem from "@/components/ToggleIconItem.vue";
 
 const props = defineProps({

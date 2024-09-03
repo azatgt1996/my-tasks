@@ -33,8 +33,6 @@ const translations = {
     'Автор: %s\n\nИспользованные технологии:\n%s\n\nИконки флагов:\n%s\n\nЗвуки:\n%s\n\n'
   ],
   settings: ['Settings', 'Ajustes', 'Настройки'],
-  guide: ['Show demonstration', 'Mostrar demostración', 'Показать демонстрацию'],
-  demo: ['Demonstration of the app', 'Demostración de la aplicación', 'Демонстрация приложения'],
   buyPrem: ['Buy premium', 'Comprar prima', 'Купить премиум'],
   exit: ['Close the app', 'Cerrar aplicación', 'Закрыть приложение'],
   attention: ['Attention', 'Atención', 'Внимание'],
@@ -42,7 +40,7 @@ const translations = {
   paramsSaved: ['Params saved', 'Parámetros guardados', 'Параметры сохранены'],
   vibro: ['Vibration', 'Vibración', 'Вибрация'],
   sound: ['Sound', 'Sonido', 'Звук'],
-  offToastAlerts: ['Disable toast alerts', 'Desactivar alertas de notificaciones', 'Отключить всплывающие оповещения'],
+  offToastAlerts: ['Disable toasts', 'Desactivar toasts', 'Отключить toast-сообщения'],
   searchInDesc: [
     'Search also in description',
     'Buscar también entre descripciones',

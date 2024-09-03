@@ -55,8 +55,8 @@
             <ion-item button @click="openTask(task)">
               <ion-label class="task-title">{{ task.title }}</ion-label>
               <ion-icon v-if="task.completed" :icon="checkmarkCircleOutline" size="small" style="margin-right: 2px" />
-              <ion-icon v-if="new Date() < new Date(task.notification == emptyDatetime ? 0 : task.notification)" :icon="alarmOutline" size="small"
-                style="margin-right: 2px" />
+              <ion-icon v-if="new Date() < new Date(task.notification == emptyDatetime ? 0 : task.notification)"
+                :icon="alarmOutline" size="small" style="margin-right: 2px" />
               <ion-icon :icon="ellipse" size="small" :color="priorityType[task.priority]" />
             </ion-item>
             <ion-item-options side="end" @ion-swipe="deleteTask(task)">
@@ -66,19 +66,15 @@
             </ion-item-options>
           </ion-item-sliding>
         </TransitionGroup>
-        <h1 v-show="!filtered.length" class="list-status">{{ listStatus }}</h1>
+        <ion-label v-show="!filtered.length" class="list-status" color="medium">{{ listStatus }}</ion-label>
 
         <ion-modal :is-open="isOpen" @didDismiss="isOpen = false">
           <ion-header>
             <ion-toolbar>
               <ion-title>{{ tr.detailInfo }}</ion-title>
               <ion-buttons slot="end">
-                <ion-button @click="changeTask(current)" :disabled="disabledSave">
-                  <ion-icon :icon="saveSharp" />
-                </ion-button>
-                <ion-button @click="isOpen = false">
-                  <ion-icon :icon="closeCircleOutline" />
-                </ion-button>
+                <IconBtn :icon="saveSharp" :disabled="disabledSave" @click="changeTask(current)" />
+                <IconBtn :icon="closeCircleOutline" @click="isOpen = false" />
               </ion-buttons>
             </ion-toolbar>
           </ion-header>
@@ -144,9 +140,7 @@
               <ion-title>{{ tr.categories }}</ion-title>
               <ion-buttons slot="end">
                 <ion-button @click="addCategory()">{{ tr.add }}</ion-button>
-                <ion-button @click="categoriesModal = false">
-                  <ion-icon :icon="closeCircleOutline" />
-                </ion-button>
+                <IconBtn :icon="closeCircleOutline" @click="categoriesModal = false" />
               </ion-buttons>
             </ion-toolbar>
           </ion-header>
@@ -185,10 +179,10 @@ import { computed, onMounted, ref, watch, reactive } from "vue";
 import { onClickOutside } from '@vueuse/core';
 import { nanoid, customAlphabet } from "nanoid";
 import { clone, isEqual, $, delay, log, arrayMove } from "@/utils.js";
-import { useGlobalStore } from "@/global.js"
+import { useGlobalStore } from "@/global.js";
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Haptics } from "@capacitor/haptics";
-import { OptionsGroup } from "@/components/renderFunctions.js";
+import { OptionsGroup, IconBtn } from "@/components/renderFunctions.js";
 import Menu from "@/components/Menu.vue";
 
 const { tr, params, storage, selectProps, toast, confirm, prompt } = useGlobalStore()
@@ -269,7 +263,7 @@ const saveCategories = () => storage.set('categories', JSON.stringify(categories
 const addCategory = (isToggle) =>
   prompt(tr.newCategory, '', tr.typeCategory, (val) => {
     if (categories.value.includes(val)) return toast(tr.categoryExists, 'warning')
-    categories.value.push(val)
+    categories.value = [...categories.value, val]
     if (isToggle) category.value = val
     saveCategories()
   })
@@ -542,6 +536,7 @@ ion-searchbar {
   display: flex;
   justify-content: center;
   align-items: center;
+  font-size: x-large;
 }
 
 .low-item[aria-checked="true"] .alert-checkbox-icon {
