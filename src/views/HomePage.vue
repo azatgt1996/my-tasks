@@ -37,7 +37,7 @@
         <ion-item>
           <ion-input :placeholder="tr.newTask" v-model="title" :maxlength="taskLength" clear-input
             @keyup.enter="addTask(title)" />
-          <ion-icon :icon="addCircle" size="large" color="primary" @click="addTask(title)" />
+          <ion-icon :icon="addCircle" color="primary" @click="addTask(title)" style="margin-right: -2px" />
         </ion-item>
       </ion-header>
 
