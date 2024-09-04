@@ -23,7 +23,7 @@
           @ionChange="trModal = true">
           <ion-select-option v-for="lang in langs" :value="lang.value">{{ lang.label }}</ion-select-option>
         </ion-select>
-        <IconText :icon="diamondOutline" :text="tr.buyPrem" @click="buyPremium" />
+        <!-- <IconText :icon="diamondOutline" :text="tr.buyPrem" @click="buyPremium" /> -->
         <IconText :icon="informationCircleOutline" :text="tr.aboutApp" @click="showAppInfo" />
         <IconText :icon="settingsOutline" :text="tr.settings" @click="openSettingsModal" />
         <IconText :icon="powerOutline" :text="tr.exit" @click="App.exitApp()" />
@@ -98,7 +98,7 @@ import {
 import {
   closeCircleOutline, mailOutline, powerOutline, informationCircleOutline, settingsOutline, starOutline, shareSocialOutline,
   trashOutline, radioOutline, searchCircleOutline, filterSharp, volumeLowOutline, swapVerticalOutline, saveSharp, returnUpBackOutline,
-  languageOutline, diamondOutline, sunny, moon, albumsOutline, alertCircleOutline,
+  languageOutline, sunny, moon, albumsOutline, alertCircleOutline, diamondOutline,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
 import { $, str, isEqual, sendToEmail, delay } from "@/utils.js";
@@ -138,7 +138,6 @@ const sorts = ['created', 'changed', 'title', 'priority', 'notification']
 const menuRef = ref()
 const isOpen = ref(false)
 const trModal = ref(false)
-const demoModal = ref(false)
 const baseLang = ref()
 const trData = ref({})
 const appLink = 'https://play.google.com/store/apps/details?id=com.kvarta.mytasks'

@@ -120,14 +120,26 @@
                   </ion-segment-button>
                 </ion-segment>
               </ion-item>
+              <ion-item>
+                <ion-checkbox v-model="current.completed" justify="space-between"
+                  :style="current.completed ? 'color: var(--ion-color-primary)' : ''">
+                  {{ tr.isCompleted }}
+                </ion-checkbox>
+              </ion-item>
+              <ion-item button @click="removeTask(current)">
+                <ion-icon :icon="trashOutline" color="danger" style="margin-right: 10px" />
+                <ion-label color="danger">{{ tr.delete }}</ion-label>
+              </ion-item>
             </ion-list>
           </ion-content>
-          <ion-footer style="display: flex">
-            <ion-button size="small" style="width: 100%" fill="clear" @click="prevTask">
+          <ion-footer v-show="filtered.length > 1" style="display: flex">
+            <ion-button size="small" style="width: 100%" fill="clear" @click="prevTask"
+              :disabled="filtered[0]?.id == current.id">
               <ion-icon slot="start" :icon="caretBackOutline" />
               {{ tr.prev }}
             </ion-button>
-            <ion-button size="small" style="width: 100%" fill="clear" @click="nextTask">
+            <ion-button size="small" style="width: 100%" fill="clear" @click="nextTask"
+              :disabled="filtered.at(-1)?.id == current.id">
               <ion-icon slot="end" :icon="caretForwardOutline" />
               {{ tr.next }}
             </ion-button>
@@ -168,7 +180,7 @@ import {
   IonMenuButton, IonButton, IonContent, IonHeader, IonIcon, IonInput, IonToolbar, IonModal, IonSearchbar, IonDatetime,
   IonItem, IonLabel, IonList, IonPage, IonTitle, IonButtons, IonDatetimeButton, IonSegment, IonSegmentButton, IonTextarea,
   IonItemSliding, IonItemOptions, IonItemOption, IonSelect, IonSelectOption, useBackButton, useIonRouter, IonFooter, IonSpinner,
-  IonReorderGroup, IonReorder,
+  IonReorderGroup, IonReorder, IonCheckbox,
 } from '@ionic/vue';
 import {
   addCircle, ellipse, funnel, trashOutline, arrowUndoCircleOutline, checkmarkCircleOutline, addOutline,
@@ -208,32 +220,29 @@ const priorityNum = { low: 0, medium: 1, high: 2 }
 
 watch(filters, (val) => storage.set('filters', JSON.stringify(val)))
 
-const filtered = computed(() => {
-  if (!tasks.length) return []
+const grouped = computed(() => { // grouped by category
+  if (category.value == 'allCategories') return tasks
+  return tasks.filter(it => it.category == category.value)
+})
 
-  const _category = category.value
+const filtered = computed(() => {
+  if (!grouped.value.length) return []
+
   const _filter = filters.value
   const _keyword = keyword.value.toLowerCase().trim()
-  let result = []
+  const { sortBy, orderByDesc, searchInDesc } = params
 
-  const onlyAllPriorities = _filter.length === 3 && isEqual(_filter, priorities)
-
-  if (!_keyword && onlyAllPriorities && _category === 'allCategories')
-    result = tasks.filter(it => !it.completed)
-
-  result = tasks.filter(it => {
-    let result = it.title.toLowerCase().includes(_keyword)
-    if (params.searchInDesc) result ||= it.description.toLowerCase().includes(_keyword)
-    result &&= _filter.includes(it.priority)
-    if (_category !== 'allCategories') result &&= (it.category === _category)
-    if (!_filter.includes('completed')) result &&= !it.completed
-    if (_filter.includes('notificated')) result &&= new Date() < new Date(it.notification == emptyDatetime ? 0 : it.notification)
-    return result
+  const result = grouped.value.filter(it => {
+    let res = it.title.toLowerCase().includes(_keyword)
+    if (searchInDesc) res ||= it.description.toLowerCase().includes(_keyword)
+    res &&= _filter.includes(it.priority)
+    if (!_filter.includes('completed')) res &&= !it.completed
+    if (_filter.includes('notificated')) res &&= new Date() < new Date(it.notification == emptyDatetime ? 0 : it.notification)
+    return res
   })
 
   return result.sort((t1, t2) => {
-    if (params.orderByDesc) [t1, t2] = [t2, t1]
-    const { sortBy } = params
+    if (orderByDesc) [t1, t2] = [t2, t1]
     if (sortBy === 'created') return new Date(t1.created) - new Date(t2.created)
     if (sortBy === 'changed') return new Date(t1.changed) - new Date(t2.changed)
     if (sortBy === 'title') return t1.title.localeCompare(t2.title)
@@ -244,7 +253,7 @@ const filtered = computed(() => {
 })
 
 const listStatus = computed(() => {
-  if (!tasks.length || !filtered.value.length && !keyword.value.trim()) return tr.emptyList
+  if (!grouped.value.length || !filtered.value.length && !keyword.value.trim()) return tr.emptyList
   if (!filtered.value.length) return tr.tasksNotFound
 })
 // #endregion
@@ -401,6 +410,11 @@ const deleteTask = (task) => {
   tasks.splice(idx, 1)
   toast(tr.taskDeleted)
   saveTasks(1)
+}
+
+const removeTask = (task) => {
+  isOpen.value = false
+  deleteTask(task)
 }
 
 const deleteAll = () => {

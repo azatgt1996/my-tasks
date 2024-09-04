@@ -10,7 +10,7 @@ const translations = {
   ],
   menu: ['Menu', 'Menú', 'Меню'],
   contactUs: ['Contact us', 'Contacta con nosotros', 'Связаться с нами'],
-  deleteAll: ['Delete all tasks', 'Eliminar tareas', 'Удалить все задачи'],
+  deleteAll: ['Delete all tasks', 'Eliminar todas las tareas', 'Удалить все задачи'],
   aysToDelete: [
     'Are you sure? All tasks will be deleted!',
     'Está seguro? Se eliminarán todas las tareas!',
@@ -94,6 +94,8 @@ const translations = {
   changed: ['Changed date', 'Fecha de modificación', 'Дата изменения'],
   title: ['Title', 'Título', 'Название'],
   priority: ['Priority', 'Prioridad', 'Приоритет'],
+  isCompleted: ['Completed', 'Terminada', 'Выполнена'],
+  delete: ['Delete task', 'Eliminar tarea', 'Удалить задачу'],
   notification: ['Notification', 'Notificación', 'Уведомление'],
   typeTask: ['Type title', 'Escribe el título', 'Введите название'],
   description: ['Description', 'Descripción', 'Описание'],
