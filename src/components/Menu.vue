@@ -8,7 +8,7 @@
         <ion-select v-show="false" v-model="lang" id="langSelect" v-bind="selectProps(tr.selectLang)">
           <ion-select-option v-for="lang in langs" :value="lang.value">{{ lang.label }}</ion-select-option>
         </ion-select>
-        <ion-icon :icon="isDarkMode ? moon : sunny" slot="end" size="large" @click="toggleDarkMode"
+        <ion-icon :icon="darkMode ? moon : sunny" slot="end" size="large" @click="toggleDarkMode"
           style="margin-right: 8px" />
       </ion-toolbar>
     </ion-header>
@@ -118,12 +118,12 @@ const emit = defineEmits(['deleteAll', 'openCategories'])
 const { tr, params, storage, selectProps, alert, toast } = useGlobalStore()
 
 // #region Dark mode
-const isDarkMode = ref(false)
+const darkMode = ref(false)
 
 const toggleDarkMode = () => {
-  isDarkMode.value = !isDarkMode.value
-  storage.set('darkMode', isDarkMode.value)
-  document.documentElement.classList.toggle('ion-palette-dark', isDarkMode.value)
+  darkMode.value = !darkMode.value
+  storage.set('darkMode', darkMode.value)
+  document.documentElement.classList.toggle('ion-palette-dark', darkMode.value)
 }
 // #endregion
 
@@ -197,8 +197,6 @@ const saveParams = () => {
 }
 
 onMounted(async () => {
-  await storage.create()
-
   let _params = await storage.get('params')
   const defaultParams = {
     vibro: true, sound: false, offToastAlerts: false, searchInDesc: false,
@@ -206,9 +204,9 @@ onMounted(async () => {
   }
   _params = _params ? JSON.parse(_params) : defaultParams
   Object.assign(params, _params)
-
-  isDarkMode.value = await storage.get('darkMode')
-  document.documentElement.classList.toggle('ion-palette-dark', isDarkMode.value)
+  
+  darkMode.value = await storage.get('darkMode')
+  document.documentElement.classList.toggle('ion-palette-dark', darkMode.value)
 
   const navLang = window.navigator.language.split('-')[0].toUpperCase()
   const _langs = Object.keys(Translations)

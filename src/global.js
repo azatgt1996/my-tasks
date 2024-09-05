@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { reactive } from 'vue'
+import { onBeforeMount, reactive } from 'vue'
 import { toastController, alertController } from '@ionic/vue'
 import { Storage } from "@ionic/storage";
 
@@ -42,6 +42,10 @@ export const useGlobalStore = defineStore('global', () => {
             inputs: [{ placeholder, max: 20 }],
             buttons: [tr.cancel, { text: 'Ok', handler: data => onOkClick(data, callback) }],
         }).then(alert => alert.present())
+    
+    onBeforeMount(async () => {
+        await storage.create()
+    })
     
     return { tr, params, storage, selectProps, toast, alert, confirm, prompt }
 })

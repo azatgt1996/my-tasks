@@ -480,7 +480,6 @@ const scheduleNotification = (id, title, dateTime, body, color) => {
 
 onMounted(async () => {
   loading.value = true
-  await storage.create()
 
   filters.value = JSON.parse(await storage.get('filters')) ?? priorities
 
