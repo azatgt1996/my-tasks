@@ -117,16 +117,6 @@ const emit = defineEmits(['deleteAll', 'openCategories'])
 
 const { tr, params, storage, selectProps, alert, toast } = useGlobalStore()
 
-// #region Dark mode
-const darkMode = ref(false)
-
-const toggleDarkMode = () => {
-  darkMode.value = !darkMode.value
-  storage.set('darkMode', darkMode.value)
-  document.documentElement.classList.toggle('ion-palette-dark', darkMode.value)
-}
-// #endregion
-
 const lang = ref()
 watch(lang, (val) => {
   storage.set('lang', val)
@@ -196,6 +186,17 @@ const saveParams = () => {
   toast(tr.paramsSaved)
 }
 
+// #region Dark mode
+const darkMode = ref(localStorage.getItem('darkMode') === 'true')
+document.documentElement.classList.toggle('ion-palette-dark', darkMode.value)
+
+const toggleDarkMode = () => {
+  darkMode.value = !darkMode.value
+  localStorage.setItem('darkMode', darkMode.value)
+  document.documentElement.classList.toggle('ion-palette-dark', darkMode.value)
+}
+// #endregion
+
 onMounted(async () => {
   let _params = await storage.get('params')
   const defaultParams = {
@@ -204,9 +205,6 @@ onMounted(async () => {
   }
   _params = _params ? JSON.parse(_params) : defaultParams
   Object.assign(params, _params)
-  
-  darkMode.value = await storage.get('darkMode')
-  document.documentElement.classList.toggle('ion-palette-dark', darkMode.value)
 
   const navLang = window.navigator.language.split('-')[0].toUpperCase()
   const _langs = Object.keys(Translations)
