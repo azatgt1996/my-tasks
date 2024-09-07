@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test:e2e": "cypress run",
     "test:unit": "vitest",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "resources": "capacitor-resources -p android -I -o ./android/app/src/main/res/"
   },
   "dependencies": {
     "@capacitor/android": "6.1.2",
@@ -24,6 +25,7 @@
     "@ionic/vue": "^8.0.0",
     "@ionic/vue-router": "^8.0.0",
     "@vueuse/core": "^11.0.1",
+    "capacitor-resources": "^2.0.5",
     "ionicons": "^7.0.0",
     "pinia": "^2.2.2",
     "vue": "^3.3.0",

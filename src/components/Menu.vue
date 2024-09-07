@@ -6,7 +6,7 @@
         <img slot="end" :src="getFlagImg(lang)" :alt="lang" width="30" @click="$('#langSelect').click()"
           style="margin-right: 8px" />
         <ion-select v-show="false" v-model="lang" id="langSelect" v-bind="selectProps(tr.selectLang)">
-          <ion-select-option v-for="lang in langs" :value="lang.value">{{ lang.label }}</ion-select-option>
+          <ion-select-option v-for="({label, value}) in langs" :value>{{ label }}</ion-select-option>
         </ion-select>
         <ion-icon :icon="darkMode ? moon : sunny" slot="end" size="large" @click="toggleDarkMode"
           style="margin-right: 8px" />
@@ -21,7 +21,7 @@
         <IconText :icon="languageOutline" :text="tr.helpWithTranslation" @click="openSelect" />
         <ion-select v-show="false" v-model="baseLang" id="langSelect2" v-bind="selectProps(tr.selectExLang, tr.msg)"
           @ionChange="trModal = true">
-          <ion-select-option v-for="lang in langs" :value="lang.value">{{ lang.label }}</ion-select-option>
+          <ion-select-option v-for="({label, value}) in langs" :value>{{ label }}</ion-select-option>
         </ion-select>
         <!-- <IconText :icon="diamondOutline" :text="tr.buyPrem" @click="buyPremium" /> -->
         <IconText :icon="informationCircleOutline" :text="tr.aboutApp" @click="showAppInfo" />
@@ -117,12 +117,7 @@ const emit = defineEmits(['deleteAll', 'openCategories'])
 
 const { tr, params, storage, selectProps, alert, toast } = useGlobalStore()
 
-const lang = ref()
-watch(lang, (val) => {
-  storage.set('lang', val)
-  Object.assign(tr, Translations[val])
-})
-
+const ls = localStorage
 const getFlagImg = (name) => new URL(`../assets/flags/${name}.png`, import.meta.url).href
 const sorts = ['created', 'changed', 'title', 'priority', 'notification']
 const menuRef = ref()
@@ -186,16 +181,27 @@ const saveParams = () => {
   toast(tr.paramsSaved)
 }
 
-// #region Dark mode
-const darkMode = ref(localStorage.getItem('darkMode') === 'true')
-document.documentElement.classList.toggle('ion-palette-dark', darkMode.value)
+// Dark mode
+const _darkMode = (ls.darkMode ?? window.matchMedia?.('(prefers-color-scheme: dark)').matches.toString()) === 'true'
+const darkMode = ref(_darkMode)
+document.documentElement.classList.toggle('ion-palette-dark', _darkMode)
 
 const toggleDarkMode = () => {
   darkMode.value = !darkMode.value
-  localStorage.setItem('darkMode', darkMode.value)
+  ls.darkMode = darkMode.value
   document.documentElement.classList.toggle('ion-palette-dark', darkMode.value)
 }
-// #endregion
+
+// Language
+const navLang = window.navigator.language.split('-')[0].toUpperCase()
+const _langs = Object.keys(Translations)
+const lang = ref(ls.lang ?? (_langs.includes(navLang) ? navLang : _langs[0]))
+Object.assign(tr, Translations[lang.value])
+
+watch(lang, (val) => { 
+  ls.lang = val
+  Object.assign(tr, Translations[val])
+})
 
 onMounted(async () => {
   let _params = await storage.get('params')
@@ -205,10 +211,6 @@ onMounted(async () => {
   }
   _params = _params ? JSON.parse(_params) : defaultParams
   Object.assign(params, _params)
-
-  const navLang = window.navigator.language.split('-')[0].toUpperCase()
-  const _langs = Object.keys(Translations)
-  lang.value = (await storage.get('lang')) ?? (_langs.includes(navLang) ? navLang : _langs[0])
 })
 </script>
 
