@@ -20,13 +20,7 @@
         <IconText :icon="mailOutline" :text="tr.contactUs" @click="contactUs" />
         <IconText :icon="shareSocialOutline" :text="tr.share" @click="shareApp" />
         <IconText :icon="starOutline" :text="tr.rateApp" @click="rateApp" />
-        <IconText :icon="languageOutline" :text="tr.helpWithTranslation" @click="openSelect" />
-        <ion-select v-show="false" v-model="baseLang" id="langSelect2" v-bind="selectProps(tr.selectExLang)"
-          @ionChange="trModal = true">
-          <ion-select-option v-for="({ label, value }) in langs" class="flag" :class="'flag-' + value" :value>
-            {{ label }}
-          </ion-select-option>
-        </ion-select>
+        <IconText :icon="languageOutline" :text="tr.helpWithTranslation" @click="trModal = true" />
         <!-- <IconText :icon="diamondOutline" :text="tr.buyPrem" @click="buyPremium" /> -->
         <IconText :icon="informationCircleOutline" :text="tr.aboutApp" @click="showAppInfo" />
         <IconText :icon="settingsOutline" :text="tr.settings" @click="openSettingsModal" />
@@ -85,8 +79,8 @@
         <ion-item>
           <ion-input :label="tr.trAuthor" v-model="trData._trAuthor" fill="outline" />
         </ion-item>
-        <ion-item v-for="key in Object.keys(Translations[baseLang]).slice(2)">
-          <ion-input :value="Translations[baseLang][key]" readonly fill="outline" />
+        <ion-item v-for="key in Object.keys(Translations[lang]).slice(2)">
+          <ion-input :value="Translations[lang][key]" readonly fill="outline" />
           <ion-input v-model="trData[key]" style="margin-left: 5px" fill="outline" />
         </ion-item>
       </ion-list>
@@ -127,7 +121,6 @@ const sorts = ['created', 'changed', 'title', 'priority', 'notification']
 const menuRef = ref()
 const isOpen = ref(false)
 const trModal = ref(false)
-const baseLang = ref()
 const trData = ref({})
 const appLink = 'https://play.google.com/store/apps/details?id=com.kvarta.mytasks'
 
@@ -154,17 +147,11 @@ const showAppInfo = () => {
   alert(msg, tr.appInfo)
 }
 
-const openSelect = async () => {
-  baseLang.value = lang.value
-  await delay(100)
-  $('#langSelect2').click()
-}
-
 const sendTranslation = () => {
-  for (const key of Object.keys(Translations[baseLang.value]))
+  for (const key of Object.keys(Translations[lang.value]))
     if (!trData.value[key]?.trim()) return toast(tr.fillAllFields, 'warning')
 
-  trData.value._baseLang = baseLang.value
+  trData.value._baseLang = lang.value
   const trText = JSON.stringify(trData.value, null, 2).replace(/"([^"]+)":/g, '$1:')
   sendToEmail(trText, tr.translation)
   trModal.value = false

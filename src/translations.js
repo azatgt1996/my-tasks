@@ -1,3 +1,4 @@
+// Note! Add flag icon to styles in Menu.vue
 const languages = ['EN', 'ES', 'RU']
 
 const translations = {
@@ -51,11 +52,6 @@ const translations = {
   autoClose: ['Auto close after save', 'Autocerrar después de guardar', 'Автозакрытие после сохранения'],
 
   helpWithTranslation: ['Help with translation', 'Ayuda con la traducción', 'Помочь с переводом'],
-  selectExLang: [
-    'Select the language for example',
-    'Seleccione el idioma por ejemplo',
-    'Выберите язык для примера'
-  ],
   translation: ['Translation', 'Traducción', 'Перевод'],
   send: ['Send', 'Enviar', 'Отправить'],
   add: ['Add', 'Agregar', 'Добавить'],
