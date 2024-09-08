@@ -19,7 +19,7 @@
           </ion-select>
         </ion-toolbar>
         <ion-item>
-          <ion-searchbar v-model.trim="keyword" :placeholder="tr.search" :debounce="500" :maxlength="taskLength"
+          <ion-searchbar v-model="keyword" :placeholder="tr.search" :debounce="500" :maxlength="taskLength"
             show-clear-button="always" :search-icon="params.searchInDesc ? searchCircleOutline : searchSharp"
             style="padding: 5px 8px 5px 0" />
           <ion-select v-show="false" id="filterSelect" v-model="filters" multiple v-bind="selectProps(tr.filters)">

@@ -64,7 +64,7 @@
   <ion-modal :is-open="trModal" @didDismiss="trModal = false" @didPresent="closeMenu">
     <ion-header>
       <ion-toolbar>
-        <ion-title>{{ tr.translation }}</ion-title>
+        <ion-title>{{ tr.translation }}: {{ Object.values(trData).filter(it => it?.trim()).length }}/{{ Object.keys(Translations[lang]).length }}</ion-title>
         <ion-buttons slot="end">
           <ion-button @click="sendTranslation">{{ tr.send }}</ion-button>
           <IconBtn :icon="closeCircleOutline" @click="trModal = false" />
@@ -99,7 +99,7 @@ import {
   languageOutline, sunny, moon, albumsOutline, alertCircleOutline, diamondOutline,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
-import { $, str, isEqual, sendToEmail, delay } from "@/utils.js";
+import { $, str, isEqual, sendToEmail } from "@/utils.js";
 import { langs, Translations } from "@/translations.js";
 import { onMounted, reactive, ref, watch } from "vue";
 import { useGlobalStore } from "@/global.js";
