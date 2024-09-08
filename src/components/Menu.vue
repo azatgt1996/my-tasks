@@ -6,7 +6,9 @@
         <img slot="end" :src="getFlagImg(lang)" :alt="lang" width="30" @click="$('#langSelect').click()"
           style="margin-right: 8px" />
         <ion-select v-show="false" v-model="lang" id="langSelect" v-bind="selectProps(tr.selectLang)">
-          <ion-select-option v-for="({label, value}) in langs" :value>{{ label }}</ion-select-option>
+          <ion-select-option v-for="({ label, value }) in langs" class="flag" :class="'flag-' + value" :value>
+            {{ label }}
+          </ion-select-option>
         </ion-select>
         <ion-icon :icon="darkMode ? moon : sunny" slot="end" size="large" @click="toggleDarkMode"
           style="margin-right: 8px" />
@@ -19,9 +21,11 @@
         <IconText :icon="shareSocialOutline" :text="tr.share" @click="shareApp" />
         <IconText :icon="starOutline" :text="tr.rateApp" @click="rateApp" />
         <IconText :icon="languageOutline" :text="tr.helpWithTranslation" @click="openSelect" />
-        <ion-select v-show="false" v-model="baseLang" id="langSelect2" v-bind="selectProps(tr.selectExLang, tr.msg)"
+        <ion-select v-show="false" v-model="baseLang" id="langSelect2" v-bind="selectProps(tr.selectExLang)"
           @ionChange="trModal = true">
-          <ion-select-option v-for="({label, value}) in langs" :value>{{ label }}</ion-select-option>
+          <ion-select-option v-for="({ label, value }) in langs" class="flag" :class="'flag-' + value" :value>
+            {{ label }}
+          </ion-select-option>
         </ion-select>
         <!-- <IconText :icon="diamondOutline" :text="tr.buyPrem" @click="buyPremium" /> -->
         <IconText :icon="informationCircleOutline" :text="tr.aboutApp" @click="showAppInfo" />
@@ -42,7 +46,7 @@
       </ion-toolbar>
     </ion-header>
     <ion-content>
-      <ion-list class="params-list">
+      <ion-list>
         <ToggleIconItem :icon="radioOutline" :label="tr.vibro" v-model="$params.vibro" />
         <ToggleIconItem :icon="volumeLowOutline" :label="tr.sound" v-model="$params.sound" />
         <ToggleIconItem :icon="alertCircleOutline" :label="tr.offToastAlerts" v-model="$params.offToastAlerts" />
@@ -198,7 +202,7 @@ const _langs = Object.keys(Translations)
 const lang = ref(ls.lang ?? (_langs.includes(navLang) ? navLang : _langs[0]))
 Object.assign(tr, Translations[lang.value])
 
-watch(lang, (val) => { 
+watch(lang, (val) => {
   ls.lang = val
   Object.assign(tr, Translations[val])
 })
@@ -215,11 +219,26 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.params-list ion-icon {
-  margin-right: 10px;
-}
-
 .tr-list ion-input {
   min-height: 36px;
+}
+</style>
+
+<style>
+.flag-EN .alert-radio-label::before { background: url(src/assets/flags/EN.png) }
+.flag-ES .alert-radio-label::before { background: url(src/assets/flags/ES.png) }
+.flag-RU .alert-radio-label::before { background: url(src/assets/flags/RU.png) }
+
+.flag .alert-radio-label {
+  display: flex;
+  align-items: center;
+}
+
+.flag .alert-radio-label::before {
+  width: 17px;
+  height: 17px;
+  content: "";
+  background-size: 100%;
+  margin-right: 8px;
 }
 </style>
