@@ -122,13 +122,15 @@ const translations = {
 }
 
 const Translations = {}
+const langMap = {}
 
 languages.forEach((lang, index) => {
   Translations[lang] = {}
   for (const key in translations)
     Translations[lang][key] = translations[key][index]
+  langMap[Translations[lang]._language] = lang
 })
 
 const langs = languages.map(lang => ({ value: lang, label: Translations[lang]._language }))
 
-export { Translations, langs }
+export { Translations, langs, langMap }

@@ -3,10 +3,10 @@
     <ion-header>
       <ion-toolbar>
         <ion-title>{{ tr.menu }}</ion-title>
-        <img slot="end" :src="getFlagImg(lang)" :alt="lang" width="30" @click="$('#langSelect').click()"
+        <img slot="end" :src="getFlagImg(lang)" :alt="lang" width="30" @click="langClick()"
           style="margin-right: 8px" />
         <ion-select v-show="false" v-model="lang" id="langSelect" v-bind="selectProps(tr.selectLang)">
-          <ion-select-option v-for="({ label, value }) in langs" class="flag" :class="'flag-' + value" :value>
+          <ion-select-option v-for="({ label, value }) in langs" :value>
             {{ label }}
           </ion-select-option>
         </ion-select>
@@ -99,8 +99,8 @@ import {
   languageOutline, sunny, moon, albumsOutline, alertCircleOutline, diamondOutline,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
-import { $, str, isEqual, sendToEmail } from "@/utils.js";
-import { langs, Translations } from "@/translations.js";
+import { $, $$, delay, str, isEqual, sendToEmail } from "@/utils.js";
+import { langs, langMap, Translations } from "@/translations.js";
 import { onMounted, reactive, ref, watch } from "vue";
 import { useGlobalStore } from "@/global.js";
 import { Share } from '@capacitor/share';
@@ -194,6 +194,17 @@ watch(lang, (val) => {
   Object.assign(tr, Translations[val])
 })
 
+const langClick = async () => {
+  $('#langSelect').click()
+  await delay(10)
+  
+  for (const opt of $$('.alert-radio-label')) {
+    const _lang = opt.innerHTML
+    const flagHref = getFlagImg(langMap[_lang])
+    opt.innerHTML = `<img src="${flagHref}" style="width: 19px; margin-right: 8px"/>` + _lang
+  }
+}
+
 onMounted(async () => {
   let _params = await storage.get('params')
   const defaultParams = {
@@ -206,26 +217,9 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.tr-list ion-input {
-  min-height: 36px;
-}
+.tr-list ion-input { min-height: 36px }
 </style>
 
 <style>
-.flag-EN .alert-radio-label::before { background: url(src/assets/flags/EN.png) }
-.flag-ES .alert-radio-label::before { background: url(src/assets/flags/ES.png) }
-.flag-RU .alert-radio-label::before { background: url(src/assets/flags/RU.png) }
-
-.flag .alert-radio-label {
-  display: flex;
-  align-items: center;
-}
-
-.flag .alert-radio-label::before {
-  width: 17px;
-  height: 17px;
-  content: "";
-  background-size: 100%;
-  margin-right: 8px;
-}
+.alert-radio-label { display: flex }
 </style>
