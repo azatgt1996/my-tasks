@@ -28,6 +28,7 @@
     "capacitor-resources": "^2.0.5",
     "ionicons": "^7.0.0",
     "pinia": "^2.2.2",
+    "sass": "^1.78.0",
     "vue": "^3.3.0",
     "vue-router": "^4.2.0"
   },

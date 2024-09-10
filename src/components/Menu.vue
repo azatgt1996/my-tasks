@@ -3,8 +3,7 @@
     <ion-header>
       <ion-toolbar>
         <ion-title>{{ tr.menu }}</ion-title>
-        <img slot="end" :src="getFlagImg(lang)" :alt="lang" width="30" @click="langClick()"
-          style="margin-right: 8px" />
+        <img slot="end" class="flag-icon" :src="getFlagImg(lang)" :alt="lang" width="32" @click="langClick" />
         <ion-select v-show="false" v-model="lang" id="langSelect" v-bind="selectProps(tr.selectLang)">
           <ion-select-option v-for="({ label, value }) in langs" :value>
             {{ label }}
@@ -40,7 +39,7 @@
       </ion-toolbar>
     </ion-header>
     <ion-content>
-      <ion-list>
+      <ion-list class="params-list">
         <ToggleIconItem :icon="radioOutline" :label="tr.vibro" v-model="$params.vibro" />
         <ToggleIconItem :icon="volumeLowOutline" :label="tr.sound" v-model="$params.sound" />
         <ToggleIconItem :icon="alertCircleOutline" :label="tr.offToastAlerts" v-model="$params.offToastAlerts" />
@@ -64,7 +63,10 @@
   <ion-modal :is-open="trModal" @didDismiss="trModal = false" @didPresent="closeMenu">
     <ion-header>
       <ion-toolbar>
-        <ion-title>{{ tr.translation }}: {{ Object.values(trData).filter(it => it?.trim()).length }}/{{ Object.keys(Translations[lang]).length }}</ion-title>
+        <ion-title>
+          {{ tr.translation }}:
+          {{ Object.values(trData).filter(it => it?.trim()).length }}/{{ Object.keys(Translations[lang]).length }}
+        </ion-title>
         <ion-buttons slot="end">
           <ion-button @click="sendTranslation">{{ tr.send }}</ion-button>
           <IconBtn :icon="closeCircleOutline" @click="trModal = false" />
@@ -196,12 +198,12 @@ watch(lang, (val) => {
 
 const langClick = async () => {
   $('#langSelect').click()
-  await delay(10)
-  
+  await delay(50)
+
   for (const opt of $$('.alert-radio-label')) {
     const _lang = opt.innerHTML
     const flagHref = getFlagImg(langMap[_lang])
-    opt.innerHTML = `<img src="${flagHref}" style="width: 19px; margin-right: 8px"/>` + _lang
+    opt.innerHTML = `<img src="${flagHref}" class="flag-icon" style="width: 19px"/>` + _lang
   }
 }
 
@@ -216,10 +218,20 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped>
-.tr-list ion-input { min-height: 36px }
+<style scoped lang="sass">
+.tr-list ion-input
+  min-height: 36px
+
+.params-list ion-icon
+  margin-right: 10px
 </style>
 
-<style>
-.alert-radio-label { display: flex }
+<style lang="sass">
+.flag-icon
+  margin-right: 10px
+  border-radius: 50%
+  box-shadow: 0px 0px 2px 0px gray
+
+.alert-radio-label
+  display: flex
 </style>

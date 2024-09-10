@@ -494,86 +494,68 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped>
-ion-searchbar {
-  --box-shadow: 0px;
-  padding: 0px;
-}
+<style scoped lang="sass">
+ion-searchbar
+  --box-shadow: 0px
+  padding: 0px
 </style>
 
-<style>
-.options-group {
-  pointer-events: none;
+<style lang="sass">
+.options-group
+  pointer-events: none
 
-  & .alert-checkbox-icon {
-    display: none !important;
-  }
+  & .alert-checkbox-icon
+    display: none !important
 
-  & .alert-checkbox-label {
-    padding-left: 10px !important;
-  }
-}
+  & .alert-checkbox-label
+    padding-left: 10px !important
 
-.new-category {
-  color: var(--ion-color-primary);
-}
+.new-category
+  color: var(--ion-color-primary)
 
-.alert-message {
-  white-space: pre-wrap;
-}
+.alert-message
+  white-space: pre-wrap
 
-.task-title {
-  overflow: hidden;
-  white-space: nowrap;
+.task-title
+  overflow: hidden
+  white-space: nowrap
   padding-right: 5px
-}
 
-.full-label>label {
-  justify-content: space-between;
+.full-label > label
+  justify-content: space-between
 
-  &>.native-wrapper {
-    max-width: fit-content;
-  }
-}
+  & > .native-wrapper
+    max-width: fit-content
 
-.spinner-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-}
+.spinner-container
+  display: flex
+  align-items: center
+  justify-content: center
+  height: 100%
 
-.list-status {
-  height: 100%;
-  margin: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: x-large;
-}
+.list-status
+  height: 100%
+  margin: 0
+  display: flex
+  justify-content: center
+  align-items: center
+  font-size: x-large
 
-.low-item[aria-checked="true"] .alert-checkbox-icon {
-  border-color: var(--ion-color-success) !important;
-  background-color: var(--ion-color-success) !important;
-}
+.low-item[aria-checked="true"] .alert-checkbox-icon
+  border-color: var(--ion-color-success) !important
+  background-color: var(--ion-color-success) !important
 
-.medium-item[aria-checked="true"] .alert-checkbox-icon {
-  border-color: var(--ion-color-warning) !important;
-  background-color: var(--ion-color-warning) !important;
-}
+.medium-item[aria-checked="true"] .alert-checkbox-icon
+  border-color: var(--ion-color-warning) !important
+  background-color: var(--ion-color-warning) !important
 
-.high-item[aria-checked="true"] .alert-checkbox-icon {
-  border-color: var(--ion-color-danger) !important;
-  background-color: var(--ion-color-danger) !important;
-}
+.high-item[aria-checked="true"] .alert-checkbox-icon
+  border-color: var(--ion-color-danger) !important
+  background-color: var(--ion-color-danger) !important
 
-.list-enter-active,
-.list-leave-active {
-  transition: all 0.4s ease;
-}
+.list-enter-active, .list-leave-active
+  transition: all 0.4s ease
 
-.list-enter-from,
-.list-leave-to {
-  opacity: 0;
-}
+.list-enter-from, .list-leave-to
+  opacity: 0
 </style>
