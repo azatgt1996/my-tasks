@@ -70,7 +70,8 @@
 
         <ion-modal :is-open="isOpen" @didDismiss="isOpen = false">
           <ion-header>
-            <ion-toolbar>
+            <ion-toolbar class="icon-modal">
+              <ion-icon slot="start" :icon="readerOutline" />
               <ion-title>{{ tr.detailInfo }}</ion-title>
               <ion-buttons slot="end">
                 <IconBtn :icon="saveSharp" :disabled="disabledSave" @click="changeTask(current)" />
@@ -148,7 +149,8 @@
 
         <ion-modal :is-open="categoriesModal" @didDismiss="categoriesModal = false">
           <ion-header>
-            <ion-toolbar>
+            <ion-toolbar class="icon-modal">
+              <ion-icon slot="start" :icon="albumsOutline" />
               <ion-title>{{ tr.categories }}</ion-title>
               <ion-buttons slot="end">
                 <ion-button @click="addCategory()">{{ tr.add }}</ion-button>
@@ -183,8 +185,9 @@ import {
   IonReorderGroup, IonReorder, IonCheckbox,
 } from '@ionic/vue';
 import {
-  addCircle, ellipse, funnel, trashOutline, arrowUndoCircleOutline, checkmarkCircleOutline, addOutline,
+  addCircle, ellipse, funnel, trashOutline, arrowUndoCircleOutline, checkmarkCircleOutline, addOutline, readerOutline,
   alarmOutline, searchCircleOutline, searchSharp, caretBackOutline, caretForwardOutline, saveSharp, closeCircleOutline,
+  albumsOutline,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
 import { computed, onMounted, ref, watch, reactive } from "vue";

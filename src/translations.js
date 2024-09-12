@@ -86,7 +86,7 @@ const translations = {
   myTasks: ['My Tasks', 'Mis Tareas', 'Мои задачи'],
   search: ['Search...', 'Buscar...', 'Поиск...'],
   newTask: ['Type a new task', 'Escribe una nueva tarea', 'Введите новую задачу'],
-  detailInfo: ['Detail info', 'Información detallada', 'Детальная инфа'],
+  detailInfo: ['Detail info', 'Información detallada', 'Детальная информация'],
   created: ['Created date', 'Fecha de creación', 'Дата создания'],
   changed: ['Changed date', 'Fecha de modificación', 'Дата изменения'],
   title: ['Title', 'Título', 'Название'],

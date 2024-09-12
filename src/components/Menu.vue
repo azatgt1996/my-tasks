@@ -2,8 +2,11 @@
   <ion-menu content-id="main-content" ref="menuRef">
     <ion-header>
       <ion-toolbar>
-        <ion-title>{{ tr.menu }}</ion-title>
-        <img slot="end" class="flag-icon" :src="getFlagImg(lang)" :alt="lang" width="32" @click="langClick" />
+        <ion-buttons slot="start">
+          <ion-menu-button />
+        </ion-buttons>
+        <ion-title style="padding-left: 0">{{ tr.menu }}</ion-title>
+        <img slot="end" class="flag-icon" :src="getFlagImg(lang)" :alt="lang" width="26" @click="langClick" />
         <ion-select v-show="false" v-model="lang" id="langSelect" v-bind="selectProps(tr.selectLang)">
           <ion-select-option v-for="({ label, value }) in langs" :value>
             {{ label }}
@@ -30,7 +33,8 @@
 
   <ion-modal :is-open="isOpen" @didDismiss="isOpen = false" @didPresent="closeMenu">
     <ion-header>
-      <ion-toolbar>
+      <ion-toolbar class="icon-modal">
+        <ion-icon slot="start" :icon="settingsOutline" />
         <ion-title>{{ tr.settings }}</ion-title>
         <ion-buttons slot="end">
           <IconBtn :icon="saveSharp" :disabled="isEqual($params, params)" @click="saveParams" />
@@ -62,7 +66,8 @@
 
   <ion-modal :is-open="trModal" @didDismiss="trModal = false" @didPresent="closeMenu">
     <ion-header>
-      <ion-toolbar>
+      <ion-toolbar class="icon-modal">
+        <ion-icon slot="start" :icon="languageOutline" />
         <ion-title>
           {{ tr.translation }}:
           {{ Object.values(trData).filter(it => it?.trim()).length }}/{{ Object.keys(Translations[lang]).length }}
@@ -93,7 +98,7 @@
 <script setup>
 import {
   IonMenu, IonButton, IonContent, IonHeader, IonIcon, IonToolbar, IonModal, IonItem, IonList, IonTitle, IonButtons,
-  IonSelect, IonSelectOption, IonLabel, IonInput
+  IonSelect, IonSelectOption, IonLabel, IonInput, IonMenuButton
 } from '@ionic/vue';
 import {
   closeCircleOutline, mailOutline, powerOutline, informationCircleOutline, settingsOutline, starOutline, shareSocialOutline,
@@ -234,4 +239,13 @@ onMounted(async () => {
 
 .alert-radio-label
   display: flex
+
+.icon-modal
+  & > ion-icon
+    width: 26px
+    height: 26px
+    margin-left: 14px
+  ion-title
+    font-size: 1.14rem
+    padding-left: 7px
 </style>
