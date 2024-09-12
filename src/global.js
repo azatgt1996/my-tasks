@@ -10,6 +10,12 @@ export const useGlobalStore = defineStore('global', () => {
 
     const selectProps = (label, message) => ({ cancelText: tr.cancel, interfaceOptions: { header: label, message } })
 
+    const localeDate = (date, noTime = false) => {
+        const dt = date ? new Date(date) : new Date()
+        if (noTime) return dt.toLocaleDateString(tr._code)
+        return dt.toLocaleString(tr._code)
+    }
+
     const toast = (message, color = 'success') => {
         if (params.offToastAlerts) return
         toastController.create({ message, duration: 1500, color, animated: true,  }).then(toast => toast.present())
@@ -47,5 +53,5 @@ export const useGlobalStore = defineStore('global', () => {
         await storage.create()
     })
     
-    return { tr, params, storage, selectProps, toast, alert, confirm, prompt }
+    return { tr, params, storage, selectProps, localeDate, toast, alert, confirm, prompt }
 })

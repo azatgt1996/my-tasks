@@ -81,7 +81,7 @@
         <ion-item>
           <ion-input :label="tr.trAuthor" v-model="trData._trAuthor" fill="outline" />
         </ion-item>
-        <ion-item v-for="key in Object.keys(Translations[lang]).slice(2)">
+        <ion-item v-for="key in Object.keys(Translations[lang]).slice(3)">
           <ion-input :value="Translations[lang][key]" readonly fill="outline" />
           <ion-input v-model="trData[key]" style="margin-left: 5px" fill="outline" />
         </ion-item>

@@ -4,6 +4,7 @@ const languages = ['EN', 'ES', 'RU']
 const translations = {
   _trAuthor: ['Galyautdinov Ilyas', 'Galyautdinov Azat', 'Galyautdinov Azat'],
   _language: ['English', 'Español', 'Русский'],
+  _code: languages,
   needNotifyPermission: [
     'Need a notification permission to set reminder',
     'Necesita un permiso de notificación para configurar un recordatorio',

@@ -81,10 +81,10 @@
           <ion-content>
             <ion-list>
               <ion-item>
-                <ion-input :label="tr.created" :value="Date.toLocale(current.created)" readonly class="full-label" />
+                <ion-input :label="tr.created" :value="localeDate(current.created)" readonly class="full-label" />
               </ion-item>
               <ion-item>
-                <ion-input :label="tr.changed" :value="Date.toLocale(current.changed)" readonly class="full-label" />
+                <ion-input :label="tr.changed" :value="localeDate(current.changed)" readonly class="full-label" />
               </ion-item>
               <ion-item>
                 <ion-input :label="tr.title" :placeholder="tr.typeTask" v-model="current.title" label-placement="fixed"
@@ -109,7 +109,7 @@
                 </ion-button>
                 <ion-datetime-button v-else id="dt-btn" datetime="datetime" />
                 <ion-modal :keep-contents-mounted="true">
-                  <ion-datetime id="datetime" hour-cycle="h23" :min="minDate" v-model="current.notification" />
+                  <ion-datetime id="datetime" :locale="tr._code" hour-cycle="h23" :min="minDate" v-model="current.notification" />
                 </ion-modal>
               </ion-item>
               <ion-item>
@@ -197,7 +197,7 @@ import { Haptics } from "@capacitor/haptics";
 import { OptionsGroup, IconBtn } from "@/components/renderFunctions.js";
 import Menu from "@/components/Menu.vue";
 
-const { tr, params, storage, selectProps, toast, confirm, prompt } = useGlobalStore()
+const { tr, params, storage, selectProps, localeDate, toast, confirm, prompt } = useGlobalStore()
 
 // #region Others
 const numNanoid = customAlphabet('123456789', 8)
