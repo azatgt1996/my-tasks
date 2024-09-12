@@ -12,8 +12,8 @@
             {{ label }}
           </ion-select-option>
         </ion-select>
-        <ion-icon :icon="darkMode ? moon : sunny" slot="end" size="large" @click="toggleDarkMode"
-          style="margin-right: 8px" />
+        <ion-icon :icon="darkMode ? moon : sunny" slot="end" @click="toggleDarkMode"
+          style="margin-right: 10px; width: 26px; height: 26px" />
       </ion-toolbar>
     </ion-header>
     <ion-content>

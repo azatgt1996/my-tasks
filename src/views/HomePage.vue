@@ -110,7 +110,8 @@
                 </ion-button>
                 <ion-datetime-button v-else id="dt-btn" datetime="datetime" />
                 <ion-modal :keep-contents-mounted="true">
-                  <ion-datetime id="datetime" :locale="tr._code" hour-cycle="h23" :min="minDate" v-model="current.notification" />
+                  <ion-datetime id="datetime" :locale="tr._code" hour-cycle="h23" :min="minDate"
+                    v-model="current.notification" />
                 </ion-modal>
               </ion-item>
               <ion-item>
