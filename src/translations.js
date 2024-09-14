@@ -1,10 +1,7 @@
-// Note! Add flag icon to styles in Menu.vue
-const languages = ['EN', 'ES', 'RU']
-
 const translations = {
   _trAuthor: ['Galyautdinov Ilyas', 'Galyautdinov Azat', 'Galyautdinov Azat'],
   _language: ['English', 'Español', 'Русский'],
-  _code: languages,
+  _code: ['EN', 'ES', 'RU'],
   needNotifyPermission: [
     'Need a notification permission to set reminder',
     'Necesita un permiso de notificación para configurar un recordatorio',
@@ -58,7 +55,6 @@ const translations = {
   add: ['Add', 'Agregar', 'Добавить'],
   lang: ['Language', 'Idioma', 'Язык'],
   selectLang: ['Select the language', 'Selecciona el idioma', 'Выберите язык'],
-  trAuthor: ['Author of the translation', 'Autor de la traducción', 'Автор перевода'],
   fillAllFields: ['Fill in all fields', 'Complete todos los campos', 'Заполните все поля'],
   fillField: ['Fill in the field', 'Complete el campo', 'Заполните поле'],
 
@@ -122,16 +118,13 @@ const translations = {
   next: ['Next', 'Próxima', 'Следующая'],
 }
 
+const langs = translations._code
 const Translations = {}
-const langMap = {}
 
-languages.forEach((lang, index) => {
+langs.forEach((lang, index) => {
   Translations[lang] = {}
   for (const key in translations)
     Translations[lang][key] = translations[key][index]
-  langMap[Translations[lang]._language] = lang
 })
 
-const langs = languages.map(lang => ({ value: lang, label: Translations[lang]._language }))
-
-export { Translations, langs, langMap }
+export { Translations, langs }

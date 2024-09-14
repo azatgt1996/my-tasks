@@ -8,9 +8,7 @@
         <ion-title style="padding-left: 0">{{ tr.menu }}</ion-title>
         <img slot="end" class="flag-icon" :src="getFlagImg(lang)" :alt="lang" width="26" @click="langClick" />
         <ion-select v-show="false" v-model="lang" id="langSelect" v-bind="selectProps(tr.selectLang)">
-          <ion-select-option v-for="({ label, value }) in langs" :value>
-            {{ label }}
-          </ion-select-option>
+          <ion-select-option v-for="_lang in langs" :value="_lang">{{ _lang }}</ion-select-option>
         </ion-select>
         <ion-icon :icon="darkMode ? moon : sunny" slot="end" @click="toggleDarkMode"
           style="margin-right: 10px; width: 26px; height: 26px" />
@@ -23,7 +21,6 @@
         <IconText :icon="shareSocialOutline" :text="tr.share" @click="shareApp" />
         <IconText :icon="starOutline" :text="tr.rateApp" @click="rateApp" />
         <IconText :icon="languageOutline" :text="tr.helpWithTranslation" @click="trModal = true" />
-        <!-- <IconText :icon="diamondOutline" :text="tr.buyPrem" @click="buyPremium" /> -->
         <IconText :icon="informationCircleOutline" :text="tr.aboutApp" @click="showAppInfo" />
         <IconText :icon="settingsOutline" :text="tr.settings" @click="openSettingsModal" />
         <IconText :icon="powerOutline" :text="tr.exit" @click="App.exitApp()" />
@@ -70,7 +67,7 @@
         <ion-icon slot="start" :icon="languageOutline" />
         <ion-title>
           {{ tr.translation }}:
-          {{ Object.values(trData).filter(it => it?.trim()).length }}/{{ Object.keys(Translations[lang]).length }}
+          {{ Object.values(trData).filter(it => it?.trim()).length }}/{{ Object.keys(Translations[lang]).length - 2 }}
         </ion-title>
         <ion-buttons slot="end">
           <ion-button @click="sendTranslation">{{ tr.send }}</ion-button>
@@ -82,9 +79,6 @@
       <ion-list lines="none" class="tr-list">
         <ion-item>
           <ion-input :label="tr.lang" v-model="trData._language" fill="outline" />
-        </ion-item>
-        <ion-item>
-          <ion-input :label="tr.trAuthor" v-model="trData._trAuthor" fill="outline" />
         </ion-item>
         <ion-item v-for="key in Object.keys(Translations[lang]).slice(3)">
           <ion-input :value="Translations[lang][key]" readonly fill="outline" />
@@ -103,11 +97,11 @@ import {
 import {
   closeCircleOutline, mailOutline, powerOutline, informationCircleOutline, settingsOutline, starOutline, shareSocialOutline,
   trashOutline, radioOutline, searchCircleOutline, filterSharp, volumeLowOutline, swapVerticalOutline, saveSharp, returnUpBackOutline,
-  languageOutline, sunny, moon, albumsOutline, alertCircleOutline, diamondOutline,
+  languageOutline, sunny, moon, albumsOutline, alertCircleOutline,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
 import { $, $$, delay, str, isEqual, sendToEmail } from "@/utils.js";
-import { langs, langMap, Translations } from "@/translations.js";
+import { langs, Translations } from "@/translations.js";
 import { onMounted, reactive, ref, watch } from "vue";
 import { useGlobalStore } from "@/global.js";
 import { Share } from '@capacitor/share';
@@ -155,7 +149,8 @@ const showAppInfo = () => {
 }
 
 const sendTranslation = () => {
-  for (const key of Object.keys(Translations[lang.value]))
+  if (!trData.value._language?.trim()) return toast(tr.fillAllFields, 'warning')
+  for (const key of Object.keys(Translations[lang.value]).slice(3))
     if (!trData.value[key]?.trim()) return toast(tr.fillAllFields, 'warning')
 
   trData.value._baseLang = lang.value
@@ -207,8 +202,8 @@ const langClick = async () => {
 
   for (const opt of $$('.alert-radio-label')) {
     const _lang = opt.innerHTML
-    const flagHref = getFlagImg(langMap[_lang])
-    opt.innerHTML = `<img src="${flagHref}" class="flag-icon" style="width: 19px"/>` + _lang
+    const flagHref = getFlagImg(_lang)
+    opt.innerHTML = `<img src="${flagHref}" class="flag-icon" style="width: 19px"/>` + Translations[_lang]._language
   }
 }
 
@@ -240,12 +235,4 @@ onMounted(async () => {
 .alert-radio-label
   display: flex
 
-.icon-modal
-  & > ion-icon
-    width: 26px
-    height: 26px
-    margin-left: 14px
-  ion-title
-    font-size: 1.14rem
-    padding-left: 7px
 </style>
