@@ -114,7 +114,7 @@ const props = defineProps({
 
 const emit = defineEmits(['deleteAll', 'openCategories'])
 
-const { tr, params, storage, selectProps, alert, toast } = useGlobalStore()
+const { tr, params, storage, selectProps, alert, toast, errToast } = useGlobalStore()
 
 const ls = localStorage
 const getFlagImg = (name) => new URL(`../assets/flags/${name}.png`, import.meta.url).href
@@ -149,9 +149,9 @@ const showAppInfo = () => {
 }
 
 const sendTranslation = () => {
-  if (!trData.value._language?.trim()) return toast(tr.fillAllFields, 'warning')
+  if (!trData.value._language?.trim()) return errToast(tr.fillAllFields)
   for (const key of Object.keys(Translations[lang.value]).slice(3))
-    if (!trData.value[key]?.trim()) return toast(tr.fillAllFields, 'warning')
+    if (!trData.value[key]?.trim()) return errToast(tr.fillAllFields)
 
   trData.value._baseLang = lang.value
   const trText = JSON.stringify(trData.value, null, 2).replace(/"([^"]+)":/g, '$1:')

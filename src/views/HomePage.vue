@@ -201,7 +201,7 @@ import { Haptics } from "@capacitor/haptics";
 import { OptionsGroup, IconBtn } from "@/components/renderFunctions.js";
 import Menu from "@/components/Menu.vue";
 
-const { tr, params, storage, selectProps, localeDate, toast, confirm, prompt } = useGlobalStore()
+const { tr, params, storage, selectProps, localeDate, toast, errToast, confirm, prompt } = useGlobalStore()
 
 // #region Others
 const numNanoid = customAlphabet('123456789', 8)
@@ -275,7 +275,7 @@ const saveCategories = () => storage.set('categories', JSON.stringify(categories
 
 const addCategory = (isToggle) =>
   prompt(tr.newCategory, '', tr.typeCategory, (val) => {
-    if (categories.value.includes(val)) return toast(tr.categoryExists, 'warning')
+    if (categories.value.includes(val)) return errToast(tr.categoryExists)
     categories.value = [...categories.value, val]
     if (isToggle) category.value = val
     saveCategories()
@@ -374,9 +374,9 @@ const openTask = (task) => {
 
 const changeTask = (cur) => {
   cur.title = cur.title.trim()
-  if (!cur.title) return toast(tr.titleIsEmpty, 'warning')
+  if (!cur.title) return errToast(tr.titleIsEmpty)
   if (tasks.find(it => it.title === cur.title && it.id !== cur.id))
-    return toast(tr.taskExists, 'warning')
+    return errToast(tr.taskExists)
 
   const idx = tasks.findIndex(it => it.id === cur.id)
   cur.changed = new Date().toISOString()
@@ -397,10 +397,9 @@ const changeTask = (cur) => {
 
 const addTask = (_title) => {
   _title = _title.trim()
-  if (tasks.find(it => it.title === _title))
-    return toast(tr.taskExists, 'warning')
+  if (tasks.find(it => it.title === _title)) return errToast(tr.taskExists)
   title.value = ''
-  if (!_title) return toast(tr.titleIsEmpty, 'warning')
+  if (!_title) return errToast(tr.titleIsEmpty)
 
   const _category = category.value === 'allCategories' ? 'common' : category.value
   const newTask = new Task(_title, _category)
@@ -472,7 +471,7 @@ const checkNotificationPermission = () =>
   LocalNotifications.checkPermissions().then(res => {
     if (res?.display !== 'denied') return
     LocalNotifications.requestPermissions().then(res => {
-      if (res?.display === 'denied') toast(tr.needNotifyPermission, 'warning')
+      if (res?.display === 'denied') errToast(tr.needNotifyPermission)
     })
   })
 

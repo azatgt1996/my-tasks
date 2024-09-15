@@ -16,10 +16,12 @@ export const useGlobalStore = defineStore('global', () => {
         return dt.toLocaleString(tr._code)
     }
 
-    const toast = (message, color = 'success') => {
-        if (params.offToastAlerts) return
-        toastController.create({ message, duration: 1500, color, animated: true,  }).then(toast => toast.present())
-    }
+    const baseToast = (message, color, duration) => !params.offToastAlerts &&
+        toastController.create({ message, duration, animated: true, color }).then(toast => toast.present())
+
+    const toast = (message) => baseToast(message, 'success', 1500)
+
+    const errToast = (message) => baseToast(message, 'danger', 2000)
     
     const alert = (message, header = tr.attention) =>
         alertController.create({ header, message, buttons: ['Ok'] })
@@ -35,7 +37,7 @@ export const useGlobalStore = defineStore('global', () => {
     const onOkClick = (data, callback) => {
         const result = data[0].trim()
         if (!result) {
-            toast(tr.fillField, 'warning')
+            errToast(tr.fillField)
             return false
         }
         callback(result)
@@ -53,5 +55,5 @@ export const useGlobalStore = defineStore('global', () => {
         await storage.create()
     })
     
-    return { tr, params, storage, selectProps, localeDate, toast, alert, confirm, prompt }
+    return { tr, params, storage, selectProps, localeDate, toast, errToast, alert, confirm, prompt }
 })
