@@ -7,9 +7,9 @@
         </ion-buttons>
         <ion-title style="padding-left: 0">{{ tr.menu }}</ion-title>
         <img slot="end" class="flag-icon" :src="getFlagImg(lang)" :alt="lang" width="26" @click="langClick" />
-        <ion-select v-show="false" v-model="lang" id="langSelect" v-bind="selectProps(tr.selectLang)">
+        <UiSelect v-show="false" v-model="lang" id="langSelect" :header="tr.selectLang">
           <ion-select-option v-for="_lang in langs" :value="_lang">{{ _lang }}</ion-select-option>
-        </ion-select>
+        </UiSelect>
         <ion-icon :icon="darkMode ? moon : sunny" slot="end" @click="toggleDarkMode"
           style="margin-right: 10px; width: 26px; height: 26px" />
       </ion-toolbar>
@@ -49,9 +49,9 @@
         <ToggleIconItem :icon="swapVerticalOutline" :label="tr.orderByDesc" v-model="$params.orderByDesc" />
         <ion-item>
           <ion-icon :icon="filterSharp" />
-          <ion-select :label="tr.sortBy" v-model="$params.sortBy" v-bind="selectProps(tr.sortBy)">
+          <UiSelect :label="tr.sortBy" v-model="$params.sortBy">
             <ion-select-option v-for="val in sorts" :value="val">{{ tr[val].toLowerCase() }}</ion-select-option>
-          </ion-select>
+          </UiSelect>
         </ion-item>
         <ion-item button @click="emit('deleteAll')" :disabled="!taskLength">
           <ion-icon :icon="trashOutline" color="danger" />
@@ -92,7 +92,7 @@
 <script setup>
 import {
   IonMenu, IonButton, IonContent, IonHeader, IonIcon, IonToolbar, IonModal, IonItem, IonList, IonTitle, IonButtons,
-  IonSelect, IonSelectOption, IonLabel, IonInput, IonMenuButton
+  IonSelectOption, IonLabel, IonInput, IonMenuButton
 } from '@ionic/vue';
 import {
   closeCircleOutline, mailOutline, powerOutline, informationCircleOutline, settingsOutline, starOutline, shareSocialOutline,
@@ -107,6 +107,7 @@ import { useGlobalStore } from "@/global.js";
 import { Share } from '@capacitor/share';
 import { IconText, IconBtn } from "@/components/renderFunctions.js";
 import ToggleIconItem from "@/components/ToggleIconItem.vue";
+import UiSelect from "@/components/UiSelect.vue";
 
 const props = defineProps({
   taskLength: Number
@@ -114,7 +115,7 @@ const props = defineProps({
 
 const emit = defineEmits(['deleteAll', 'openCategories'])
 
-const { tr, params, storage, selectProps, alert, toast, errToast } = useGlobalStore()
+const { tr, params, storage, alert, toast, errToast } = useGlobalStore()
 
 const ls = localStorage
 const getFlagImg = (name) => new URL(`../assets/flags/${name}.png`, import.meta.url).href

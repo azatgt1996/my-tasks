@@ -10,19 +10,19 @@
           <ion-title style="padding: 0">
             {{ tr.myTasks }}{{ filtered.length ? `: ${filtered.length}` : '' }}
           </ion-title>
-          <ion-select :key="categorySelectKey" slot="end" interface="popover" v-model="category"
+          <UiSelect :key="categorySelectKey" slot="end" interface="popover" v-model="category"
             style="margin-right: 10px">
             <ion-select-option v-for="_category in categories" :value="_category">
               {{ baseCategories.includes(_category) ? tr[_category] : _category }}
             </ion-select-option>
             <ion-select-option class="new-category" value="">+ {{ tr.newCategory }}</ion-select-option>
-          </ion-select>
+          </UiSelect>
         </ion-toolbar>
         <ion-item>
           <ion-searchbar v-model="keyword" :placeholder="tr.search" :debounce="500" :maxlength="taskLength"
             show-clear-button="always" :search-icon="params.searchInDesc ? searchCircleOutline : searchSharp"
             style="padding: 5px 8px 5px 0" />
-          <ion-select v-show="false" id="filterSelect" v-model="filters" multiple v-bind="selectProps(tr.filters)">
+          <UiSelect v-show="false" id="filterSelect" v-model="filters" multiple :header="tr.filters">
             <OptionsGroup :label="tr.byPriorities" />
             <ion-select-option v-for="pr in priorities" :value="pr" :class="`${pr}-item`">
               {{ tr[pr] }}
@@ -30,7 +30,7 @@
             <OptionsGroup :label="tr.others" />
             <ion-select-option value="completed">{{ tr.completed }}</ion-select-option>
             <ion-select-option value="notificated">{{ tr.notificated }}</ion-select-option>
-          </ion-select>
+          </UiSelect>
           <ion-icon :icon="funnel" @click="$('#filterSelect').click()"
             :color="filters.length === 3 && isEqual(filters, priorities) ? '' : 'primary'" />
         </ion-item>
@@ -96,11 +96,11 @@
                   :placeholder="tr.typeDescription" clear-input label-placement="fixed" :maxlength="300" />
               </ion-item>
               <ion-item>
-                <ion-select :label="tr.category" v-model="current.category" v-bind="selectProps(tr.selectCategory)">
+                <UiSelect v-model="current.category" :label="tr.category" :header="tr.selectCategory">
                   <ion-select-option v-for="_category in categories.slice(1)" :value="_category">
                     {{ baseCategories.includes(_category) ? tr[_category] : _category }}
                   </ion-select-option>
-                </ion-select>
+                </UiSelect>
               </ion-item>
               <ion-item>
                 <ion-label>{{ tr.notification }}</ion-label>
@@ -182,7 +182,7 @@
 import {
   IonMenuButton, IonButton, IonContent, IonHeader, IonIcon, IonInput, IonToolbar, IonModal, IonSearchbar, IonDatetime,
   IonItem, IonLabel, IonList, IonPage, IonTitle, IonButtons, IonDatetimeButton, IonSegment, IonSegmentButton, IonTextarea,
-  IonItemSliding, IonItemOptions, IonItemOption, IonSelect, IonSelectOption, useBackButton, useIonRouter, IonFooter, IonSpinner,
+  IonItemSliding, IonItemOptions, IonItemOption, IonSelectOption, useBackButton, useIonRouter, IonFooter, IonSpinner,
   IonReorderGroup, IonReorder, IonCheckbox,
 } from '@ionic/vue';
 import {
@@ -199,9 +199,10 @@ import { useGlobalStore } from "@/global.js";
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Haptics } from "@capacitor/haptics";
 import { OptionsGroup, IconBtn } from "@/components/renderFunctions.js";
+import UiSelect from "@/components/UiSelect.vue";
 import Menu from "@/components/Menu.vue";
 
-const { tr, params, storage, selectProps, localeDate, toast, errToast, confirm, prompt } = useGlobalStore()
+const { tr, params, storage, localeDate, toast, errToast, confirm, prompt } = useGlobalStore()
 
 // #region Others
 const numNanoid = customAlphabet('123456789', 8)

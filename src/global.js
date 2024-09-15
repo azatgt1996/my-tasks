@@ -8,8 +8,6 @@ export const useGlobalStore = defineStore('global', () => {
     const tr = reactive({})
     const params = reactive({}) // setting params
 
-    const selectProps = (label, message) => ({ cancelText: tr.cancel, interfaceOptions: { header: label, message } })
-
     const localeDate = (date, noTime = false) => {
         const dt = date ? new Date(date) : new Date()
         if (noTime) return dt.toLocaleDateString(tr._code)
@@ -55,5 +53,5 @@ export const useGlobalStore = defineStore('global', () => {
         await storage.create()
     })
     
-    return { tr, params, storage, selectProps, localeDate, toast, errToast, alert, confirm, prompt }
+    return { tr, params, storage, localeDate, toast, errToast, alert, confirm, prompt }
 })
