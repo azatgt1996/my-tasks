@@ -202,7 +202,7 @@ import { OptionsGroup, IconBtn } from "@/components/renderFunctions.js";
 import UiSelect from "@/components/UiSelect.vue";
 import Menu from "@/components/Menu.vue";
 
-const { tr, params, storage, localeDate, toast, errToast, confirm, prompt } = useGlobalStore()
+const { tr, params, storage, localeDate, toast, errToast, cancelToast, confirm, prompt } = useGlobalStore()
 
 // #region Others
 const numNanoid = customAlphabet('123456789', 8)
@@ -346,20 +346,6 @@ const disabledSave = computed(() => isEqual(originalCurrent, current.value))
 
 onClickOutside(listRef, () => listRef.value.$el.closeSlidingItems())
 
-class Task {
-  constructor(title, category, description = '', notification = null) {
-    this.id = nanoid()
-    this.title = title
-    this.created = new Date().toISOString()
-    this.changed = new Date().toISOString()
-    this.description = description
-    this.priority = 'low'
-    this.category = category
-    this.completed = false
-    this.notification = notification ?? emptyDatetime
-  }
-}
-
 const saveTasks = (isDel) => {
   tasks.length = tasks.length
   storage.set('tasks', JSON.stringify(tasks))
@@ -403,7 +389,12 @@ const addTask = (_title) => {
   if (!_title) return errToast(tr.titleIsEmpty)
 
   const _category = category.value === 'allCategories' ? 'common' : category.value
-  const newTask = new Task(_title, _category)
+  const now = new Date().toISOString()
+
+  const newTask = {
+    id: nanoid(), title: _title, description: '', priority: 'low', completed: false,
+    category: _category, created: now, changed: now, notification: emptyDatetime
+  }
   tasks.push(newTask)
   toast(tr.taskAdded)
   saveTasks()
@@ -411,9 +402,13 @@ const addTask = (_title) => {
 
 const deleteTask = (task) => {
   const idx = tasks.findIndex(it => it.id === task.id)
+  const deleted = tasks[idx]
   tasks.splice(idx, 1)
-  toast(tr.taskDeleted)
   saveTasks(1)
+  cancelToast(tr.taskDeleted, () => {
+    tasks.splice(idx, 0, deleted)
+    saveTasks()
+  })
 }
 
 const removeTask = (task) => {
