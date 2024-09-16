@@ -1,6 +1,7 @@
 <template>
   <div> <!-- need only one root node -->
-    <Menu :taskLength="tasks.length" @deleteAll="deleteAll" @openCategories="openCategories" />
+    <Menu :tasksLength="tasks.length" :completedTasksLength="tasks.filter(it => it.completed).length"
+      @deleteAll="deleteAll" @deleteAllCompleted="deleteAllCompleted" @openCategories="openCategories" />
     <ion-page id="main-content">
       <ion-header>
         <ion-toolbar>
@@ -163,12 +164,17 @@
           <ion-content>
             <ion-list v-if="categories.slice(2).length">
               <ion-reorder-group :disabled="false" @ionItemReorder="onReorder">
-                <ion-item v-for="_category in categories.slice(2)" :key="_category">
+                <ion-item v-for="_category in categories.slice(1)" :key="_category">
                   <ion-label style="margin-right: 10px">
+                    <ion-note style="margin-right: 6px">
+                      ({{ tasks.filter(it => it.category === _category).length }})
+                    </ion-note>
                     {{ baseCategories.includes(_category) ? tr[_category] : _category }}
                   </ion-label>
-                  <ion-icon :icon="trashOutline" color="danger" @click="deleteCategory(_category)" />
-                  <ion-reorder slot="end" :style="categories.slice(2).length === 1 ? 'pointer-events: none' : ''" />
+                  <ion-icon v-show="_category !== 'common'" :icon="trashOutline" color="danger"
+                    @click="deleteCategory(_category)" />
+                  <ion-reorder v-show="_category !== 'common'" slot="end"
+                    :style="categories.slice(2).length === 1 ? 'pointer-events: none' : ''" />
                 </ion-item>
               </ion-reorder-group>
             </ion-list>
@@ -184,7 +190,7 @@ import {
   IonMenuButton, IonButton, IonContent, IonHeader, IonIcon, IonInput, IonToolbar, IonModal, IonSearchbar, IonDatetime,
   IonItem, IonLabel, IonList, IonPage, IonTitle, IonButtons, IonDatetimeButton, IonSegment, IonSegmentButton, IonTextarea,
   IonItemSliding, IonItemOptions, IonItemOption, IonSelectOption, useBackButton, useIonRouter, IonFooter, IonSpinner,
-  IonReorderGroup, IonReorder, IonCheckbox, IonProgressBar, toastController,
+  IonReorderGroup, IonReorder, IonCheckbox, IonProgressBar, IonNote, toastController,
 } from '@ionic/vue';
 import {
   addCircle, ellipse, funnel, trashOutline, arrowUndoCircleOutline, checkmarkCircleOutline, addOutline, readerOutline,
@@ -441,6 +447,16 @@ const deleteAll = () => {
     tasks.length = 0
     saveTasks(1)
     toast(tr.allDeleted)
+  })
+}
+
+const deleteAllCompleted = () => {
+  confirm(tr.aysToDeleteAllCompleted, () => {
+    const uncompletedTasks = tasks.filter(it => !it.completed)
+    tasks.length = 0
+    Object.assign(tasks, uncompletedTasks)
+    saveTasks(1)
+    toast(tr.allCompletedDeleted)
   })
 }
 

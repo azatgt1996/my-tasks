@@ -53,9 +53,13 @@
             <ion-select-option v-for="val in sorts" :value="val">{{ tr[val].toLowerCase() }}</ion-select-option>
           </UiSelect>
         </ion-item>
-        <ion-item button @click="emit('deleteAll')" :disabled="!taskLength">
+        <ion-item button @click="emit('deleteAll')" :disabled="!tasksLength">
           <ion-icon :icon="trashOutline" color="danger" />
           <ion-label color="danger">{{ tr.deleteAll }}</ion-label>
+        </ion-item>
+        <ion-item button @click="emit('deleteAllCompleted')" :disabled="!completedTasksLength">
+          <ion-icon :icon="trashBinOutline" color="danger" />
+          <ion-label color="danger">{{ tr.deleteAllCompleted }}</ion-label>
         </ion-item>
       </ion-list>
     </ion-content>
@@ -97,7 +101,7 @@ import {
 import {
   closeCircleOutline, mailOutline, powerOutline, informationCircleOutline, settingsOutline, starOutline, shareSocialOutline,
   trashOutline, radioOutline, searchCircleOutline, filterSharp, volumeLowOutline, swapVerticalOutline, saveSharp, returnUpBackOutline,
-  languageOutline, sunny, moon, albumsOutline, alertCircleOutline,
+  languageOutline, sunny, moon, albumsOutline, alertCircleOutline, trashBinOutline,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
 import { $, $$, delay, str, isEqual, sendToEmail } from "@/utils.js";
@@ -110,7 +114,8 @@ import ToggleIconItem from "@/components/ToggleIconItem.vue";
 import UiSelect from "@/components/UiSelect.vue";
 
 const props = defineProps({
-  taskLength: Number
+  tasksLength: Number,
+  completedTasksLength: Number,
 })
 
 const emit = defineEmits(['deleteAll', 'openCategories'])
@@ -159,8 +164,6 @@ const sendTranslation = () => {
   sendToEmail(trText, tr.translation)
   trModal.value = false
 }
-
-const buyPremium = () => { }
 
 const $params = reactive({})
 

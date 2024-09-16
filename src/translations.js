@@ -10,12 +10,19 @@ const translations = {
   menu: ['Menu', 'Menú', 'Меню'],
   contactUs: ['Contact us', 'Contacta con nosotros', 'Связаться с нами'],
   deleteAll: ['Delete all tasks', 'Eliminar todas las tareas', 'Удалить все задачи'],
+  deleteAllCompleted: ['Delete all completed tasks', 'Eliminar todas las tareas completadas', 'Удалить все выполненные задачи'],
   aysToDelete: [
     'Are you sure? All tasks will be deleted!',
     'Está seguro? Se eliminarán todas las tareas!',
     'Вы уверены? Все задачи будут удалены!'
   ],
+  aysToDeleteAllCompleted: [
+    'Are you sure? All completed tasks will be deleted!',
+    'Está seguro? Se eliminarán todas las tareas completadas!',
+    'Вы уверены? Все выполненные задачи будут удалены!'
+  ],
   allDeleted: ['All tasks deleted', 'Todas las tareas eliminadas', 'Все задачи удалены'],
+  allCompletedDeleted: ['All completed tasks deleted', 'Se eliminaron todas las tareas completadas', 'Все выполненные задачи удалены'],
   share: ['Share the app', 'Comparte la aplicación', 'Поделиться приложением'],
   shareUsing: ['Share using', 'Compartir usando', 'Поделиться с помощью'],
   shareText: [
