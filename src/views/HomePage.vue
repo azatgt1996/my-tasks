@@ -162,19 +162,25 @@
             </ion-toolbar>
           </ion-header>
           <ion-content>
-            <ion-list v-if="categories.slice(2).length">
+            <ion-list>
+              <ion-item>
+                <ion-label style="margin-right: 10px">
+                  <ion-note style="margin-right: 6px">
+                    ({{ tasks.filter(it => it.category === 'common').length }})
+                  </ion-note>
+                  {{ tr.common }}
+                </ion-label>
+              </ion-item>
               <ion-reorder-group :disabled="false" @ionItemReorder="onReorder">
-                <ion-item v-for="_category in categories.slice(1)" :key="_category">
+                <ion-item v-for="_category in categories.slice(2)" :key="_category">
                   <ion-label style="margin-right: 10px">
                     <ion-note style="margin-right: 6px">
                       ({{ tasks.filter(it => it.category === _category).length }})
                     </ion-note>
                     {{ baseCategories.includes(_category) ? tr[_category] : _category }}
                   </ion-label>
-                  <ion-icon v-show="_category !== 'common'" :icon="trashOutline" color="danger"
-                    @click="deleteCategory(_category)" />
-                  <ion-reorder v-show="_category !== 'common'" slot="end"
-                    :style="categories.slice(2).length === 1 ? 'pointer-events: none' : ''" />
+                  <ion-icon :icon="trashOutline" color="danger" @click="deleteCategory(_category)" />
+                  <ion-reorder slot="end" :style="categories.slice(2).length === 1 ? 'pointer-events: none' : ''" />
                 </ion-item>
               </ion-reorder-group>
             </ion-list>

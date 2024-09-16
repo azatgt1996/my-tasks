@@ -118,7 +118,7 @@ const props = defineProps({
   completedTasksLength: Number,
 })
 
-const emit = defineEmits(['deleteAll', 'openCategories'])
+const emit = defineEmits(['deleteAll', 'deleteAllCompleted', 'openCategories'])
 
 const { tr, params, storage, alert, toast, errToast } = useGlobalStore()
 
