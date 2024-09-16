@@ -41,7 +41,7 @@
         </ion-item>
       </ion-header>
 
-      <ion-content>
+      <ion-content class="page_content">
         <div v-show="loading" class="spinner-container">
           <ion-spinner name="lines" />
         </div>
@@ -67,15 +67,16 @@
           </ion-item-sliding>
         </TransitionGroup>
         <ion-label v-show="!filtered.length" class="list-status" color="medium">{{ listStatus }}</ion-label>
+        <ion-progress-bar v-show="cancelTimer" :value="cancelTimer" color="secondary"></ion-progress-bar>
 
-        <ion-modal :is-open="isOpen" @didDismiss="isOpen = false">
+        <ion-modal :is-open="taskModal" @didDismiss="taskModal = false">
           <ion-header>
             <ion-toolbar class="icon-modal">
               <ion-icon slot="start" :icon="readerOutline" />
               <ion-title>{{ tr.detailInfo }}</ion-title>
               <ion-buttons slot="end">
                 <IconBtn :icon="saveSharp" :disabled="disabledSave" @click="changeTask(current)" />
-                <IconBtn :icon="closeCircleOutline" @click="isOpen = false" />
+                <IconBtn :icon="closeCircleOutline" @click="taskModal = false" />
               </ion-buttons>
             </ion-toolbar>
           </ion-header>
@@ -183,7 +184,7 @@ import {
   IonMenuButton, IonButton, IonContent, IonHeader, IonIcon, IonInput, IonToolbar, IonModal, IonSearchbar, IonDatetime,
   IonItem, IonLabel, IonList, IonPage, IonTitle, IonButtons, IonDatetimeButton, IonSegment, IonSegmentButton, IonTextarea,
   IonItemSliding, IonItemOptions, IonItemOption, IonSelectOption, useBackButton, useIonRouter, IonFooter, IonSpinner,
-  IonReorderGroup, IonReorder, IonCheckbox,
+  IonReorderGroup, IonReorder, IonCheckbox, IonProgressBar, toastController,
 } from '@ionic/vue';
 import {
   addCircle, ellipse, funnel, trashOutline, arrowUndoCircleOutline, checkmarkCircleOutline, addOutline, readerOutline,
@@ -329,7 +330,7 @@ watch(tr, () => categorySelectKey.value++)
 // #region Main
 const tasks = reactive([])
 const title = ref('')
-const isOpen = ref(false)
+const taskModal = ref(false)
 const listRef = ref()
 const taskLength = 50
 const emptyDatetime = '2100-01-01T00:00:00.000Z'
@@ -349,6 +350,8 @@ onClickOutside(listRef, () => listRef.value.$el.closeSlidingItems())
 const saveTasks = (isDel) => {
   tasks.length = tasks.length
   storage.set('tasks', JSON.stringify(tasks))
+
+  if (isDel == 2) return
   if (params.sound) (isDel ? audio2 : audio).play().catch(log)
   if (params.vibro) Haptics.vibrate({ duration: 28 })
 }
@@ -356,7 +359,7 @@ const saveTasks = (isDel) => {
 const openTask = (task) => {
   originalCurrent = clone(task)
   current.value = clone(task)
-  isOpen.value = true
+  taskModal.value = true
 }
 
 const changeTask = (cur) => {
@@ -379,7 +382,7 @@ const changeTask = (cur) => {
   originalCurrent = clone(cur)
   current.value = clone(cur)
 
-  if (params.autoClose) isOpen.value = false
+  if (params.autoClose) taskModal.value = false
 }
 
 const addTask = (_title) => {
@@ -400,19 +403,36 @@ const addTask = (_title) => {
   saveTasks()
 }
 
+let timer
+const cancelTimer = ref(0)
+
 const deleteTask = (task) => {
+  const reset = () => {
+    clearInterval(timer)
+    cancelTimer.value = 0
+  }
+  reset()
+  toastController.dismiss()
+
   const idx = tasks.findIndex(it => it.id === task.id)
   const deleted = tasks[idx]
   tasks.splice(idx, 1)
+
+  timer = setInterval(() => {
+    cancelTimer.value += 0.01
+    if (cancelTimer.value > 1) reset()
+  }, 30)
   saveTasks(1)
+
   cancelToast(tr.taskDeleted, () => {
     tasks.splice(idx, 0, deleted)
-    saveTasks()
+    reset()
+    saveTasks(2)
   })
 }
 
 const removeTask = (task) => {
-  isOpen.value = false
+  taskModal.value = false
   deleteTask(task)
 }
 
@@ -497,6 +517,14 @@ onMounted(async () => {
 ion-searchbar
   --box-shadow: 0px
   padding: 0px
+
+.page_content
+  position: relative
+  ion-progress-bar
+    position: absolute
+    bottom: 0
+    margin-bottom: 2px
+    height: 3px
 </style>
 
 <style lang="sass">
