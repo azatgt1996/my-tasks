@@ -164,7 +164,7 @@
           <ion-content>
             <ion-list>
               <ion-item>
-                <ion-label style="margin-right: 10px">
+                <ion-label>
                   <ion-note style="margin-right: 6px">
                     ({{ tasks.filter(it => it.category === 'common').length }})
                   </ion-note>
