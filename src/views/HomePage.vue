@@ -42,7 +42,7 @@
         </ion-item>
       </ion-header>
 
-      <ion-content class="page_content">
+      <ion-content>
         <div v-show="loading" class="spinner-container">
           <ion-spinner name="lines" />
         </div>
@@ -68,7 +68,6 @@
           </ion-item-sliding>
         </TransitionGroup>
         <ion-label v-show="!filtered.length" class="list-status" color="medium">{{ listStatus }}</ion-label>
-        <ion-progress-bar v-show="cancelTimer" :value="cancelTimer" color="secondary"></ion-progress-bar>
 
         <ion-modal :is-open="taskModal" @didDismiss="taskModal = false">
           <ion-header>
@@ -187,6 +186,7 @@
           </ion-content>
         </ion-modal>
       </ion-content>
+      <ion-progress-bar v-show="cancelTimer" :value="cancelTimer" color="secondary" />
     </ion-page>
   </div>
 </template>
@@ -540,13 +540,10 @@ ion-searchbar
   --box-shadow: 0px
   padding: 0px
 
-.page_content
-  position: relative
-  ion-progress-bar
-    position: absolute
-    bottom: 0
-    margin-bottom: 2px
-    height: 3px
+ion-progress-bar
+  position: absolute
+  bottom: 0
+  height: 3px
 </style>
 
 <style lang="sass">
