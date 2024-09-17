@@ -85,7 +85,7 @@
           <ion-input :label="tr.lang" v-model="trData._language" fill="outline" />
         </ion-item>
         <ion-item v-for="key in Object.keys(Translations[lang]).slice(3)">
-          <ion-input :value="Translations[lang][key]" readonly fill="outline" />
+          <ion-input :value="Translations[lang][key].replaceAll('%s', ' ')" readonly fill="outline" />
           <ion-input v-model="trData[key]" style="margin-left: 5px" fill="outline" />
         </ion-item>
       </ion-list>

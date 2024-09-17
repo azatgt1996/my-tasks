@@ -19,10 +19,11 @@
             <ion-select-option class="new-category" value="">+ {{ tr.newCategory }}</ion-select-option>
           </UiSelect>
         </ion-toolbar>
-        <ion-item>
+        <ion-item lines="none">
           <ion-searchbar v-model="keyword" :placeholder="tr.search" :debounce="500" :maxlength="taskLength"
-            show-clear-button="always" :search-icon="params.searchInDesc ? searchCircleOutline : searchSharp"
-            style="padding: 5px 8px 5px 0" />
+            show-clear-button="always" :search-icon="params.searchInDesc ? searchCircleOutline : searchSharp" />
+          <ion-icon :icon="funnel" @click="$('#filterSelect').click()" style="position: absolute; right: 24px"
+            :color="filters.length === 3 && isEqual(filters, priorities) ? '' : 'primary'" />
           <UiSelect v-show="false" id="filterSelect" v-model="filters" multiple :header="tr.filters">
             <OptionsGroup :label="tr.byPriorities" />
             <ion-select-option v-for="pr in priorities" :value="pr" :class="`${pr}-item`">
@@ -32,13 +33,11 @@
             <ion-select-option value="completed">{{ tr.completed }}</ion-select-option>
             <ion-select-option value="notificated">{{ tr.notificated }}</ion-select-option>
           </UiSelect>
-          <ion-icon :icon="funnel" @click="$('#filterSelect').click()"
-            :color="filters.length === 3 && isEqual(filters, priorities) ? '' : 'primary'" />
         </ion-item>
-        <ion-item>
+        <ion-item lines="none">
           <ion-input :placeholder="tr.newTask" v-model="title" :maxlength="taskLength" clear-input
             @keyup.enter="addTask(title)" />
-          <ion-icon :icon="addCircle" color="primary" @click="addTask(title)" style="margin-right: -2px" />
+          <ion-icon :icon="addCircle" :color="!title?.trim() ? 'secondary' : 'primary'" @click="addTask(title)" />
         </ion-item>
       </ion-header>
 
@@ -80,7 +79,7 @@
               </ion-buttons>
             </ion-toolbar>
           </ion-header>
-          <ion-content>
+          <ion-content id="task-modal">
             <ion-list>
               <ion-item>
                 <ion-input :label="tr.created" :value="localeDate(current.created)" readonly class="full-label" />
@@ -368,10 +367,14 @@ const saveTasks = (isDel) => {
   if (params.vibro) Haptics.vibrate({ duration: 28 })
 }
 
-const openTask = (task) => {
+const openTask = async (task) => {
   originalCurrent = clone(task)
   current.value = clone(task)
   taskModal.value = true
+
+  await delay(200)
+  $('#task-modal').addEventListener('swiped-left', () => filtered.value.at(-1)?.id !== current.value.id && nextTask())
+  $('#task-modal').addEventListener('swiped-right', () => filtered.value[0]?.id !== current.value.id && prevTask())
 }
 
 const changeTask = (cur) => {
@@ -543,7 +546,7 @@ ion-searchbar
 ion-progress-bar
   position: absolute
   bottom: 0
-  height: 3px
+  margin-bottom: 2px
 </style>
 
 <style lang="sass">
