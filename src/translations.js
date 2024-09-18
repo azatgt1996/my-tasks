@@ -73,6 +73,7 @@ const translations = {
   private: ['Private', 'Privadas', 'Личные'],
   work: ['Work', 'Trabajar', 'Работа'],
   newCategory: ['New category', 'Nueva categoria', 'Новая категория'],
+  renameCategory: ['Renaming the category', 'Cambiar el nombre de la categoría', 'Переименование категории'],
   typeCategory: ['Type the category', 'Escriba la categoría', 'Введите категорию'],
   categoryExists: ['This category already exists', 'Esta categoría ya existe', 'Данная категория уже существует'],
   aysToDeleteCategory: [

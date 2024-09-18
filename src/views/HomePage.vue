@@ -177,6 +177,7 @@
                     </ion-note>
                     {{ baseCategories.includes(_category) ? tr[_category] : _category }}
                   </ion-label>
+                  <ion-icon :icon="pencilOutline" color="primary" @click="renameCategory(_category)" style="margin-right: 12px" />
                   <ion-icon :icon="trashOutline" color="danger" @click="deleteCategory(_category)" />
                   <ion-reorder slot="end" :style="categories.slice(2).length === 1 ? 'pointer-events: none' : ''" />
                 </ion-item>
@@ -200,7 +201,7 @@ import {
 import {
   addCircle, ellipse, funnel, trashOutline, arrowUndoCircleOutline, checkmarkCircleOutline, addOutline, readerOutline,
   alarmOutline, searchCircleOutline, searchSharp, caretBackOutline, caretForwardOutline, saveSharp, closeCircleOutline,
-  albumsOutline,
+  albumsOutline, pencilOutline,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
 import { computed, onMounted, ref, watch, reactive } from "vue";
@@ -287,12 +288,33 @@ const openCategories = () => categoriesModal.value = true
 const saveCategories = () => storage.set('categories', JSON.stringify(categories.value))
 
 const addCategory = (isToggle) =>
-  prompt(tr.newCategory, '', tr.typeCategory, (val) => {
+  prompt(tr.newCategory, '', tr.typeCategory, '', (val) => {
     if (categories.value.includes(val)) return errToast(tr.categoryExists)
     categories.value = [...categories.value, val]
     if (isToggle) category.value = val
     saveCategories()
   })
+
+const renameCategory = (_category) => {
+  const oldValue = baseCategories.includes(_category) ? tr[_category] : _category
+
+  prompt(tr.renameCategory, '', tr.typeCategory, oldValue, (val) => {
+    if (oldValue === val) return
+    if (categories.value.includes(val)) return errToast(tr.categoryExists)
+
+    const _categories = clone(categories.value)
+    const idx = _categories.findIndex(it => it === _category)
+    _categories[idx] = val
+    categories.value = _categories
+    saveCategories()
+
+    const _tasks = tasks.filter(it => it.category === _category)
+    for (const task of _tasks) task.category = val
+    saveTasks(2)
+
+    if (category.value === _category) category.value = val
+  })
+}
 
 const deleteCategory = (_category) => {
   const deleteAllTasksByCategory = (deleteTasks) => {

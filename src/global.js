@@ -47,10 +47,10 @@ export const useGlobalStore = defineStore('global', () => {
         return true
     }
 
-    const prompt = (header, message, placeholder, callback) =>
+    const prompt = (header, message, placeholder, value, callback) =>
         alertController.create({
             header, message,
-            inputs: [{ placeholder, max: 20 }],
+            inputs: [{ placeholder, max: 20, value }],
             buttons: [tr.cancel, { text: 'Ok', handler: data => onOkClick(data, callback) }],
         }).then(alert => alert.present())
 
