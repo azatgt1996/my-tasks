@@ -52,7 +52,8 @@
                 <ion-icon slot="icon-only" :icon="task.completed ? arrowUndoCircleOutline : checkmarkCircleOutline" />
               </ion-item-option>
             </ion-item-options>
-            <ion-item button @click="openTask(task)">
+            <ion-item button @click="openTask(task)" @mousedown="checkTask(task)" @mouseup="clearTimer2">
+              <ion-icon v-show="checked.includes(task.id)" :icon="checkmarkOutline" color="success" style="margin-right: 5px" />
               <ion-label class="task-title">{{ task.title }}</ion-label>
               <ion-icon v-if="task.completed" :icon="checkmarkCircleOutline" size="small" style="margin-right: 2px" />
               <ion-icon v-if="new Date() < new Date(task.notification == emptyDatetime ? 0 : task.notification)"
@@ -177,7 +178,8 @@
                     </ion-note>
                     {{ baseCategories.includes(_category) ? tr[_category] : _category }}
                   </ion-label>
-                  <ion-icon :icon="pencilOutline" color="primary" @click="renameCategory(_category)" style="margin-right: 12px" />
+                  <ion-icon :icon="pencilOutline" color="primary" @click="renameCategory(_category)"
+                    style="margin-right: 12px" />
                   <ion-icon :icon="trashOutline" color="danger" @click="deleteCategory(_category)" />
                   <ion-reorder slot="end" :style="categories.slice(2).length === 1 ? 'pointer-events: none' : ''" />
                 </ion-item>
@@ -201,7 +203,7 @@ import {
 import {
   addCircle, ellipse, funnel, trashOutline, arrowUndoCircleOutline, checkmarkCircleOutline, addOutline, readerOutline,
   alarmOutline, searchCircleOutline, searchSharp, caretBackOutline, caretForwardOutline, saveSharp, closeCircleOutline,
-  albumsOutline, pencilOutline,
+  albumsOutline, pencilOutline, checkmarkOutline,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
 import { computed, onMounted, ref, watch, reactive } from "vue";
@@ -390,6 +392,7 @@ const saveTasks = (isDel) => {
 }
 
 const openTask = async (task) => {
+  if (notOpen) return notOpen = false
   originalCurrent = clone(task)
   current.value = clone(task)
   taskModal.value = true
@@ -398,6 +401,16 @@ const openTask = async (task) => {
   $('#task-modal').addEventListener('swiped-left', () => filtered.value.at(-1)?.id !== current.value.id && nextTask())
   $('#task-modal').addEventListener('swiped-right', () => filtered.value[0]?.id !== current.value.id && prevTask())
 }
+
+const checked = ref([])
+let timer2, notOpen = false
+const clearTimer2 = () => clearTimeout(timer2)
+
+const checkTask = (task) => timer2 = setTimeout(() => {
+  checked.value.push(task.id)
+  // log(task)
+  notOpen = true
+}, 1500)
 
 const changeTask = (cur) => {
   cur.title = cur.title.trim()
