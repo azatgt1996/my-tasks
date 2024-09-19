@@ -88,6 +88,12 @@ const translations = {
   ],
 
   myTasks: ['My Tasks', 'Mis Tareas', 'Мои задачи'],
+  selected: ['Selected', 'Seleccionado', 'Выбрано'],
+  aysToDeleteSelected: [
+    'Are you sure? All selected tasks will be deleted!',
+    'Está seguro? Se eliminarán todas las tareas seleccionadas!',
+    'Вы уверены? Все выбранные задачи будут удалены!'
+  ],
   search: ['Search...', 'Buscar...', 'Поиск...'],
   newTask: ['Type a new task', 'Escribe una nueva tarea', 'Введите новую задачу'],
   detailInfo: ['Detail info', 'Información detallada', 'Детальная информация'],

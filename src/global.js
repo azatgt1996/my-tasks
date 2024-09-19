@@ -14,13 +14,19 @@ export const useGlobalStore = defineStore('global', () => {
         return dt.toLocaleString(tr._code)
     }
 
-    const cancelToast = (message, callback) => toastController.create({
-        message, duration: 3000, animated: true, color: 'secondary',
-        buttons: [{ text: tr.cancel, handler: callback }]
-    }).then(toast => toast.present())
+    const cancelToast = (message, callback) => {
+        toastController.dismiss()
+        toastController.create({
+            message, duration: 3000, animated: true, color: 'secondary',
+            buttons: [{ text: tr.cancel, handler: callback }]
+        }).then(toast => toast.present())
+    }
 
-    const baseToast = (message, color, duration) => !params.offToastAlerts &&
+    const baseToast = (message, color, duration) => {
+        if (params.offToastAlerts) return
+        toastController.dismiss()
         toastController.create({ message, duration, animated: true, color }).then(toast => toast.present())
+    }
 
     const toast = (message) => baseToast(message, 'secondary', 1500)
 
@@ -33,8 +39,12 @@ export const useGlobalStore = defineStore('global', () => {
     const confirm = (message, callback) =>
         alertController.create({
             header: tr.attention, message,
-            buttons: [tr.cancel, { text: 'Ok', handler: callback }]
-        }).then(alert => alert.present())
+            buttons: [tr.cancel, { text: 'Ok', role: 'ok', handler: callback }]
+        }).then(async alert => {
+            alert.present()
+            const { role } = await alert.onDidDismiss()
+            return role == 'ok'
+        })
 
 
     const onOkClick = (data, callback) => {
@@ -47,7 +57,7 @@ export const useGlobalStore = defineStore('global', () => {
         return true
     }
 
-    const prompt = (header, message, placeholder, value, callback) =>
+    const prompt = (header, message, placeholder, value, callback) => //TODO: refactor me
         alertController.create({
             header, message,
             inputs: [{ placeholder, max: 20, value }],

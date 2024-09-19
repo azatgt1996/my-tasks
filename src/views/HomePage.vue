@@ -1,10 +1,10 @@
 <template>
   <div> <!-- need only one root node -->
-    <Menu :tasksLength="tasks.length" :completedTasksLength="tasks.filter(it => it.completed).length"
+    <Menu :tasksLength="tasks.length" :disabled :completedTasksLength="tasks.filter(it => it.completed).length"
       @deleteAll="deleteAll" @deleteAllCompleted="deleteAllCompleted" @openCategories="openCategories" />
     <ion-page id="main-content">
       <ion-header>
-        <ion-toolbar>
+        <ion-toolbar v-show="!selected.length">
           <ion-buttons slot="start">
             <ion-menu-button />
           </ion-buttons>
@@ -19,10 +19,20 @@
             <ion-select-option class="new-category" value="">+ {{ tr.newCategory }}</ion-select-option>
           </UiSelect>
         </ion-toolbar>
+        <ion-toolbar v-show="selected.length" class="selected-actions">
+          <ion-title>{{ tr.selected }}: {{ selected.length }}</ion-title>
+          <IconBtn slot="end" color="primary" fill="clear" size="large" :icon="checkmarkCircleOutline"
+            @click="completeSelected" />
+          <IconBtn slot="end" color="danger" fill="clear" size="large" :icon="trashOutline" @click="deleteSelected" />
+          <IconBtn slot="end" color="dark" fill="clear" size="large" :icon="checkmarkDoneCircle" @click="selectAll"
+            style="margin-right: 10px" />
+        </ion-toolbar>
+
         <ion-item lines="none">
-          <ion-searchbar v-model="keyword" :placeholder="tr.search" :debounce="500" :maxlength="taskLength"
+          <ion-searchbar v-model="keyword" :placeholder="tr.search" :debounce="500" :maxlength="taskLength" :disabled
             show-clear-button="always" :search-icon="params.searchInDesc ? searchCircleOutline : searchSharp" />
-          <ion-icon :icon="funnel" @click="$('#filterSelect').click()" style="position: absolute; right: 24px"
+          <ion-icon :icon="funnel" @click="!disabled && $('#filterSelect').click()"
+            style="position: absolute; right: 24px"
             :color="filters.length === 3 && isEqual(filters, priorities) ? '' : 'primary'" />
           <UiSelect v-show="false" id="filterSelect" v-model="filters" multiple :header="tr.filters">
             <OptionsGroup :label="tr.byPriorities" />
@@ -36,8 +46,9 @@
         </ion-item>
         <ion-item lines="none">
           <ion-input :placeholder="tr.newTask" v-model="title" :maxlength="taskLength" clear-input
-            @keyup.enter="addTask(title)" />
-          <ion-icon :icon="addCircle" :color="!title?.trim() ? 'secondary' : 'primary'" @click="addTask(title)" />
+            @keyup.enter="addTask(title)" :disabled />
+          <ion-icon :icon="addCircle" :color="!title?.trim() ? 'secondary' : 'primary'"
+            @click="!disabled && addTask(title)" />
         </ion-item>
       </ion-header>
 
@@ -46,15 +57,18 @@
           <ion-spinner name="lines" />
         </div>
         <TransitionGroup v-show="filtered.length" ref="listRef" name="list" tag="ion-list">
-          <ion-item-sliding v-for="task in filtered" :key="task.id">
+          <ion-item-sliding v-for="task in filtered" :key="task.id" :disabled @ionDrag="onIonDrag">
             <ion-item-options side="start" @ion-swipe="toggleCompleted(task)">
               <ion-item-option color="primary" expandable @click="toggleCompleted(task)">
                 <ion-icon slot="icon-only" :icon="task.completed ? arrowUndoCircleOutline : checkmarkCircleOutline" />
               </ion-item-option>
             </ion-item-options>
-            <ion-item button @click="openTask(task)" @mousedown="checkTask(task)" @mouseup="clearTimer2">
-              <ion-icon v-show="checked.includes(task.id)" :icon="checkmarkOutline" color="success" style="margin-right: 5px" />
-              <ion-label class="task-title">{{ task.title }}</ion-label>
+            <ion-item button @click="clickTask(task)" @touchstart="checkTask(task)" @touchend="clearTimer2">
+              <ion-icon v-show="selected.includes(task.id)" :icon="checkmarkOutline" color="success"
+                style="margin-right: 5px" class="check-icon" />
+              <ion-label class="task-title" :style="task.completed ? 'text-decoration: line-through' : ''">
+                {{ task.title }}
+              </ion-label>
               <ion-icon v-if="task.completed" :icon="checkmarkCircleOutline" size="small" style="margin-right: 2px" />
               <ion-icon v-if="new Date() < new Date(task.notification == emptyDatetime ? 0 : task.notification)"
                 :icon="alarmOutline" size="small" style="margin-right: 2px" />
@@ -195,15 +209,15 @@
 
 <script setup>
 import {
-  IonMenuButton, IonButton, IonContent, IonHeader, IonIcon, IonInput, IonToolbar, IonModal, IonSearchbar, IonDatetime,
+  useBackButton, useIonRouter, IonMenuButton, IonButton, IonContent, IonHeader, IonIcon, IonInput,
+  IonToolbar, IonModal, IonSearchbar, IonDatetime, IonReorderGroup, IonReorder, IonCheckbox, IonProgressBar, IonNote,
   IonItem, IonLabel, IonList, IonPage, IonTitle, IonButtons, IonDatetimeButton, IonSegment, IonSegmentButton, IonTextarea,
-  IonItemSliding, IonItemOptions, IonItemOption, IonSelectOption, useBackButton, useIonRouter, IonFooter, IonSpinner,
-  IonReorderGroup, IonReorder, IonCheckbox, IonProgressBar, IonNote, toastController,
+  IonItemSliding, IonItemOptions, IonItemOption, IonSelectOption, IonFooter, IonSpinner,
 } from '@ionic/vue';
 import {
   addCircle, ellipse, funnel, trashOutline, arrowUndoCircleOutline, checkmarkCircleOutline, addOutline, readerOutline,
   alarmOutline, searchCircleOutline, searchSharp, caretBackOutline, caretForwardOutline, saveSharp, closeCircleOutline,
-  albumsOutline, pencilOutline, checkmarkOutline,
+  albumsOutline, pencilOutline, checkmarkOutline, checkmarkDoneCircle,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
 import { computed, onMounted, ref, watch, reactive } from "vue";
@@ -227,6 +241,7 @@ const loading = ref(false)
 
 const ionRouter = useIonRouter()
 useBackButton(-1, () => {
+  if (selected.value.length) return selected.value = []
   if (!ionRouter.canGoBack()) App.exitApp()
 })
 // #endregion
@@ -318,7 +333,7 @@ const renameCategory = (_category) => {
   })
 }
 
-const deleteCategory = (_category) => {
+const deleteCategory = async (_category) => {
   const deleteAllTasksByCategory = (deleteTasks) => {
     if (deleteTasks) {
       const _tasks = tasks.filter(it => it.category !== _category)
@@ -337,8 +352,9 @@ const deleteCategory = (_category) => {
 
   const categoryTasksSize = tasks.filter(it => it.category === _category).length
 
-  if (categoryTasksSize > 0) confirm(tr.aysToDeleteCategory, () => deleteAllTasksByCategory(1))
-  else deleteAllTasksByCategory(0)
+  if (categoryTasksSize > 0) {
+    if (await confirm(tr.aysToDeleteCategory)) deleteAllTasksByCategory(1)
+  } else deleteAllTasksByCategory(0)
 }
 
 const onReorder = (ev) => {
@@ -391,8 +407,66 @@ const saveTasks = (isDel) => {
   if (params.vibro) Haptics.vibrate({ duration: 28 })
 }
 
-const openTask = async (task) => {
+// #region Selecting
+const selected = ref([])
+const disabled = computed(() => selected.value.length > 0)
+let timer2, notOpen = false, _sliding = false
+
+const select = (task) => {
+  if (selected.value.includes(task.id))
+    selected.value = selected.value.filter(id => id !== task.id)
+  else selected.value.push(task.id)
+}
+
+const clickTask = async (task) => {
+  if (selected.value.length) {
+    select(task)
+    return notOpen = false
+  }
+
   if (notOpen) return notOpen = false
+  openTask(task)
+}
+
+const clearTimer2 = () => {
+  clearTimeout(timer2)
+  _sliding = false
+}
+
+const completeSelected = () => {
+  for (const id of selected.value) {
+    const task = tasks.find(it => it.id === id)
+    task.completed = true
+  }
+  saveTasks()
+  selected.value = []
+}
+
+const deleteSelected = async () => {
+  if (!await confirm(tr.aysToDeleteSelected)) return
+  const _tasks = tasks.filter(it => !selected.value.includes(it.id))
+  tasks.length = 0
+  Object.assign(tasks, _tasks)
+  saveTasks(1)
+  selected.value = []
+}
+
+const selectAll = () => {
+  if (filtered.value.length == selected.value.length) selected.value = []
+  else selected.value = filtered.value.map(task => task.id)
+}
+
+const onIonDrag = () => _sliding = true
+
+const checkTask = (task) => timer2 = setTimeout(() => {
+  if (_sliding) return
+  select(task)
+  notOpen = true
+}, 800)
+
+// #endregion
+
+const openTask = async (task) => {
   originalCurrent = clone(task)
   current.value = clone(task)
   taskModal.value = true
@@ -401,16 +475,6 @@ const openTask = async (task) => {
   $('#task-modal').addEventListener('swiped-left', () => filtered.value.at(-1)?.id !== current.value.id && nextTask())
   $('#task-modal').addEventListener('swiped-right', () => filtered.value[0]?.id !== current.value.id && prevTask())
 }
-
-const checked = ref([])
-let timer2, notOpen = false
-const clearTimer2 = () => clearTimeout(timer2)
-
-const checkTask = (task) => timer2 = setTimeout(() => {
-  checked.value.push(task.id)
-  // log(task)
-  notOpen = true
-}, 1500)
 
 const changeTask = (cur) => {
   cur.title = cur.title.trim()
@@ -462,7 +526,6 @@ const deleteTask = (task) => {
     cancelTimer.value = 0
   }
   reset()
-  toastController.dismiss()
 
   const idx = tasks.findIndex(it => it.id === task.id)
   const deleted = tasks[idx]
@@ -486,22 +549,20 @@ const removeTask = (task) => {
   deleteTask(task)
 }
 
-const deleteAll = () => {
-  confirm(tr.aysToDelete, () => {
-    tasks.length = 0
-    saveTasks(1)
-    toast(tr.allDeleted)
-  })
+const deleteAll = async () => {
+  if (!await confirm(tr.aysToDelete)) return
+  tasks.length = 0
+  saveTasks(1)
+  toast(tr.allDeleted)
 }
 
-const deleteAllCompleted = () => {
-  confirm(tr.aysToDeleteAllCompleted, () => {
-    const uncompletedTasks = tasks.filter(it => !it.completed)
-    tasks.length = 0
-    Object.assign(tasks, uncompletedTasks)
-    saveTasks(1)
-    toast(tr.allCompletedDeleted)
-  })
+const deleteAllCompleted = async () => {
+  if (!await confirm(tr.aysToDeleteAllCompleted)) return
+  const uncompletedTasks = tasks.filter(it => !it.completed)
+  tasks.length = 0
+  Object.assign(tasks, uncompletedTasks)
+  saveTasks(1)
+  toast(tr.allCompletedDeleted)
 }
 
 const getLocaleDate = () => {
@@ -585,6 +646,13 @@ ion-progress-bar
 </style>
 
 <style lang="sass">
+.selected-actions ion-button
+  --padding-end: 8px
+  --padding-start: 8px
+
+.check-icon
+  --ionicon-stroke-width: 80px
+
 .options-group
   pointer-events: none
 
