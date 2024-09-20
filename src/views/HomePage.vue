@@ -1,6 +1,6 @@
 <template>
   <div> <!-- need only one root node -->
-    <Menu :tasksLength="tasks.length" :disabled :completedTasksLength="tasks.filter(it => it.completed).length"
+    <Menu :tasksLength="tasks.length" :completedTasksLength="tasks.filter(it => it.completed).length"
       @deleteAll="deleteAll" @deleteAllCompleted="deleteAllCompleted" @openCategories="openCategories" />
     <ion-page id="main-content">
       <ion-header>
@@ -19,21 +19,21 @@
             <ion-select-option class="new-category" value="">+ {{ tr.newCategory }}</ion-select-option>
           </UiSelect>
         </ion-toolbar>
-        <ion-toolbar v-show="selected.length" class="selected-actions">
+        <ion-toolbar v-show="selected.length">
           <ion-title>{{ tr.selected }}: {{ selected.length }}</ion-title>
-          <IconBtn slot="end" color="primary" fill="clear" size="large" :icon="checkmarkCircleOutline"
-            @click="completeSelected" />
-          <IconBtn slot="end" color="danger" fill="clear" size="large" :icon="trashOutline" @click="deleteSelected" />
-          <IconBtn slot="end" color="dark" fill="clear" size="large" :icon="checkmarkDoneCircle" @click="selectAll"
-            style="margin-right: 10px" />
+          <IconBtn slot="end" color="primary" :icon="checkmarkCircleOutline" @click="completeSelected" />
+          <IconBtn slot="end" color="danger" :icon="trashOutline" @click="deleteSelected" />
+          <IconBtn slot="end" :color="selected.length == filtered.length ? 'success' : 'medium'"
+            :icon="checkmarkDoneCircle" @click="selectAll" style="margin: 0 14px" />
         </ion-toolbar>
 
         <ion-item lines="none">
-          <ion-searchbar v-model="keyword" :placeholder="tr.search" :debounce="500" :maxlength="taskLength" :disabled
-            show-clear-button="always" :search-icon="params.searchInDesc ? searchCircleOutline : searchSharp" />
-          <ion-icon :icon="funnel" @click="!disabled && $('#filterSelect').click()"
-            style="position: absolute; right: 24px"
-            :color="filters.length === 3 && isEqual(filters, priorities) ? '' : 'primary'" />
+          <ion-input :placeholder="tr.search" v-model="keyword" :maxlength="taskLength" clear-input :debounce="500"
+            :disabled>
+            <ion-icon slot="start" size="small" :icon="params.searchInDesc ? searchCircleOutline : searchSharp" />
+            <IconBtn slot="end" size="small" :icon="funnel" @click="$('#filterSelect').click()" :disabled
+              :color="filters.length === 3 && isEqual(filters, priorities) ? 'medium' : 'primary'" />
+          </ion-input>
           <UiSelect v-show="false" id="filterSelect" v-model="filters" multiple :header="tr.filters">
             <OptionsGroup :label="tr.byPriorities" />
             <ion-select-option v-for="pr in priorities" :value="pr" :class="`${pr}-item`">
@@ -46,9 +46,10 @@
         </ion-item>
         <ion-item lines="none">
           <ion-input :placeholder="tr.newTask" v-model="title" :maxlength="taskLength" clear-input
-            @keyup.enter="addTask(title)" :disabled />
-          <ion-icon :icon="addCircle" :color="!title?.trim() ? 'secondary' : 'primary'"
-            @click="!disabled && addTask(title)" />
+            @keyup.enter="addTask(title)" :disabled>
+            <IconBtn slot="end" size="small" :icon="addCircle" :color="!title?.trim() ? 'secondary' : 'primary'"
+              @click="addTask(title)" :disabled />
+          </ion-input>
         </ion-item>
       </ion-header>
 
@@ -66,7 +67,7 @@
             <ion-item button @click="clickTask(task)" @touchstart="checkTask(task)" @touchend="clearTimer2">
               <ion-icon v-show="selected.includes(task.id)" :icon="checkmarkOutline" color="success"
                 style="margin-right: 5px" class="check-icon" />
-              <ion-label class="task-title" :style="task.completed ? 'text-decoration: line-through' : ''">
+              <ion-label class="task-title" :class="{ 'striked-text': task.completed }">
                 {{ task.title }}
               </ion-label>
               <ion-icon v-if="task.completed" :icon="checkmarkCircleOutline" size="small" style="margin-right: 2px" />
@@ -192,9 +193,8 @@
                     </ion-note>
                     {{ baseCategories.includes(_category) ? tr[_category] : _category }}
                   </ion-label>
-                  <ion-icon :icon="pencilOutline" color="primary" @click="renameCategory(_category)"
-                    style="margin-right: 12px" />
-                  <ion-icon :icon="trashOutline" color="danger" @click="deleteCategory(_category)" />
+                  <IconBtn color="primary" size="small" :icon="pencilOutline" @click="renameCategory(_category)" />
+                  <IconBtn color="danger" size="small" :icon="trashOutline" @click="deleteCategory(_category)" />
                   <ion-reorder slot="end" :style="categories.slice(2).length === 1 ? 'pointer-events: none' : ''" />
                 </ion-item>
               </ion-reorder-group>
@@ -407,65 +407,6 @@ const saveTasks = (isDel) => {
   if (params.vibro) Haptics.vibrate({ duration: 28 })
 }
 
-// #region Selecting
-const selected = ref([])
-const disabled = computed(() => selected.value.length > 0)
-let timer2, notOpen = false, _sliding = false
-
-const select = (task) => {
-  if (selected.value.includes(task.id))
-    selected.value = selected.value.filter(id => id !== task.id)
-  else selected.value.push(task.id)
-}
-
-const clickTask = async (task) => {
-  if (selected.value.length) {
-    select(task)
-    return notOpen = false
-  }
-
-  if (notOpen) return notOpen = false
-  openTask(task)
-}
-
-const clearTimer2 = () => {
-  clearTimeout(timer2)
-  _sliding = false
-}
-
-const completeSelected = () => {
-  for (const id of selected.value) {
-    const task = tasks.find(it => it.id === id)
-    task.completed = true
-  }
-  saveTasks()
-  selected.value = []
-}
-
-const deleteSelected = async () => {
-  if (!await confirm(tr.aysToDeleteSelected)) return
-  const _tasks = tasks.filter(it => !selected.value.includes(it.id))
-  tasks.length = 0
-  Object.assign(tasks, _tasks)
-  saveTasks(1)
-  selected.value = []
-}
-
-const selectAll = () => {
-  if (filtered.value.length == selected.value.length) selected.value = []
-  else selected.value = filtered.value.map(task => task.id)
-}
-
-const onIonDrag = () => _sliding = true
-
-const checkTask = (task) => timer2 = setTimeout(() => {
-  if (_sliding) return
-  select(task)
-  notOpen = true
-}, 800)
-
-// #endregion
-
 const openTask = async (task) => {
   originalCurrent = clone(task)
   current.value = clone(task)
@@ -603,6 +544,69 @@ const nextTask = () => {
 }
 // #endregion
 
+// #region Selecting
+const selected = ref([])
+const disabled = computed(() => selected.value.length > 0)
+let timer2, notOpen = false, _sliding = false
+
+const select = (task) => {
+  if (selected.value.includes(task.id))
+    selected.value = selected.value.filter(id => id !== task.id)
+  else {
+    selected.value.push(task.id)
+    if (params.vibro) Haptics.vibrate({ duration: 18 })
+  }
+}
+
+const clickTask = async (task) => {
+  if (selected.value.length) {
+    select(task)
+    return notOpen = false
+  }
+
+  if (notOpen) return notOpen = false
+  openTask(task)
+}
+
+const clearTimer2 = () => {
+  clearTimeout(timer2)
+  _sliding = false
+}
+
+const completeSelected = () => {
+  for (const id of selected.value) {
+    const task = tasks.find(it => it.id === id)
+    task.completed = true
+  }
+  saveTasks()
+  toast(tr.selectedCompleted)
+  selected.value = []
+}
+
+const deleteSelected = async () => {
+  if (!await confirm(tr.aysToDeleteSelected)) return
+  const _tasks = tasks.filter(it => !selected.value.includes(it.id))
+  tasks.length = 0
+  Object.assign(tasks, _tasks)
+  saveTasks(1)
+  toast(tr.selectedDeleted)
+  selected.value = []
+}
+
+const selectAll = () => {
+  if (filtered.value.length == selected.value.length) selected.value = []
+  else selected.value = filtered.value.map(task => task.id)
+}
+
+const onIonDrag = () => _sliding = true
+
+const checkTask = (task) => timer2 = setTimeout(() => {
+  if (_sliding) return
+  select(task)
+  notOpen = true
+}, 700)
+// #endregion
+
 // #region Notification
 const checkNotificationPermission = () =>
   LocalNotifications.checkPermissions().then(res => {
@@ -635,10 +639,6 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="sass">
-ion-searchbar
-  --box-shadow: 0px
-  padding: 0px
-
 ion-progress-bar
   position: absolute
   bottom: 0
@@ -646,21 +646,15 @@ ion-progress-bar
 </style>
 
 <style lang="sass">
-.selected-actions ion-button
-  --padding-end: 8px
-  --padding-start: 8px
-
 .check-icon
   --ionicon-stroke-width: 80px
 
 .options-group
   pointer-events: none
-
   & .alert-checkbox-icon
-    display: none !important
-
+    display: none
   & .alert-checkbox-label
-    padding-left: 10px !important
+    padding-left: 26px
 
 .new-category
   color: var(--ion-color-primary)
@@ -675,7 +669,6 @@ ion-progress-bar
 
 .full-label > label
   justify-content: space-between
-
   & > .native-wrapper
     max-width: fit-content
 

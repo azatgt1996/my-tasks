@@ -1,6 +1,6 @@
 <template>
     <ion-item>
-        <ion-icon :icon style="margin-right: 10px"/>
+        <ion-icon :icon style="margin-right: 10px" />
         <ion-toggle :checked="modelValue" @ionChange="val => emit('update:modelValue', val.detail.checked)">
             {{ label }}
         </ion-toggle>

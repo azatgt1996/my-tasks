@@ -1,5 +1,5 @@
 <template>
-  <ion-menu content-id="main-content" ref="menuRef" :disabled>
+  <ion-menu content-id="main-content" ref="menuRef">
     <ion-header>
       <ion-toolbar>
         <ion-buttons slot="start">
@@ -114,7 +114,6 @@ import ToggleIconItem from "@/components/ToggleIconItem.vue";
 import UiSelect from "@/components/UiSelect.vue";
 
 const props = defineProps({
-  disabled: Boolean,
   tasksLength: Number,
   completedTasksLength: Number,
 })

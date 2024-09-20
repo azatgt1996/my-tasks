@@ -94,6 +94,8 @@ const translations = {
     'Está seguro? Se eliminarán todas las tareas seleccionadas!',
     'Вы уверены? Все выбранные задачи будут удалены!'
   ],
+  selectedCompleted: ['Selected tasks completed', 'Tareas seleccionadas completadas', 'Выбранные задачи выполнены'],
+  selectedDeleted: ['Selected tasks deleted', 'Tareas seleccionadas eliminadas', 'Выбранные задачи удалены'],
   search: ['Search...', 'Buscar...', 'Поиск...'],
   newTask: ['Type a new task', 'Escribe una nueva tarea', 'Введите новую задачу'],
   detailInfo: ['Detail info', 'Información detallada', 'Детальная информация'],
