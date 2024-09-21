@@ -14,7 +14,7 @@
         </ion-button>
         <ion-button slot="end" color="medium" shape="round" fill="clear" @click="toggleDarkMode" class="mr-10">
           <ion-icon slot="icon-only" :icon="darkMode ? moon : sunny"
-            :style="{ color: darkMode ? 'yellow' : 'orange' }" />
+            :style="{ color: darkMode ? '#FFFF77' : 'orange' }" />
         </ion-button>
       </ion-toolbar>
     </ion-header>

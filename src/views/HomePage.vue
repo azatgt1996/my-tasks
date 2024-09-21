@@ -60,12 +60,11 @@
         <TransitionGroup v-show="filtered.length" ref="listRef" name="list" tag="ion-list">
           <ion-item-sliding v-for="task in filtered" :key="task.id" :disabled @ionDrag="onIonDrag">
             <ion-item-options side="start" @ion-swipe="toggleCompleted(task)">
-              <ion-item-option color="primary" expandable @click="toggleCompleted(task)">
+              <ion-item-option color="primary">
                 <ion-icon slot="icon-only" :icon="task.completed ? arrowUndoCircleOutline : checkmarkCircleOutline" />
               </ion-item-option>
             </ion-item-options>
-            <ion-item button @click="clickTask(task)" @touchstart="checkTask(task)" @touchend="clearTimer2"
-              style="border-radius: 5px">
+            <ion-item button @click="clickTask(task)" @touchstart="checkTask(task)" @touchend="clearTimer2" @touchmove="onTouchmove">
               <ion-icon v-show="selected.includes(task.id)" :icon="checkmarkOutline" color="success"
                 class="check-icon mr-10" />
               <ion-label class="task-title" :class="{ 'striked-text': task.completed }">
@@ -74,10 +73,10 @@
               <ion-icon v-if="task.completed" :icon="checkmarkCircleOutline" size="small" style="margin-right: 2px" />
               <ion-icon v-if="new Date() < new Date(task.notification == emptyDatetime ? 0 : task.notification)"
                 :icon="alarmOutline" size="small" style="margin-right: 2px" />
-              <ion-icon :icon="ellipse" size="small" :color="priorityType[task.priority]" />
+              <ion-icon :icon="ellipse" :color="priorityType[task.priority]" style="font-size: 14px" />
             </ion-item>
             <ion-item-options side="end" @ion-swipe="deleteTask(task)">
-              <ion-item-option color="danger" expandable @click="deleteTask(task)">
+              <ion-item-option color="danger">
                 <ion-icon slot="icon-only" :icon="trashOutline" />
               </ion-item-option>
             </ion-item-options>
@@ -180,19 +179,15 @@
             <ion-list>
               <ion-item>
                 <ion-label>
-                  <ion-note class="mr-10">
-                    ({{ tasks.filter(it => it.category === 'common').length }})
-                  </ion-note>
                   {{ tr.common }}
+                  <ion-note>({{ tasks.filter(it => it.category === 'common').length }})</ion-note>
                 </ion-label>
               </ion-item>
               <ion-reorder-group :disabled="false" @ionItemReorder="onReorder">
                 <ion-item v-for="_category in categories.slice(2)" :key="_category">
-                  <ion-label class="mr-10">
-                    <ion-note class="mr-10">
-                      ({{ tasks.filter(it => it.category === _category).length }})
-                    </ion-note>
+                  <ion-label>
                     {{ baseCategories.includes(_category) ? tr[_category] : _category }}
+                    <ion-note>({{ tasks.filter(it => it.category === _category).length }})</ion-note>
                   </ion-label>
                   <IconBtn color="primary" size="small" :icon="pencilOutline" @click="renameCategory(_category)" />
                   <IconBtn color="danger" size="small" :icon="trashOutline" @click="deleteCategory(_category)" />
@@ -602,7 +597,21 @@ const selectAll = () => {
   }
 }
 
-const onIonDrag = () => _sliding = true
+let swiped = false, cl1 = 'item-sliding-active-swipe-start', cl2 = 'item-sliding-active-swipe-end'
+const onIonDrag = (e) => {
+  _sliding = true
+  const classes = e.target.className
+  if ((classes.includes(cl1) || classes.includes(cl2)) && !swiped) {
+    swiped = true
+    Haptics.vibrate({ duration: 8 })
+  }
+  if (!classes.includes(cl1) && !classes.includes(cl2) && swiped) {
+    swiped = false
+    Haptics.vibrate({ duration: 8 })
+  }
+}
+
+const onTouchmove = () => _sliding = true
 
 const checkTask = (task) => timer2 = setTimeout(() => {
   if (_sliding) return
