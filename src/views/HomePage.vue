@@ -23,7 +23,16 @@
           <IconBtn slot="end" color="primary" :icon="checkmarkCircleOutline" @click="completeSelected" />
           <IconBtn slot="end" color="danger" :icon="trashOutline" @click="deleteSelected" />
           <IconBtn slot="end" :color="selected.length == filtered.length ? 'success' : 'medium'"
-            :icon="checkmarkDoneCircle" @click="selectAll" style="margin: 0 14px" />
+            :icon="checkmarkDoneCircle" @click="selectAll" />
+          <IconBtn id="more-btn" slot="end" color="medium" :icon="ellipsisVertical" />
+          <ion-popover trigger="more-btn" dismiss-on-select>
+            <ion-content>
+              <ion-list>
+                <ion-item lines="none" button @click="changeCategory">{{ tr.changeCategory }}</ion-item>
+                <ion-item lines="none" button @click="changePriority">{{ tr.changePriority }}</ion-item>
+              </ion-list>
+            </ion-content>
+          </ion-popover>
         </ion-toolbar>
 
         <ion-item>
@@ -64,7 +73,8 @@
                 <ion-icon slot="icon-only" :icon="task.completed ? arrowUndoCircleOutline : checkmarkCircleOutline" />
               </ion-item-option>
             </ion-item-options>
-            <ion-item button @click="clickTask(task)" @touchstart="checkTask(task)" @touchend="clearTimer2" @touchmove="onTouchmove">
+            <ion-item button @click="clickTask(task)" @touchstart="checkTask(task)" @touchend="clearTimer2"
+              @touchmove="onTouchmove">
               <ion-icon v-show="selected.includes(task.id)" :icon="checkmarkOutline" color="success"
                 class="check-icon mr-10" />
               <ion-label class="task-title" :class="{ 'striked-text': task.completed }">
@@ -112,7 +122,7 @@
                   :placeholder="tr.typeDescription" clear-input label-placement="fixed" :maxlength="300" />
               </ion-item>
               <ion-item>
-                <UiSelect v-model="current.category" :label="tr.category" :header="tr.selectCategory">
+                <UiSelect v-model="current.category" :label="tr.category" :header="tr.selectCategory" @click.stop>
                   <ion-select-option v-for="_category in categories.slice(1)" :value="_category">
                     {{ baseCategories.includes(_category) ? tr[_category] : _category }}
                   </ion-select-option>
@@ -208,12 +218,12 @@ import {
   useBackButton, useIonRouter, IonMenuButton, IonButton, IonContent, IonHeader, IonIcon, IonInput,
   IonToolbar, IonModal, IonDatetime, IonReorderGroup, IonReorder, IonCheckbox, IonProgressBar, IonNote,
   IonItem, IonLabel, IonList, IonPage, IonTitle, IonButtons, IonDatetimeButton, IonSegment, IonSegmentButton, IonTextarea,
-  IonItemSliding, IonItemOptions, IonItemOption, IonSelectOption, IonFooter, IonSpinner,
+  IonItemSliding, IonItemOptions, IonItemOption, IonSelectOption, IonFooter, IonSpinner, IonPopover,
 } from '@ionic/vue';
 import {
   addCircle, ellipse, funnel, trashOutline, arrowUndoCircleOutline, checkmarkCircleOutline, addOutline, readerOutline,
   alarmOutline, searchCircleOutline, searchSharp, caretBackOutline, caretForwardOutline, saveSharp, closeCircleOutline,
-  albumsOutline, pencilOutline, checkmarkOutline, checkmarkDoneCircle,
+  albumsOutline, pencilOutline, checkmarkOutline, checkmarkDoneCircle, ellipsisVertical,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
 import { computed, onMounted, ref, watch, reactive } from "vue";
@@ -227,7 +237,7 @@ import { OptionsGroup, IconBtn } from "@/components/renderFunctions.js";
 import UiSelect from "@/components/UiSelect.vue";
 import Menu from "@/components/Menu.vue";
 
-const { tr, params, storage, localeDate, toast, errToast, cancelToast, confirm, prompt } = useGlobalStore()
+const { tr, params, storage, localeDate, toast, errToast, cancelToast, confirm, prompt, prompt2 } = useGlobalStore()
 
 // #region Others
 const numNanoid = customAlphabet('123456789', 8)
@@ -398,12 +408,14 @@ const saveTasks = (isDel) => {
   tasks.length = tasks.length
   storage.set('tasks', JSON.stringify(tasks))
   selected.value = []
+  _swiped = false
 
   if (isDel == 2) return
   if (params.sound) (isDel ? audio2 : audio).play().catch(log)
   if (params.vibro) Haptics.vibrate({ duration: 22 })
 }
 
+let tap
 const openTask = async (task) => {
   originalCurrent = clone(task)
   current.value = clone(task)
@@ -412,6 +424,12 @@ const openTask = async (task) => {
   await delay(200)
   $('#task-modal').addEventListener('swiped-left', () => filtered.value.at(-1)?.id !== current.value.id && nextTask())
   $('#task-modal').addEventListener('swiped-right', () => filtered.value[0]?.id !== current.value.id && prevTask())
+  $('#task-modal').addEventListener('click', () => {
+    let now = new Date().getTime()
+    var timesince = now - tap
+    if ((timesince < 600) && (timesince > 0)) changeTask(current.value)
+    tap = new Date().getTime()
+  }, false)
 }
 
 const changeTask = (cur) => {
@@ -589,6 +607,28 @@ const deleteSelected = async () => {
   toast(tr.selectedDeleted)
 }
 
+const changeCategory = () => {
+  const options = categories.value.slice(1).map(it => ({ label: baseCategories.includes(it) ? tr[it] : it, value: it }))
+  prompt2(tr.selectCategory, '', options, val => {
+    for (const id of selected.value) {
+      const task = tasks.find(it => it.id === id)
+      task.category = val
+    }
+    saveTasks()
+  })
+}
+
+const changePriority = () => {
+  const options = priorities.map(it => ({ label: tr[it], value: it }))
+  prompt2(tr.selectPriority, '', options, val => {
+    for (const id of selected.value) {
+      const task = tasks.find(it => it.id === id)
+      task.priority = val
+    }
+    saveTasks()
+  })
+}
+
 const selectAll = () => {
   if (filtered.value.length == selected.value.length) selected.value = []
   else {
@@ -597,17 +637,17 @@ const selectAll = () => {
   }
 }
 
-let swiped = false, cl1 = 'item-sliding-active-swipe-start', cl2 = 'item-sliding-active-swipe-end'
+let _swiped = false, cl1 = 'item-sliding-active-swipe-start', cl2 = 'item-sliding-active-swipe-end'
 const onIonDrag = (e) => {
   _sliding = true
   const classes = e.target.className
-  if ((classes.includes(cl1) || classes.includes(cl2)) && !swiped) {
-    swiped = true
-    Haptics.vibrate({ duration: 8 })
+  if ((classes.includes(cl1) || classes.includes(cl2)) && !_swiped) {
+    _swiped = true
+    Haptics.vibrate({ duration: 6 })
   }
-  if (!classes.includes(cl1) && !classes.includes(cl2) && swiped) {
-    swiped = false
-    Haptics.vibrate({ duration: 8 })
+  if (!classes.includes(cl1) && !classes.includes(cl2) && _swiped) {
+    _swiped = false
+    Haptics.vibrate({ duration: 6 })
   }
 }
 

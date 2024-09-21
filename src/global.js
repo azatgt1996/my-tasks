@@ -57,6 +57,15 @@ export const useGlobalStore = defineStore('global', () => {
         return true
     }
 
+    const onOkClick2 = (data, callback) => {
+        if (!data) {
+            errToast(tr.selectValue)
+            return false
+        }
+        callback(data)
+        return true
+    }
+
     const prompt = (header, message, placeholder, value, callback) => //TODO: refactor me
         alertController.create({
             header, message,
@@ -64,9 +73,14 @@ export const useGlobalStore = defineStore('global', () => {
             buttons: [tr.cancel, { text: 'Ok', handler: data => onOkClick(data, callback) }],
         }).then(alert => alert.present())
 
-    onBeforeMount(async () => {
-        await storage.create()
-    })
+    const prompt2 = (header, message, options, callback) => //TODO: refactor me
+        alertController.create({
+            header, message,
+            inputs: options.map(it => ({ type: 'radio', ...it })),
+            buttons: [tr.cancel, { text: 'Ok', handler: data => onOkClick2(data, callback) }],
+        }).then(alert => alert.present())
 
-    return { tr, params, storage, localeDate, toast, errToast, cancelToast, alert, confirm, prompt }
+    onBeforeMount(() => storage.create())
+
+    return { tr, params, storage, localeDate, toast, errToast, cancelToast, alert, confirm, prompt, prompt2 }
 })

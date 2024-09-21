@@ -46,7 +46,7 @@
     <ion-content>
       <ion-list class="params-list">
         <ToggleIconItem :icon="radioOutline" :label="tr.vibro" v-model="$params.vibro" />
-        <ToggleIconItem :icon="volumeLowOutline" :label="tr.sound" v-model="$params.sound" />
+        <ToggleIconItem :icon="volumeMediumOutline" :label="tr.sound" v-model="$params.sound" />
         <ToggleIconItem :icon="alertCircleOutline" :label="tr.offToastAlerts" v-model="$params.offToastAlerts" />
         <ToggleIconItem :icon="searchCircleOutline" :label="tr.searchInDesc" v-model="$params.searchInDesc" />
         <ToggleIconItem :icon="returnUpBackOutline" :label="tr.autoClose" v-model="$params.autoClose" />
@@ -104,7 +104,7 @@ import {
 } from '@ionic/vue';
 import {
   closeCircleOutline, mailOutline, powerOutline, informationCircleOutline, settingsOutline, starOutline, shareSocialOutline,
-  trashOutline, radioOutline, searchCircleOutline, filterSharp, volumeLowOutline, swapVerticalOutline, saveSharp, returnUpBackOutline,
+  trashOutline, radioOutline, searchCircleOutline, filterSharp, volumeMediumOutline, swapVerticalOutline, saveSharp, returnUpBackOutline,
   languageOutline, sunny, moon, albumsOutline, alertCircleOutline, trashBinOutline,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
