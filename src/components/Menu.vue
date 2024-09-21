@@ -6,12 +6,16 @@
           <ion-menu-button />
         </ion-buttons>
         <ion-title style="padding-left: 0">{{ tr.menu }}</ion-title>
-        <img slot="end" class="flag-icon" :src="getFlagImg(lang)" :alt="lang" width="26" @click="langClick" />
         <UiSelect v-show="false" v-model="lang" id="langSelect" :header="tr.selectLang">
           <ion-select-option v-for="_lang in langs" :value="_lang">{{ _lang }}</ion-select-option>
         </UiSelect>
-        <ion-icon :icon="darkMode ? moon : sunny" slot="end" @click="toggleDarkMode"
-          style="margin-right: 10px; width: 26px; height: 26px" />
+        <ion-button slot="end" color="medium" shape="round" fill="clear" @click="langClick">
+          <img slot="icon-only" class="flag-icon" :src="getFlagImg(lang)" :alt="lang" width="22" />
+        </ion-button>
+        <ion-button slot="end" color="medium" shape="round" fill="clear" @click="toggleDarkMode" class="mr-10">
+          <ion-icon slot="icon-only" :icon="darkMode ? moon : sunny"
+            :style="{ color: darkMode ? 'yellow' : 'orange' }" />
+        </ion-button>
       </ion-toolbar>
     </ion-header>
     <ion-content>
@@ -207,7 +211,7 @@ const langClick = async () => {
   for (const opt of $$('.alert-radio-label')) {
     const _lang = opt.innerHTML
     const flagHref = getFlagImg(_lang)
-    opt.innerHTML = `<img src="${flagHref}" class="flag-icon" style="width: 19px"/>` + Translations[_lang]._language
+    opt.innerHTML = `<img src="${flagHref}" class="flag-icon mr-10" style="width: 20px"/>` + Translations[_lang]._language
   }
 }
 
@@ -232,7 +236,6 @@ onMounted(async () => {
 
 <style lang="sass">
 .flag-icon
-  margin-right: 10px
   border-radius: 50%
   box-shadow: 0px 0px 2px 0px gray
 

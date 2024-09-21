@@ -11,8 +11,7 @@
           <ion-title style="padding: 0">
             {{ tr.myTasks }}{{ filtered.length ? `: ${filtered.length}` : '' }}
           </ion-title>
-          <UiSelect :key="categorySelectKey" slot="end" interface="popover" v-model="category"
-            style="margin-right: 10px">
+          <UiSelect :key="categorySelectKey" slot="end" interface="popover" v-model="category" class="mr-10">
             <ion-select-option v-for="_category in categories" :value="_category">
               {{ baseCategories.includes(_category) ? tr[_category] : _category }}
             </ion-select-option>
@@ -27,10 +26,11 @@
             :icon="checkmarkDoneCircle" @click="selectAll" style="margin: 0 14px" />
         </ion-toolbar>
 
-        <ion-item lines="none">
+        <ion-item>
           <ion-input :placeholder="tr.search" v-model="keyword" :maxlength="taskLength" clear-input :debounce="500"
             :disabled>
-            <ion-icon slot="start" size="small" :icon="params.searchInDesc ? searchCircleOutline : searchSharp" />
+            <ion-icon slot="start" color="medium" size="small"
+              :icon="params.searchInDesc ? searchCircleOutline : searchSharp" />
             <IconBtn slot="end" size="small" :icon="funnel" @click="$('#filterSelect').click()" :disabled
               :color="filters.length === 3 && isEqual(filters, priorities) ? 'medium' : 'primary'" />
           </ion-input>
@@ -64,9 +64,10 @@
                 <ion-icon slot="icon-only" :icon="task.completed ? arrowUndoCircleOutline : checkmarkCircleOutline" />
               </ion-item-option>
             </ion-item-options>
-            <ion-item button @click="clickTask(task)" @touchstart="checkTask(task)" @touchend="clearTimer2">
+            <ion-item button @click="clickTask(task)" @touchstart="checkTask(task)" @touchend="clearTimer2"
+              style="border-radius: 5px">
               <ion-icon v-show="selected.includes(task.id)" :icon="checkmarkOutline" color="success"
-                style="margin-right: 5px" class="check-icon" />
+                class="check-icon mr-10" />
               <ion-label class="task-title" :class="{ 'striked-text': task.completed }">
                 {{ task.title }}
               </ion-label>
@@ -131,7 +132,7 @@
                 </ion-modal>
               </ion-item>
               <ion-item>
-                <ion-label style="margin-right: 10px">{{ tr.priority }}</ion-label>
+                <ion-label>{{ tr.priority }}</ion-label>
                 <ion-segment v-model="current.priority" mode="ios">
                   <ion-segment-button v-for="value in priorities" :value="value">
                     <ion-label :color="priorityType[value]">{{ tr[value] }}</ion-label>
@@ -145,7 +146,7 @@
                 </ion-checkbox>
               </ion-item>
               <ion-item button @click="removeTask(current)">
-                <ion-icon :icon="trashOutline" color="danger" style="margin-right: 10px" />
+                <ion-icon :icon="trashOutline" color="danger" class="mr-10" />
                 <ion-label color="danger">{{ tr.delete }}</ion-label>
               </ion-item>
             </ion-list>
@@ -179,7 +180,7 @@
             <ion-list>
               <ion-item>
                 <ion-label>
-                  <ion-note style="margin-right: 6px">
+                  <ion-note class="mr-10">
                     ({{ tasks.filter(it => it.category === 'common').length }})
                   </ion-note>
                   {{ tr.common }}
@@ -187,8 +188,8 @@
               </ion-item>
               <ion-reorder-group :disabled="false" @ionItemReorder="onReorder">
                 <ion-item v-for="_category in categories.slice(2)" :key="_category">
-                  <ion-label style="margin-right: 10px">
-                    <ion-note style="margin-right: 6px">
+                  <ion-label class="mr-10">
+                    <ion-note class="mr-10">
                       ({{ tasks.filter(it => it.category === _category).length }})
                     </ion-note>
                     {{ baseCategories.includes(_category) ? tr[_category] : _category }}
@@ -210,7 +211,7 @@
 <script setup>
 import {
   useBackButton, useIonRouter, IonMenuButton, IonButton, IonContent, IonHeader, IonIcon, IonInput,
-  IonToolbar, IonModal, IonSearchbar, IonDatetime, IonReorderGroup, IonReorder, IonCheckbox, IonProgressBar, IonNote,
+  IonToolbar, IonModal, IonDatetime, IonReorderGroup, IonReorder, IonCheckbox, IonProgressBar, IonNote,
   IonItem, IonLabel, IonList, IonPage, IonTitle, IonButtons, IonDatetimeButton, IonSegment, IonSegmentButton, IonTextarea,
   IonItemSliding, IonItemOptions, IonItemOption, IonSelectOption, IonFooter, IonSpinner,
 } from '@ionic/vue';
@@ -401,10 +402,11 @@ onClickOutside(listRef, () => listRef.value.$el.closeSlidingItems())
 const saveTasks = (isDel) => {
   tasks.length = tasks.length
   storage.set('tasks', JSON.stringify(tasks))
+  selected.value = []
 
   if (isDel == 2) return
   if (params.sound) (isDel ? audio2 : audio).play().catch(log)
-  if (params.vibro) Haptics.vibrate({ duration: 28 })
+  if (params.vibro) Haptics.vibrate({ duration: 22 })
 }
 
 const openTask = async (task) => {
@@ -548,13 +550,14 @@ const nextTask = () => {
 const selected = ref([])
 const disabled = computed(() => selected.value.length > 0)
 let timer2, notOpen = false, _sliding = false
+watch(selected, val => !val.length && (notOpen = false))
 
 const select = (task) => {
   if (selected.value.includes(task.id))
     selected.value = selected.value.filter(id => id !== task.id)
   else {
     selected.value.push(task.id)
-    if (params.vibro) Haptics.vibrate({ duration: 18 })
+    if (params.vibro) Haptics.vibrate({ duration: 12 })
   }
 }
 
@@ -580,7 +583,6 @@ const completeSelected = () => {
   }
   saveTasks()
   toast(tr.selectedCompleted)
-  selected.value = []
 }
 
 const deleteSelected = async () => {
@@ -590,12 +592,14 @@ const deleteSelected = async () => {
   Object.assign(tasks, _tasks)
   saveTasks(1)
   toast(tr.selectedDeleted)
-  selected.value = []
 }
 
 const selectAll = () => {
   if (filtered.value.length == selected.value.length) selected.value = []
-  else selected.value = filtered.value.map(task => task.id)
+  else {
+    selected.value = filtered.value.map(task => task.id)
+    if (params.vibro) Haptics.vibrate({ duration: 14 })
+  }
 }
 
 const onIonDrag = () => _sliding = true
@@ -700,7 +704,6 @@ ion-progress-bar
 
 .list-enter-active, .list-leave-active
   transition: all 0.4s ease
-
 .list-enter-from, .list-leave-to
   opacity: 0
 </style>

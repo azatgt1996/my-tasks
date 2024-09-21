@@ -7,7 +7,7 @@ export const IconBtn = ({ icon, disabled, size, ...props }) =>
 
 export const IconText = ({ text, icon }) =>
   h(IonItem, { button: true }, () => [
-    h(IonIcon, { icon, style: 'margin-right: 10px' }), h(IonLabel, () => text)
+    h(IonIcon, { icon, class: 'mr-10' }), h(IonLabel, () => text)
   ])
 
 export const OptionsGroup = ({ label }) =>
