@@ -5,7 +5,7 @@
         <ion-buttons slot="start">
           <ion-menu-button />
         </ion-buttons>
-        <ion-title style="padding-left: 0">{{ tr.menu }}</ion-title>
+        <ion-title>{{ tr.menu }}</ion-title>
         <UiSelect v-show="false" v-model="lang" id="langSelect" :header="tr.selectLang">
           <ion-select-option v-for="_lang in langs" :value="_lang">{{ _lang }}</ion-select-option>
         </UiSelect>
@@ -39,7 +39,7 @@
         <ion-title>{{ tr.settings }}</ion-title>
         <ion-buttons slot="end">
           <IconBtn :icon="saveSharp" :disabled="isEqual($params, params)" @click="saveParams" />
-          <IconBtn :icon="closeCircleOutline" @click="isOpen = false" />
+          <IconBtn :icon="closeOutline" @click="isOpen = false" />
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -79,7 +79,7 @@
         </ion-title>
         <ion-buttons slot="end">
           <ion-button @click="sendTranslation">{{ tr.send }}</ion-button>
-          <IconBtn :icon="closeCircleOutline" @click="trModal = false" />
+          <IconBtn :icon="closeOutline" @click="trModal = false" />
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -103,7 +103,7 @@ import {
   IonSelectOption, IonLabel, IonInput, IonMenuButton
 } from '@ionic/vue';
 import {
-  closeCircleOutline, mailOutline, powerOutline, informationCircleOutline, settingsOutline, starOutline, shareSocialOutline,
+  closeOutline, mailOutline, powerOutline, informationCircleOutline, settingsOutline, starOutline, shareSocialOutline,
   trashOutline, radioOutline, searchCircleOutline, filterSharp, volumeMediumOutline, swapVerticalOutline, saveSharp, returnUpBackOutline,
   languageOutline, sunny, moon, albumsOutline, alertCircleOutline, trashBinOutline,
 } from 'ionicons/icons';

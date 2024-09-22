@@ -8,24 +8,26 @@
           <ion-buttons slot="start">
             <ion-menu-button />
           </ion-buttons>
-          <ion-title style="padding: 0">
+          <ion-title>
             {{ tr.myTasks }}{{ filtered.length ? `: ${filtered.length}` : '' }}
           </ion-title>
-          <UiSelect :key="categorySelectKey" slot="end" interface="popover" v-model="category" class="mr-10">
+          <UiSelect :key="categorySelectKey" slot="end" interface="popover" v-model="category" class="mr-10"
+            style="max-width: 44%; padding-top: 3px">
             <ion-select-option v-for="_category in categories" :value="_category">
               {{ baseCategories.includes(_category) ? tr[_category] : _category }}
             </ion-select-option>
             <ion-select-option class="new-category" value="">+ {{ tr.newCategory }}</ion-select-option>
           </UiSelect>
         </ion-toolbar>
-        <ion-toolbar v-show="selected.length">
+        <ion-toolbar v-show="selected.length" class="group-actions">
+          <IconBtn slot="start" color="medium" :icon="closeOutline" @click="selected = []" style="margin: 0 3px" />
           <ion-title>{{ tr.selected }}: {{ selected.length }}</ion-title>
           <IconBtn slot="end" color="primary" :icon="checkmarkCircleOutline" @click="completeSelected" />
           <IconBtn slot="end" color="danger" :icon="trashOutline" @click="deleteSelected" />
           <IconBtn slot="end" :color="selected.length == filtered.length ? 'success' : 'medium'"
             :icon="checkmarkDoneCircle" @click="selectAll" />
-          <IconBtn id="more-btn" slot="end" color="medium" :icon="ellipsisVertical" />
-          <ion-popover trigger="more-btn" dismiss-on-select>
+          <IconBtn id="more-btn" slot="end" color="medium" :icon="ellipsisVertical" style="margin: 0 3px" />
+          <ion-popover trigger="more-btn" dismiss-on-select size="auto">
             <ion-content>
               <ion-list>
                 <ion-item lines="none" button @click="changeCategory">{{ tr.changeCategory }}</ion-item>
@@ -41,7 +43,8 @@
             <ion-icon slot="start" color="medium" size="small"
               :icon="params.searchInDesc ? searchCircleOutline : searchSharp" />
             <IconBtn slot="end" size="small" :icon="funnel" @click="$('#filterSelect').click()" :disabled
-              :color="filters.length === 3 && isEqual(filters, priorities) ? 'medium' : 'primary'" />
+              :color="filters.length === 3 && isEqual(filters, priorities) ? 'medium' : 'primary'"
+              style="margin-left: 0" />
           </ion-input>
           <UiSelect v-show="false" id="filterSelect" v-model="filters" multiple :header="tr.filters">
             <OptionsGroup :label="tr.byPriorities" />
@@ -55,9 +58,9 @@
         </ion-item>
         <ion-item lines="none">
           <ion-input :placeholder="tr.newTask" v-model="title" :maxlength="taskLength" clear-input
-            @keyup.enter="addTask(title)" :disabled>
+            @keyup.enter="addTask(title)" :disabled ref="addTaskInput">
             <IconBtn slot="end" size="small" :icon="addCircle" :color="!title?.trim() ? 'secondary' : 'primary'"
-              @click="addTask(title)" :disabled />
+              @click="addTask(title)" :disabled style="margin-left: 0" />
           </ion-input>
         </ion-item>
       </ion-header>
@@ -77,7 +80,7 @@
               @touchmove="onTouchmove">
               <ion-icon v-show="selected.includes(task.id)" :icon="checkmarkOutline" color="success"
                 class="check-icon mr-10" />
-              <ion-label class="task-title" :class="{ 'striked-text': task.completed }">
+              <ion-label class="shorted-text" :class="{ 'striked-text': task.completed }">
                 {{ task.title }}
               </ion-label>
               <ion-icon v-if="task.completed" :icon="checkmarkCircleOutline" size="small" style="margin-right: 2px" />
@@ -101,7 +104,7 @@
               <ion-title>{{ tr.detailInfo }}</ion-title>
               <ion-buttons slot="end">
                 <IconBtn :icon="saveSharp" :disabled="disabledSave" @click="changeTask(current)" />
-                <IconBtn :icon="closeCircleOutline" @click="taskModal = false" />
+                <IconBtn :icon="closeOutline" @click="taskModal = false" />
               </ion-buttons>
             </ion-toolbar>
           </ion-header>
@@ -181,7 +184,7 @@
               <ion-title>{{ tr.categories }}</ion-title>
               <ion-buttons slot="end">
                 <ion-button @click="addCategory()">{{ tr.add }}</ion-button>
-                <IconBtn :icon="closeCircleOutline" @click="categoriesModal = false" />
+                <IconBtn :icon="closeOutline" @click="categoriesModal = false" />
               </ion-buttons>
             </ion-toolbar>
           </ion-header>
@@ -195,7 +198,7 @@
               </ion-item>
               <ion-reorder-group :disabled="false" @ionItemReorder="onReorder">
                 <ion-item v-for="_category in categories.slice(2)" :key="_category">
-                  <ion-label>
+                  <ion-label class="shorted-text">
                     {{ baseCategories.includes(_category) ? tr[_category] : _category }}
                     <ion-note>({{ tasks.filter(it => it.category === _category).length }})</ion-note>
                   </ion-label>
@@ -222,7 +225,7 @@ import {
 } from '@ionic/vue';
 import {
   addCircle, ellipse, funnel, trashOutline, arrowUndoCircleOutline, checkmarkCircleOutline, addOutline, readerOutline,
-  alarmOutline, searchCircleOutline, searchSharp, caretBackOutline, caretForwardOutline, saveSharp, closeCircleOutline,
+  alarmOutline, searchCircleOutline, searchSharp, caretBackOutline, caretForwardOutline, saveSharp, closeOutline,
   albumsOutline, pencilOutline, checkmarkOutline, checkmarkDoneCircle, ellipsisVertical,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
@@ -386,7 +389,7 @@ watch(tr, () => categorySelectKey.value++)
 
 // #region Main
 const tasks = reactive([])
-const title = ref('')
+const title = ref(''), addTaskInput = ref()
 const taskModal = ref(false)
 const listRef = ref()
 const taskLength = 50
@@ -427,7 +430,8 @@ const openTask = async (task) => {
   $('#task-modal').addEventListener('click', () => {
     let now = new Date().getTime()
     var timesince = now - tap
-    if ((timesince < 600) && (timesince > 0)) changeTask(current.value)
+    if ((timesince < 600) && (timesince > 0) && !disabledSave.value)
+      changeTask(current.value)
     tap = new Date().getTime()
   }, false)
 }
@@ -459,7 +463,11 @@ const addTask = (_title) => {
   _title = _title.trim()
   if (tasks.find(it => it.title === _title)) return errToast(tr.taskExists)
   title.value = ''
-  if (!_title) return errToast(tr.titleIsEmpty)
+  if (!_title) {
+    if (addTaskInput.value.$el.className.includes('has-focus'))
+      return errToast(tr.titleIsEmpty)
+    return addTaskInput.value.$el.setFocus()
+  }
 
   const _category = category.value === 'allCategories' ? 'common' : category.value
   const now = new Date().toISOString()
@@ -699,6 +707,12 @@ ion-progress-bar
 </style>
 
 <style lang="sass">
+#main-content > ion-header > ion-item
+  --inner-padding-end: 3px
+
+.group-actions > ion-button
+  margin: 0
+
 .check-icon
   --ionicon-stroke-width: 80px
 
@@ -715,7 +729,7 @@ ion-progress-bar
 .alert-message
   white-space: pre-wrap
 
-.task-title
+.shorted-text
   overflow: hidden
   white-space: nowrap
   padding-right: 5px
@@ -739,17 +753,32 @@ ion-progress-bar
   align-items: center
   font-size: x-large
 
-.low-item[aria-checked="true"] .alert-checkbox-icon
-  border-color: var(--ion-color-success) !important
-  background-color: var(--ion-color-success) !important
+.low-item[aria-checked="true"]
+  .alert-checkbox-icon
+    border-color: var(--ion-color-success) !important
+    background-color: var(--ion-color-success) !important
+  .alert-radio-icon
+    border-color: var(--ion-color-success) !important
+    .alert-radio-inner
+      background-color: var(--ion-color-success)
 
-.medium-item[aria-checked="true"] .alert-checkbox-icon
-  border-color: var(--ion-color-warning) !important
-  background-color: var(--ion-color-warning) !important
+.medium-item[aria-checked="true"]
+  .alert-checkbox-icon
+    border-color: var(--ion-color-warning) !important
+    background-color: var(--ion-color-warning) !important
+  .alert-radio-icon
+    border-color: var(--ion-color-warning) !important
+    .alert-radio-inner
+      background-color: var(--ion-color-warning)
 
-.high-item[aria-checked="true"] .alert-checkbox-icon
-  border-color: var(--ion-color-danger) !important
-  background-color: var(--ion-color-danger) !important
+.high-item[aria-checked="true"]
+  .alert-checkbox-icon
+    border-color: var(--ion-color-danger) !important
+    background-color: var(--ion-color-danger) !important
+  .alert-radio-icon
+    border-color: var(--ion-color-danger) !important
+    .alert-radio-inner
+      background-color: var(--ion-color-danger)
 
 .list-enter-active, .list-leave-active
   transition: all 0.4s ease
