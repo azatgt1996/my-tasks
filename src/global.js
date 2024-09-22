@@ -56,18 +56,16 @@ export const useGlobalStore = defineStore('global', () => {
         return true
     }
 
-    const prompt = (header, message, placeholder, value, callback) => //TODO: refactor me
+    const prompt = (header, placeholder, value, callback) =>
         alertController.create({
-            header, message,
             inputs: [{ placeholder, value, attributes: { maxlength: 20 } }],
-            buttons: [tr.cancel, { text: 'Ok', handler: data => onOkClick(data[0].trim(), true, callback) }],
+            header, buttons: [tr.cancel, { text: 'Ok', handler: data => onOkClick(data[0].trim(), true, callback) }],
         }).then(alert => alert.present())
 
-    const prompt2 = (header, message, options, callback) => //TODO: refactor me
+    const prompt2 = (header, options, callback) =>
         alertController.create({
-            header, message,
-            inputs: options.map(it => ({ type: 'radio', ...it, cssClass: `${it.value}-item` })),
-            buttons: [tr.cancel, { text: 'Ok', handler: data => onOkClick(data, false, callback) }],
+            inputs: options.map(it => ({ type: 'radio', ...it })),
+            header, buttons: [tr.cancel, { text: 'Ok', handler: data => onOkClick(data, false, callback) }],
         }).then(alert => alert.present())
 
     onBeforeMount(() => storage.create())

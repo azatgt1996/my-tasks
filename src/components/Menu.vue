@@ -38,7 +38,7 @@
         <ion-icon slot="start" :icon="settingsOutline" />
         <ion-title>{{ tr.settings }}</ion-title>
         <ion-buttons slot="end">
-          <IconBtn :icon="saveSharp" :disabled="isEqual($params, params)" @click="saveParams" />
+          <IconBtn :icon="saveOutline" :disabled="isEqual($params, params)" @click="saveParams" />
           <IconBtn :icon="closeOutline" @click="isOpen = false" />
         </ion-buttons>
       </ion-toolbar>
@@ -104,7 +104,7 @@ import {
 } from '@ionic/vue';
 import {
   closeOutline, mailOutline, powerOutline, informationCircleOutline, settingsOutline, starOutline, shareSocialOutline,
-  trashOutline, radioOutline, searchCircleOutline, filterSharp, volumeMediumOutline, swapVerticalOutline, saveSharp, returnUpBackOutline,
+  trashOutline, radioOutline, searchCircleOutline, filterSharp, volumeMediumOutline, swapVerticalOutline, saveOutline, returnUpBackOutline,
   languageOutline, sunny, moon, albumsOutline, alertCircleOutline, trashBinOutline,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';

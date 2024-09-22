@@ -5,8 +5,8 @@ export const IconBtn = ({ icon, disabled, size, ...props }) =>
   h(IonButton, { disabled, shape: 'round', fill: 'clear', ...props },
     () => h(IonIcon, { icon, size, slot: 'icon-only' }))
 
-export const IconText = ({ text, icon }) =>
-  h(IonItem, { button: true }, () => [
+export const IconText = ({ text, icon, ...props }) =>
+  h(IonItem, { button: true, ...props }, () => [
     h(IonIcon, { icon, class: 'mr-10' }), h(IonLabel, () => text)
   ])
 

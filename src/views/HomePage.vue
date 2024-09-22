@@ -30,8 +30,8 @@
           <ion-popover trigger="more-btn" dismiss-on-select size="auto">
             <ion-content>
               <ion-list>
-                <ion-item lines="none" button @click="changeCategory">{{ tr.changeCategory }}</ion-item>
-                <ion-item lines="none" button @click="changePriority">{{ tr.changePriority }}</ion-item>
+                <IconText lines="none" :icon="albumsOutline" :text="tr.changeCategory" @click="changeCategory" />
+                <IconText lines="none" :icon="caretUpCircleOutline" :text="tr.changePriority" @click="changePriority" />
               </ion-list>
             </ion-content>
           </ion-popover>
@@ -103,13 +103,13 @@
               <ion-icon slot="start" :icon="readerOutline" />
               <ion-title>{{ tr.detailInfo }}</ion-title>
               <ion-buttons slot="end">
-                <IconBtn :icon="saveSharp" :disabled="disabledSave" @click="changeTask(current)" />
+                <IconBtn :icon="saveOutline" :disabled="disabledSave" @click="changeTask(current)" />
                 <IconBtn :icon="closeOutline" @click="taskModal = false" />
               </ion-buttons>
             </ion-toolbar>
           </ion-header>
           <ion-content id="task-modal">
-            <ion-list>
+            <ion-list @click.stop>
               <ion-item>
                 <ion-input :label="tr.created" :value="localeDate(current.created)" readonly class="full-label" />
               </ion-item>
@@ -125,7 +125,7 @@
                   :placeholder="tr.typeDescription" clear-input label-placement="fixed" :maxlength="300" />
               </ion-item>
               <ion-item>
-                <UiSelect v-model="current.category" :label="tr.category" :header="tr.selectCategory" @click.stop>
+                <UiSelect v-model="current.category" :label="tr.category" :header="tr.selectCategory">
                   <ion-select-option v-for="_category in categories.slice(1)" :value="_category">
                     {{ baseCategories.includes(_category) ? tr[_category] : _category }}
                   </ion-select-option>
@@ -133,7 +133,8 @@
               </ion-item>
               <ion-item>
                 <ion-label>{{ tr.notification }}</ion-label>
-                <ion-button v-if="current.notification === emptyDatetime" color="light" @click="setAlarm">
+                <ion-button v-if="current.notification === emptyDatetime" color="light" @click="setAlarm"
+                  style="--box-shadow: 0">
                   <ion-icon :icon="addOutline" />
                   <ion-icon :icon="alarmOutline" size="small" />
                 </ion-button>
@@ -225,8 +226,8 @@ import {
 } from '@ionic/vue';
 import {
   addCircle, ellipse, funnel, trashOutline, arrowUndoCircleOutline, checkmarkCircleOutline, addOutline, readerOutline,
-  alarmOutline, searchCircleOutline, searchSharp, caretBackOutline, caretForwardOutline, saveSharp, closeOutline,
-  albumsOutline, pencilOutline, checkmarkOutline, checkmarkDoneCircle, ellipsisVertical,
+  alarmOutline, searchCircleOutline, searchSharp, caretBackOutline, caretForwardOutline, saveOutline, closeOutline,
+  albumsOutline, pencilOutline, checkmarkOutline, checkmarkDoneCircle, ellipsisVertical, caretUpCircleOutline,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
 import { computed, onMounted, ref, watch, reactive } from "vue";
@@ -236,7 +237,7 @@ import { clone, isEqual, $, delay, log, arrayMove } from "@/utils.js";
 import { useGlobalStore } from "@/global.js";
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Haptics } from "@capacitor/haptics";
-import { OptionsGroup, IconBtn } from "@/components/renderFunctions.js";
+import { OptionsGroup, IconBtn, IconText } from "@/components/renderFunctions.js";
 import UiSelect from "@/components/UiSelect.vue";
 import Menu from "@/components/Menu.vue";
 
@@ -314,7 +315,7 @@ const openCategories = () => categoriesModal.value = true
 const saveCategories = () => storage.set('categories', JSON.stringify(categories.value))
 
 const addCategory = (isToggle) =>
-  prompt(tr.newCategory, '', tr.typeCategory, '', (val) => {
+  prompt(tr.newCategory, tr.typeCategory, '', val => {
     if (categories.value.includes(val)) return errToast(tr.categoryExists)
     categories.value = [...categories.value, val]
     if (isToggle) category.value = val
@@ -324,7 +325,7 @@ const addCategory = (isToggle) =>
 const renameCategory = (_category) => {
   const oldValue = baseCategories.includes(_category) ? tr[_category] : _category
 
-  prompt(tr.renameCategory, '', tr.typeCategory, oldValue, (val) => {
+  prompt(tr.renameCategory, tr.typeCategory, oldValue, val => {
     if (oldValue === val) return
     if (categories.value.includes(val)) return errToast(tr.categoryExists)
 
@@ -617,7 +618,7 @@ const deleteSelected = async () => {
 
 const changeCategory = () => {
   const options = categories.value.slice(1).map(it => ({ label: baseCategories.includes(it) ? tr[it] : it, value: it }))
-  prompt2(tr.selectCategory, '', options, val => {
+  prompt2(tr.selectCategory, options, val => {
     for (const id of selected.value) {
       const task = tasks.find(it => it.id === id)
       task.category = val
@@ -627,8 +628,8 @@ const changeCategory = () => {
 }
 
 const changePriority = () => {
-  const options = priorities.map(it => ({ label: tr[it], value: it }))
-  prompt2(tr.selectPriority, '', options, val => {
+  const options = priorities.map(it => ({ label: tr[it], value: it, cssClass: `${it}-item` }))
+  prompt2(tr.selectPriority, options, val => {
     for (const id of selected.value) {
       const task = tasks.find(it => it.id === id)
       task.priority = val
@@ -649,13 +650,10 @@ let _swiped = false, cl1 = 'item-sliding-active-swipe-start', cl2 = 'item-slidin
 const onIonDrag = (e) => {
   _sliding = true
   const classes = e.target.className
-  if ((classes.includes(cl1) || classes.includes(cl2)) && !_swiped) {
-    _swiped = true
-    Haptics.vibrate({ duration: 6 })
-  }
-  if (!classes.includes(cl1) && !classes.includes(cl2) && _swiped) {
-    _swiped = false
-    Haptics.vibrate({ duration: 6 })
+  const flag = classes.includes(cl1) || classes.includes(cl2)
+  if (flag && !_swiped || !flag && _swiped) {
+    _swiped = !_swiped
+    Haptics.vibrate({ duration: 4 })
   }
 }
 
@@ -678,7 +676,7 @@ const checkNotificationPermission = () =>
   })
 
 const scheduleNotification = (id, title, dateTime, body, color) => {
-  const notification = { id, title, body, color, schedule: { at: new Date(dateTime) } }
+  const notification = { id, title, body, iconColor: color, schedule: { at: new Date(dateTime) } }
   LocalNotifications.schedule({ notifications: [notification] })
 }
 // #endregion
@@ -753,32 +751,15 @@ ion-progress-bar
   align-items: center
   font-size: x-large
 
-.low-item[aria-checked="true"]
-  .alert-checkbox-icon
-    border-color: var(--ion-color-success) !important
-    background-color: var(--ion-color-success) !important
-  .alert-radio-icon
-    border-color: var(--ion-color-success) !important
-    .alert-radio-inner
-      background-color: var(--ion-color-success)
-
-.medium-item[aria-checked="true"]
-  .alert-checkbox-icon
-    border-color: var(--ion-color-warning) !important
-    background-color: var(--ion-color-warning) !important
-  .alert-radio-icon
-    border-color: var(--ion-color-warning) !important
-    .alert-radio-inner
-      background-color: var(--ion-color-warning)
-
-.high-item[aria-checked="true"]
-  .alert-checkbox-icon
-    border-color: var(--ion-color-danger) !important
-    background-color: var(--ion-color-danger) !important
-  .alert-radio-icon
-    border-color: var(--ion-color-danger) !important
-    .alert-radio-inner
-      background-color: var(--ion-color-danger)
+@each $pr, $color in (low: success, medium: warning, high: danger)
+  .#{$pr}-item[aria-checked="true"]
+    .alert-checkbox-icon
+      border-color: var(--ion-color-#{$color}) !important
+      background-color: var(--ion-color-#{$color}) !important
+    .alert-radio-icon
+      border-color: var(--ion-color-#{$color}) !important
+      .alert-radio-inner
+        background-color: var(--ion-color-#{$color})
 
 .list-enter-active, .list-leave-active
   transition: all 0.4s ease
