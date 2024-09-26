@@ -84,8 +84,9 @@
                 {{ task.title }}
               </ion-label>
               <ion-icon v-if="task.completed" :icon="checkmarkCircleOutline" size="small" style="margin-right: 2px" />
-              <ion-icon v-if="new Date() < new Date(task.notification == emptyDatetime ? 0 : task.notification)"
-                :icon="alarmOutline" size="small" style="margin-right: 2px" />
+              <ion-icon v-if="task.notification !== emptyDatetime" :icon="alarmOutline" size="small"
+                style="margin-right: 2px"
+                :style="{ color: new Date() < getDT(task.notification) ? '' : 'orangered' }" />
               <ion-icon :icon="ellipse" :color="priorityType[task.priority]" style="font-size: 14px" />
             </ion-item>
             <ion-item-options side="end" @ion-swipe="deleteTask(task)">
@@ -103,7 +104,7 @@
               <ion-icon slot="start" :icon="readerOutline" />
               <ion-title>{{ tr.detailInfo }}</ion-title>
               <ion-buttons slot="end">
-                <IconBtn :icon="saveOutline" :disabled="disabledSave" @click="changeTask(current)" />
+                <IconBtn :icon="saveOutline" :disabled="disabledSave" @click="saveTask(current)" />
                 <IconBtn :icon="closeOutline" @click="taskModal = false" />
               </ion-buttons>
             </ion-toolbar>
@@ -133,17 +134,19 @@
               </ion-item>
               <ion-item>
                 <ion-label>{{ tr.notification }}</ion-label>
-                <ion-button v-if="current.notification === emptyDatetime" color="light" @click="setAlarm"
+                <ion-button v-show="current.notification === emptyDatetime" color="light" @click="setAlarm"
                   style="--box-shadow: 0">
                   <ion-icon :icon="addOutline" />
                   <ion-icon :icon="alarmOutline" size="small" />
                 </ion-button>
-                <ion-datetime-button v-else datetime="datetime" />
-                <ion-modal :keep-contents-mounted="true">
-                  <ion-datetime id="datetime" :locale="tr._code" hour-cycle="h23" :min="minDate"
-                    v-model="current.notification" />
-                </ion-modal>
+                <ion-datetime-button v-show="current.notification !== emptyDatetime" datetime="datetime"
+                  :class="new Date() < getDT(current.notification) ? '' : 'passed-date'" />
+                <IconBtn v-show="current.notification !== emptyDatetime" color="danger" :icon="trashOutline"
+                  @click="current.notification = emptyDatetime" />
               </ion-item>
+              <ion-modal keep-contents-mounted>
+                <ion-datetime id="datetime" :locale="tr._code" hour-cycle="h23" v-model="current.notification" />
+              </ion-modal>
               <ion-item>
                 <ion-label>{{ tr.priority }}</ion-label>
                 <ion-segment v-model="current.priority" mode="ios">
@@ -232,8 +235,8 @@ import {
 import { App } from '@capacitor/app';
 import { computed, onMounted, ref, watch, reactive } from "vue";
 import { onClickOutside } from '@vueuse/core';
-import { nanoid, customAlphabet } from "nanoid";
-import { clone, isEqual, $, delay, log, arrayMove } from "@/utils.js";
+import { nanoid } from "nanoid";
+import { clone, isEqual, $, delay, log, arrayMove, getLocaleDate, nanoidToInt } from "@/utils.js";
 import { useGlobalStore } from "@/global.js";
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Haptics } from "@capacitor/haptics";
@@ -244,10 +247,10 @@ import Menu from "@/components/Menu.vue";
 const { tr, params, storage, localeDate, toast, errToast, cancelToast, confirm, prompt, prompt2 } = useGlobalStore()
 
 // #region Others
-const numNanoid = customAlphabet('123456789', 8)
 const audio = new Audio('/change.wav')
 const audio2 = new Audio('/trash.mp3')
 const loading = ref(false)
+const getDT = (date) => new Date(date == emptyDatetime ? 0 : date)
 
 const ionRouter = useIonRouter()
 useBackButton(-1, () => {
@@ -282,7 +285,7 @@ const filtered = computed(() => {
     if (searchInDesc) res ||= it.description.toLowerCase().includes(_keyword)
     res &&= _filter.includes(it.priority)
     if (!_filter.includes('completed')) res &&= !it.completed
-    if (_filter.includes('notificated')) res &&= new Date() < new Date(it.notification == emptyDatetime ? 0 : it.notification)
+    if (_filter.includes('notificated')) res &&= new Date() < getDT(it.notification)
     return res
   })
 
@@ -292,8 +295,7 @@ const filtered = computed(() => {
     if (sortBy === 'changed') return new Date(t1.changed) - new Date(t2.changed)
     if (sortBy === 'title') return t1.title.localeCompare(t2.title)
     if (sortBy === 'priority') return priorityNum[t1.priority] - priorityNum[t2.priority]
-    if (sortBy === 'notification')
-      return new Date(t1.notification == emptyDatetime ? 0 : t1.notification) - new Date(t2.notification == emptyDatetime ? 0 : t2.notification)
+    if (sortBy === 'notification') return getDT(t1.notification) - getDT(t2.notification)
   })
 })
 
@@ -346,6 +348,9 @@ const renameCategory = (_category) => {
 const deleteCategory = async (_category) => {
   const deleteAllTasksByCategory = (deleteTasks) => {
     if (deleteTasks) {
+      const ids = tasks.filter(it => it.category === _category).map(it => nanoidToInt(it.id))
+      removeNotifications(ids)
+
       const _tasks = tasks.filter(it => it.category !== _category)
       tasks.length = 0
       Object.assign(tasks, _tasks)
@@ -395,14 +400,9 @@ const taskModal = ref(false)
 const listRef = ref()
 const taskLength = 50
 const emptyDatetime = '2100-01-01T00:00:00.000Z'
-const minDate = ref(null)
 
 const current = ref({})
 let originalCurrent = {}
-
-watch(current, () => {
-  minDate.value = getLocaleDate().toISOString()
-})
 
 const disabledSave = computed(() => isEqual(originalCurrent, current.value))
 
@@ -430,14 +430,24 @@ const openTask = async (task) => {
   $('#task-modal').addEventListener('swiped-right', () => filtered.value[0]?.id !== current.value.id && prevTask())
   $('#task-modal').addEventListener('click', () => {
     let now = new Date().getTime()
-    var timesince = now - tap
-    if ((timesince < 600) && (timesince > 0) && !disabledSave.value)
-      changeTask(current.value)
+    var diff = now - tap
+    if (diff < 600 && diff > 0 && !disabledSave.value) saveTask(current.value)
     tap = new Date().getTime()
   }, false)
 }
 
-const changeTask = (cur) => {
+const changeNotification = (task) => {
+  const scheduleId = nanoidToInt(task.id)
+  const {notification, completed, priority, category, title} = task
+  if (new Date() < new Date(notification) && notification !== emptyDatetime && !completed) {
+    const color = `--ion-color-${priorityType[priority]}`
+    const hexColor = getComputedStyle(document.documentElement).getPropertyValue(color)
+    const _category = baseCategories.includes(category) ? tr[category] : category
+    setNotification(scheduleId, title, notification, _category, hexColor)
+  } else removeNotifications(scheduleId)
+}
+
+const saveTask = (cur) => {
   cur.title = cur.title.trim()
   if (!cur.title) return errToast(tr.titleIsEmpty)
   if (tasks.find(it => it.title === cur.title && it.id !== cur.id))
@@ -447,10 +457,7 @@ const changeTask = (cur) => {
   cur.changed = new Date().toISOString()
   tasks[idx] = cur
 
-  if (new Date() < new Date(cur.notification) && cur.notification !== emptyDatetime) {
-    const color = ({ low: 'green', medium: 'yellow', high: 'red' })[cur.priority]
-    scheduleNotification(+numNanoid(), tr.myTasks, cur.notification, cur.title, color)
-  }
+  changeNotification(cur)
 
   toast(tr.taskChanged)
   saveTasks()
@@ -466,7 +473,7 @@ const addTask = (_title) => {
   title.value = ''
   if (!_title) {
     if (addTaskInput.value.$el.className.includes('has-focus'))
-      return errToast(tr.titleIsEmpty)
+      errToast(tr.titleIsEmpty)
     return addTaskInput.value.$el.setFocus()
   }
 
@@ -485,7 +492,7 @@ const addTask = (_title) => {
 let timer
 const cancelTimer = ref(0)
 
-const deleteTask = (task) => {
+const deleteTask = async (task) => {
   const reset = () => {
     clearInterval(timer)
     cancelTimer.value = 0
@@ -495,6 +502,7 @@ const deleteTask = (task) => {
   const idx = tasks.findIndex(it => it.id === task.id)
   const deleted = tasks[idx]
   tasks.splice(idx, 1)
+  let isDeleted = true
 
   timer = setInterval(() => {
     cancelTimer.value += 0.01
@@ -503,10 +511,16 @@ const deleteTask = (task) => {
   saveTasks(1)
 
   cancelToast(tr.taskDeleted, () => {
+    isDeleted = false
     tasks.splice(idx, 0, deleted)
     reset()
     saveTasks(2)
   })
+
+  await delay(3500)
+  if (!isDeleted) return
+  const scheduleId = nanoidToInt(deleted.id)
+  removeNotifications(scheduleId)
 }
 
 const removeTask = (task) => {
@@ -516,6 +530,10 @@ const removeTask = (task) => {
 
 const deleteAll = async () => {
   if (!await confirm(tr.aysToDelete)) return
+
+  const ids = tasks.map(it => nanoidToInt(it.id))
+  removeNotifications(ids)
+
   tasks.length = 0
   saveTasks(1)
   toast(tr.allDeleted)
@@ -523,21 +541,21 @@ const deleteAll = async () => {
 
 const deleteAllCompleted = async () => {
   if (!await confirm(tr.aysToDeleteAllCompleted)) return
+
   const uncompletedTasks = tasks.filter(it => !it.completed)
+  const completedTasks = tasks.filter(it => it.completed)
   tasks.length = 0
   Object.assign(tasks, uncompletedTasks)
   saveTasks(1)
   toast(tr.allCompletedDeleted)
-}
 
-const getLocaleDate = () => {
-  const tzo = new Date().getTimezoneOffset() * 60000
-  return new Date(new Date() - tzo)
+  const ids = completedTasks.map(it => nanoidToInt(it.id))
+  removeNotifications(ids)
 }
 
 const setAlarm = () => {
   const now = getLocaleDate()
-  const next = new Date(now.setTime(now.getTime() + 3_600_000))
+  const next = new Date(now.setTime(now.getTime() + 5 * 60 * 1000))
   current.value.notification = new Date(next).toISOString()
 }
 
@@ -548,6 +566,8 @@ const toggleCompleted = async (task) => {
   const isCompleted = !task.completed
   tasks[idx].completed = isCompleted
   tasks[idx].changed = new Date().toISOString()
+
+  changeNotification(tasks[idx])
 
   saveTasks()
   toast(isCompleted ? tr.taskCompleted : tr.taskUncompleted)
@@ -603,12 +623,20 @@ const completeSelected = () => {
     const task = tasks.find(it => it.id === id)
     task.completed = true
   }
+
+  const ids = selected.value.map(nanoidToInt)
+  removeNotifications(ids)
+
   saveTasks()
   toast(tr.selectedCompleted)
 }
 
 const deleteSelected = async () => {
   if (!await confirm(tr.aysToDeleteSelected)) return
+
+  const ids = selected.value.map(nanoidToInt)
+  removeNotifications(ids)
+
   const _tasks = tasks.filter(it => !selected.value.includes(it.id))
   tasks.length = 0
   Object.assign(tasks, _tasks)
@@ -622,6 +650,7 @@ const changeCategory = () => {
     for (const id of selected.value) {
       const task = tasks.find(it => it.id === id)
       task.category = val
+      changeNotification(task)
     }
     saveTasks()
   })
@@ -633,6 +662,7 @@ const changePriority = () => {
     for (const id of selected.value) {
       const task = tasks.find(it => it.id === id)
       task.priority = val
+      changeNotification(task)
     }
     saveTasks()
   })
@@ -653,7 +683,7 @@ const onIonDrag = (e) => {
   const flag = classes.includes(cl1) || classes.includes(cl2)
   if (flag && !_swiped || !flag && _swiped) {
     _swiped = !_swiped
-    Haptics.vibrate({ duration: 4 })
+    Haptics.vibrate({ duration: 6 })
   }
 }
 
@@ -675,9 +705,14 @@ const checkNotificationPermission = () =>
     })
   })
 
-const scheduleNotification = (id, title, dateTime, body, color) => {
-  const notification = { id, title, body, iconColor: color, schedule: { at: new Date(dateTime) } }
+const setNotification = (id, title, dateTime, body, color) => {
+  const notification = { id, title, body, iconColor: color, sound: '', schedule: { at: new Date(dateTime) } }
   LocalNotifications.schedule({ notifications: [notification] })
+}
+
+const removeNotifications = (param) => { // one id or ids list
+  const ids = typeof param === 'number' ? [param] : param
+  LocalNotifications.cancel({ notifications: ids.map(id => ({ id })) })
 }
 // #endregion
 
@@ -742,6 +777,9 @@ ion-progress-bar
   align-items: center
   justify-content: center
   height: 100%
+
+.passed-date
+  --ion-text-color: orangered
 
 .list-status
   height: 100%
