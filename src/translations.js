@@ -100,6 +100,8 @@ const translations = {
   selectedDeleted: ['Selected tasks deleted', 'Tareas seleccionadas eliminadas', 'Выбранные задачи удалены'],
   changeCategory: ['Change category', 'Cambiar categoría', 'Изменить категорию'],
   changePriority: ['Change priority', 'Cambiar prioridad', 'Изменить приоритет'],
+  changeNotification: ['Change notification', 'Notificación de cambio', 'Изменить уведомление'],
+  deleteNotification: ['Delete notification', 'Eliminar notificación', 'Удалить уведомление'],
   search: ['Search...', 'Buscar...', 'Поиск...'],
   newTask: ['Type a new task', 'Escribe una nueva tarea', 'Введите новую задачу'],
   detailInfo: ['Detail info', 'Información detallada', 'Детальная информация'],

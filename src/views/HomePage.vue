@@ -32,6 +32,8 @@
               <ion-list>
                 <IconText lines="none" :icon="albumsOutline" :text="tr.changeCategory" @click="changeCategory" />
                 <IconText lines="none" :icon="caretUpCircleOutline" :text="tr.changePriority" @click="changePriority" />
+                <IconText lines="none" :icon="alarmOutline" :text="tr.changeNotification"
+                  @click="openNotificationModal" />
               </ion-list>
             </ion-content>
           </ion-popover>
@@ -133,18 +135,19 @@
               </ion-item>
               <ion-item>
                 <ion-label>{{ tr.notification }}</ion-label>
-                <ion-button v-show="current.notification === emptyDatetime" color="light" @click="setAlarm"
-                  style="--box-shadow: 0">
+                <ion-button v-show="current.notification === emptyDatetime" color="light"
+                  @click="current.notification = getLateDate()" style="--box-shadow: 0">
                   <ion-icon :icon="addOutline" />
                   <ion-icon :icon="alarmOutline" size="small" />
                 </ion-button>
                 <ion-datetime-button v-show="current.notification !== emptyDatetime" datetime="datetime"
                   :class="new Date() < getDT(current) ? '' : 'passed-date'" />
-                <IconBtn v-show="current.notification !== emptyDatetime" color="danger" :icon="trashOutline"
+                <IconBtn v-show="current.notification !== emptyDatetime" color="danger" :icon="closeCircleOutline"
                   @click="current.notification = emptyDatetime" />
               </ion-item>
               <ion-modal keep-contents-mounted>
-                <ion-datetime id="datetime" :locale="tr._code" hour-cycle="h23" v-model="current.notification" />
+                <ion-datetime id="datetime" v-model="current.notification" max="2100-12-31T00:00:00" :locale="tr._code"
+                  hour-cycle="h23" />
               </ion-modal>
               <ion-item>
                 <ion-label>{{ tr.priority }}</ion-label>
@@ -178,6 +181,25 @@
               {{ tr.next }}
             </ion-button>
           </ion-footer>
+        </ion-modal>
+
+        <ion-modal :is-open="notificationModal" :initial-breakpoint="1" :breakpoints="[0, 1]"
+          @didDismiss="notificationModal = false" style="--height: auto">
+          <div style="height: auto; padding: 30px; text-align: center">
+            <div style="display: flex; justify-content: center">
+              <ion-datetime-button datetime="group-dt"
+                :class="new Date() < getDT({ notification: groupNotification }) ? '' : 'passed-date'" />
+              <IconBtn :icon="checkmarkOutline" @click="changeNotifications()" />
+            </div>
+            <ion-button fill="clear" color="danger" @click="changeNotifications(1)">
+              <ion-icon slot="start" :icon="closeCircleOutline" />
+              {{ tr.deleteNotification }}
+            </ion-button>
+            <ion-modal keep-contents-mounted>
+              <ion-datetime id="group-dt" v-model="groupNotification" max="2100-12-31T00:00:00" :locale="tr._code"
+                hour-cycle="h23" />
+            </ion-modal>
+          </div>
         </ion-modal>
 
         <ion-modal :is-open="categoriesModal" @didDismiss="categoriesModal = false">
@@ -230,12 +252,13 @@ import {
   addCircle, ellipse, funnel, trashOutline, arrowUndoCircleOutline, checkmarkCircleOutline, addOutline, readerOutline,
   alarmOutline, searchCircleOutline, searchSharp, caretBackOutline, caretForwardOutline, saveOutline, closeOutline,
   albumsOutline, pencilOutline, checkmarkOutline, checkmarkDoneCircle, ellipsisVertical, caretUpCircleOutline,
+  closeCircleOutline
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
 import { computed, onMounted, ref, watch, reactive } from "vue";
 import { onClickOutside } from '@vueuse/core';
 import { nanoid } from "nanoid";
-import { clone, isEqual, $, delay, log, arrayMove, getLocaleDate } from "@/utils.js";
+import { clone, isEqual, $, delay, log, arrayMove, getLateDate } from "@/utils.js";
 import { useGlobalStore } from "@/global.js";
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Haptics } from "@capacitor/haptics";
@@ -554,12 +577,6 @@ const deleteAllCompleted = async () => {
   removeNotifications(ids)
 }
 
-const setAlarm = () => {
-  const now = getLocaleDate()
-  const next = new Date(now.setTime(now.getTime() + 5 * 60 * 1000))
-  current.value.notification = new Date(next).toISOString().slice(0, -8)
-}
-
 const toggleCompleted = async (task) => {
   const idx = tasks.findIndex(it => it.id === task.id)
   listRef.value?.$el.closeSlidingItems()
@@ -645,28 +662,37 @@ const deleteSelected = async () => {
   toast(tr.selectedDeleted)
 }
 
+const groupExec = (prop, val) => {
+  for (const id of selected.value) {
+    const task = tasks.find(it => it.id === id)
+    task[prop] = val
+    changeNotification(task)
+  }
+  saveTasks()
+}
+
 const changeCategory = () => {
   const options = categories.value.slice(1).map(it => ({ label: baseCategories.includes(it) ? tr[it] : it, value: it }))
-  prompt2(tr.selectCategory, options, val => {
-    for (const id of selected.value) {
-      const task = tasks.find(it => it.id === id)
-      task.category = val
-      changeNotification(task)
-    }
-    saveTasks()
-  })
+  prompt2(tr.selectCategory, options, val => groupExec('category', val))
 }
 
 const changePriority = () => {
   const options = priorities.map(it => ({ label: tr[it], value: it, cssClass: `${it}-item` }))
-  prompt2(tr.selectPriority, options, val => {
-    for (const id of selected.value) {
-      const task = tasks.find(it => it.id === id)
-      task.priority = val
-      changeNotification(task)
-    }
-    saveTasks()
-  })
+  prompt2(tr.selectPriority, options, val => groupExec('priority', val))
+}
+
+const notificationModal = ref(false)
+const groupNotification = ref()
+
+const openNotificationModal = () => {
+  groupNotification.value = getLateDate()
+  notificationModal.value = true
+}
+
+const changeNotifications = (isDel) => {
+  const val = isDel ? emptyDatetime : groupNotification.value
+  groupExec('notification', val)
+  notificationModal.value = false
 }
 
 const selectAll = () => {
