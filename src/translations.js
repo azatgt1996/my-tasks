@@ -128,7 +128,6 @@ const translations = {
     'El título de la tarea no debe estar vacío',
     'Название не должно быть пустым'
   ],
-  taskExists: ['This task already exists', 'Esta tarea ya existe', 'Эта задача уже существует'],
   taskChanged: ['Task changed', 'Tarea cambiada', 'Задача изменена'],
   taskAdded: ['Task added', 'Tarea añadida', 'Задача добавлена'],
   taskDeleted: ['Task deleted', 'Tarea eliminada', 'Задача удалена'],

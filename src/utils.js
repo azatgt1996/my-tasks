@@ -23,13 +23,3 @@ export const getLocaleDate = () => {
     const tzo = new Date().getTimezoneOffset() * 60000
     return new Date(new Date() - tzo)
 }
-
-export const nanoidToInt = (nanoid) => {
-    let hash = 0
-    for (let i = 0; i < nanoid.length; i++) {
-        const chr = nanoid.charCodeAt(i)
-        hash = ((hash << 5) - hash) + chr
-        hash |= 0
-    }
-    return hash >>> 0
-}

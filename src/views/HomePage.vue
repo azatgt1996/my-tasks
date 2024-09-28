@@ -85,8 +85,7 @@
               </ion-label>
               <ion-icon v-if="task.completed" :icon="checkmarkCircleOutline" size="small" style="margin-right: 2px" />
               <ion-icon v-if="task.notification !== emptyDatetime" :icon="alarmOutline" size="small"
-                style="margin-right: 2px"
-                :style="{ color: new Date() < getDT(task.notification) ? '' : 'orangered' }" />
+                style="margin-right: 2px" :style="{ color: new Date() < getDT(task) ? '' : 'orangered' }" />
               <ion-icon :icon="ellipse" :color="priorityType[task.priority]" style="font-size: 14px" />
             </ion-item>
             <ion-item-options side="end" @ion-swipe="deleteTask(task)">
@@ -140,7 +139,7 @@
                   <ion-icon :icon="alarmOutline" size="small" />
                 </ion-button>
                 <ion-datetime-button v-show="current.notification !== emptyDatetime" datetime="datetime"
-                  :class="new Date() < getDT(current.notification) ? '' : 'passed-date'" />
+                  :class="new Date() < getDT(current) ? '' : 'passed-date'" />
                 <IconBtn v-show="current.notification !== emptyDatetime" color="danger" :icon="trashOutline"
                   @click="current.notification = emptyDatetime" />
               </ion-item>
@@ -236,7 +235,7 @@ import { App } from '@capacitor/app';
 import { computed, onMounted, ref, watch, reactive } from "vue";
 import { onClickOutside } from '@vueuse/core';
 import { nanoid } from "nanoid";
-import { clone, isEqual, $, delay, log, arrayMove, getLocaleDate, nanoidToInt } from "@/utils.js";
+import { clone, isEqual, $, delay, log, arrayMove, getLocaleDate } from "@/utils.js";
 import { useGlobalStore } from "@/global.js";
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Haptics } from "@capacitor/haptics";
@@ -250,7 +249,12 @@ const { tr, params, storage, localeDate, toast, errToast, cancelToast, confirm, 
 const audio = new Audio('/change.wav')
 const audio2 = new Audio('/trash.mp3')
 const loading = ref(false)
-const getDT = (date) => new Date(date == emptyDatetime ? 0 : date)
+
+/** Returns datetime of task notification date */
+const getDT = (task) => new Date(task.notification === emptyDatetime ? 0 : task.notification)
+
+/** Returns id (32bit integer) from task created date */
+const getNumId = (task) => +(new Date(task.created).getTime().toString().slice(0, -3))
 
 const ionRouter = useIonRouter()
 useBackButton(-1, () => {
@@ -285,7 +289,7 @@ const filtered = computed(() => {
     if (searchInDesc) res ||= it.description.toLowerCase().includes(_keyword)
     res &&= _filter.includes(it.priority)
     if (!_filter.includes('completed')) res &&= !it.completed
-    if (_filter.includes('notificated')) res &&= new Date() < getDT(it.notification)
+    if (_filter.includes('notificated')) res &&= new Date() < getDT(it)
     return res
   })
 
@@ -295,7 +299,7 @@ const filtered = computed(() => {
     if (sortBy === 'changed') return new Date(t1.changed) - new Date(t2.changed)
     if (sortBy === 'title') return t1.title.localeCompare(t2.title)
     if (sortBy === 'priority') return priorityNum[t1.priority] - priorityNum[t2.priority]
-    if (sortBy === 'notification') return getDT(t1.notification) - getDT(t2.notification)
+    if (sortBy === 'notification') return getDT(t1) - getDT(t2)
   })
 })
 
@@ -348,7 +352,7 @@ const renameCategory = (_category) => {
 const deleteCategory = async (_category) => {
   const deleteAllTasksByCategory = (deleteTasks) => {
     if (deleteTasks) {
-      const ids = tasks.filter(it => it.category === _category).map(it => nanoidToInt(it.id))
+      const ids = tasks.filter(it => it.category === _category).map(getNumId)
       removeNotifications(ids)
 
       const _tasks = tasks.filter(it => it.category !== _category)
@@ -437,21 +441,19 @@ const openTask = async (task) => {
 }
 
 const changeNotification = (task) => {
-  const scheduleId = nanoidToInt(task.id)
-  const {notification, completed, priority, category, title} = task
+  const _id = getNumId(task)
+  const { notification, completed, priority, category, title } = task
   if (new Date() < new Date(notification) && notification !== emptyDatetime && !completed) {
     const color = `--ion-color-${priorityType[priority]}`
     const hexColor = getComputedStyle(document.documentElement).getPropertyValue(color)
-    const _category = baseCategories.includes(category) ? tr[category] : category
-    setNotification(scheduleId, title, notification, _category, hexColor)
-  } else removeNotifications(scheduleId)
+    const _category = tr.category + ': ' + (baseCategories.includes(category) ? tr[category] : category)
+    setNotification(_id, title, notification, _category, hexColor)
+  } else removeNotifications(_id)
 }
 
 const saveTask = (cur) => {
   cur.title = cur.title.trim()
   if (!cur.title) return errToast(tr.titleIsEmpty)
-  if (tasks.find(it => it.title === cur.title && it.id !== cur.id))
-    return errToast(tr.taskExists)
 
   const idx = tasks.findIndex(it => it.id === cur.id)
   cur.changed = new Date().toISOString()
@@ -469,7 +471,6 @@ const saveTask = (cur) => {
 
 const addTask = (_title) => {
   _title = _title.trim()
-  if (tasks.find(it => it.title === _title)) return errToast(tr.taskExists)
   title.value = ''
   if (!_title) {
     if (addTaskInput.value.$el.className.includes('has-focus'))
@@ -519,8 +520,8 @@ const deleteTask = async (task) => {
 
   await delay(3500)
   if (!isDeleted) return
-  const scheduleId = nanoidToInt(deleted.id)
-  removeNotifications(scheduleId)
+  const _id = getNumId(deleted)
+  removeNotifications(_id)
 }
 
 const removeTask = (task) => {
@@ -531,7 +532,7 @@ const removeTask = (task) => {
 const deleteAll = async () => {
   if (!await confirm(tr.aysToDelete)) return
 
-  const ids = tasks.map(it => nanoidToInt(it.id))
+  const ids = tasks.map(getNumId)
   removeNotifications(ids)
 
   tasks.length = 0
@@ -549,14 +550,14 @@ const deleteAllCompleted = async () => {
   saveTasks(1)
   toast(tr.allCompletedDeleted)
 
-  const ids = completedTasks.map(it => nanoidToInt(it.id))
+  const ids = completedTasks.map(getNumId)
   removeNotifications(ids)
 }
 
 const setAlarm = () => {
   const now = getLocaleDate()
   const next = new Date(now.setTime(now.getTime() + 5 * 60 * 1000))
-  current.value.notification = new Date(next).toISOString()
+  current.value.notification = new Date(next).toISOString().slice(0, -8)
 }
 
 const toggleCompleted = async (task) => {
@@ -624,7 +625,7 @@ const completeSelected = () => {
     task.completed = true
   }
 
-  const ids = selected.value.map(nanoidToInt)
+  const ids = selected.value.map(getNumId)
   removeNotifications(ids)
 
   saveTasks()
@@ -634,7 +635,7 @@ const completeSelected = () => {
 const deleteSelected = async () => {
   if (!await confirm(tr.aysToDeleteSelected)) return
 
-  const ids = selected.value.map(nanoidToInt)
+  const ids = selected.value.map(getNumId)
   removeNotifications(ids)
 
   const _tasks = tasks.filter(it => !selected.value.includes(it.id))
