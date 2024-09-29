@@ -30,6 +30,7 @@
           <ion-popover trigger="more-btn" dismiss-on-select size="auto">
             <ion-content>
               <ion-list>
+                <IconText lines="none" :icon="arrowUndoCircleOutline" :text="tr.uncompleteTasks" @click="uncompleteSelected" />
                 <IconText lines="none" :icon="albumsOutline" :text="tr.changeCategory" @click="changeCategory" />
                 <IconText lines="none" :icon="caretUpCircleOutline" :text="tr.changePriority" @click="changePriority" />
                 <IconText lines="none" :icon="alarmOutline" :text="tr.changeNotification"
@@ -185,12 +186,13 @@
 
         <ion-modal :is-open="notificationModal" :initial-breakpoint="1" :breakpoints="[0, 1]"
           @didDismiss="notificationModal = false" style="--height: auto">
-          <div style="height: auto; padding: 30px; text-align: center">
-            <div style="display: flex; justify-content: center">
-              <ion-datetime-button datetime="group-dt"
-                :class="new Date() < getDT({ notification: groupNotification }) ? '' : 'passed-date'" />
-              <IconBtn :icon="checkmarkOutline" @click="changeNotifications()" />
-            </div>
+          <div style="height: auto; padding: 30px 0 10px 0; text-align: center">
+            <ion-datetime-button datetime="group-dt" style="margin-bottom: 15px"
+              :class="new Date() < getDT({ notification: groupNotification }) ? '' : 'passed-date'" />
+            <ion-button fill="clear" @click="changeNotifications()">
+              <ion-icon slot="start" :icon="checkmarkOutline" />
+              {{ tr.setNotification }}
+            </ion-button>
             <ion-button fill="clear" color="danger" @click="changeNotifications(1)">
               <ion-icon slot="start" :icon="closeCircleOutline" />
               {{ tr.deleteNotification }}
@@ -471,7 +473,7 @@ const changeNotification = (task) => {
     const hexColor = getComputedStyle(document.documentElement).getPropertyValue(color)
     const _category = tr.category + ': ' + (baseCategories.includes(category) ? tr[category] : category)
     setNotification(_id, title, notification, _category, hexColor)
-  } else removeNotifications(_id)
+  } else removeNotifications([_id])
 }
 
 const saveTask = (cur) => {
@@ -544,7 +546,7 @@ const deleteTask = async (task) => {
   await delay(3500)
   if (!isDeleted) return
   const _id = getNumId(deleted)
-  removeNotifications(_id)
+  removeNotifications([_id])
 }
 
 const removeTask = (task) => {
@@ -636,15 +638,18 @@ const clearTimer2 = () => {
   _sliding = false
 }
 
+const removeNotificationsOfSelected = () => {
+  const ids = tasks.filter(it => selected.value.includes(it.id)).map(getNumId)
+  removeNotifications(ids)
+}
+
 const completeSelected = () => {
+  removeNotificationsOfSelected()
+
   for (const id of selected.value) {
     const task = tasks.find(it => it.id === id)
     task.completed = true
   }
-
-  const ids = selected.value.map(getNumId)
-  removeNotifications(ids)
-
   saveTasks()
   toast(tr.selectedCompleted)
 }
@@ -652,8 +657,7 @@ const completeSelected = () => {
 const deleteSelected = async () => {
   if (!await confirm(tr.aysToDeleteSelected)) return
 
-  const ids = selected.value.map(getNumId)
-  removeNotifications(ids)
+  removeNotificationsOfSelected()
 
   const _tasks = tasks.filter(it => !selected.value.includes(it.id))
   tasks.length = 0
@@ -680,6 +684,8 @@ const changePriority = () => {
   const options = priorities.map(it => ({ label: tr[it], value: it, cssClass: `${it}-item` }))
   prompt2(tr.selectPriority, options, val => groupExec('priority', val))
 }
+
+const uncompleteSelected = () => groupExec('completed', false)
 
 const notificationModal = ref(false)
 const groupNotification = ref()
@@ -737,10 +743,8 @@ const setNotification = (id, title, dateTime, body, color) => {
   LocalNotifications.schedule({ notifications: [notification] })
 }
 
-const removeNotifications = (param) => { // one id or ids list
-  const ids = typeof param === 'number' ? [param] : param
+const removeNotifications = (ids) =>
   LocalNotifications.cancel({ notifications: ids.map(id => ({ id })) })
-}
 // #endregion
 
 onMounted(async () => {
