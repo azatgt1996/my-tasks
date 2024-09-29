@@ -30,7 +30,8 @@
           <ion-popover trigger="more-btn" dismiss-on-select size="auto">
             <ion-content>
               <ion-list>
-                <IconText lines="none" :icon="arrowUndoCircleOutline" :text="tr.uncompleteTasks" @click="uncompleteSelected" />
+                <IconText lines="none" :icon="arrowUndoCircleOutline" :text="tr.uncompleteTasks"
+                  @click="uncompleteSelected" />
                 <IconText lines="none" :icon="albumsOutline" :text="tr.changeCategory" @click="changeCategory" />
                 <IconText lines="none" :icon="caretUpCircleOutline" :text="tr.changePriority" @click="changePriority" />
                 <IconText lines="none" :icon="alarmOutline" :text="tr.changeNotification"
@@ -171,16 +172,10 @@
             </ion-list>
           </ion-content>
           <ion-footer v-show="filtered.length > 1" style="display: flex">
-            <ion-button size="small" style="width: 100%" fill="clear" @click="prevTask"
-              :disabled="filtered[0]?.id == current.id">
-              <ion-icon slot="start" :icon="caretBackOutline" />
-              {{ tr.prev }}
-            </ion-button>
-            <ion-button size="small" style="width: 100%" fill="clear" @click="nextTask"
-              :disabled="filtered.at(-1)?.id == current.id">
-              <ion-icon slot="end" :icon="caretForwardOutline" />
-              {{ tr.next }}
-            </ion-button>
+            <IconTextBtn size="small" style="width: 100%" :text="tr.prev" :icon="caretBackOutline"
+              :disabled="filtered[0]?.id == current.id" @click="prevTask" />
+            <IconTextBtn size="small" style="width: 100%" :text="tr.next" :icon="caretForwardOutline"
+              :disabled="filtered.at(-1)?.id == current.id" iconPlace="end" @click="nextTask" />
           </ion-footer>
         </ion-modal>
 
@@ -189,14 +184,9 @@
           <div style="height: auto; padding: 30px 0 10px 0; text-align: center">
             <ion-datetime-button datetime="group-dt" style="margin-bottom: 15px"
               :class="new Date() < getDT({ notification: groupNotification }) ? '' : 'passed-date'" />
-            <ion-button fill="clear" @click="changeNotifications()">
-              <ion-icon slot="start" :icon="checkmarkOutline" />
-              {{ tr.setNotification }}
-            </ion-button>
-            <ion-button fill="clear" color="danger" @click="changeNotifications(1)">
-              <ion-icon slot="start" :icon="closeCircleOutline" />
-              {{ tr.deleteNotification }}
-            </ion-button>
+            <IconTextBtn :text="tr.setNotification" :icon="checkmarkOutline" @click="changeNotifications()" />
+            <IconTextBtn :text="tr.deleteNotification" :icon="closeCircleOutline" @click="changeNotifications(1)"
+              color="danger" />
             <ion-modal keep-contents-mounted>
               <ion-datetime id="group-dt" v-model="groupNotification" max="2100-12-31T00:00:00" :locale="tr._code"
                 hour-cycle="h23" />
@@ -264,7 +254,7 @@ import { clone, isEqual, $, delay, log, arrayMove, getLateDate } from "@/utils.j
 import { useGlobalStore } from "@/global.js";
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Haptics } from "@capacitor/haptics";
-import { OptionsGroup, IconBtn, IconText } from "@/components/renderFunctions.js";
+import { OptionsGroup, IconBtn, IconText, IconTextBtn } from "@/components/renderFunctions.js";
 import UiSelect from "@/components/UiSelect.vue";
 import Menu from "@/components/Menu.vue";
 
