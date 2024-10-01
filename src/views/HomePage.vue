@@ -265,6 +265,8 @@ const audio = new Audio('/change.wav')
 const audio2 = new Audio('/trash.mp3')
 const loading = ref(false)
 
+const getHexColor = (type) => getComputedStyle(document.documentElement).getPropertyValue(`--ion-color-${type}`)
+
 /** Returns datetime of task notification date */
 const getDT = (task) => new Date(task.notification === emptyDatetime ? 0 : task.notification)
 
@@ -459,10 +461,8 @@ const changeNotification = (task) => {
   const _id = getNumId(task)
   const { notification, completed, priority, category, title } = task
   if (new Date() < new Date(notification) && notification !== emptyDatetime && !completed) {
-    const color = `--ion-color-${priorityType[priority]}`
-    const hexColor = getComputedStyle(document.documentElement).getPropertyValue(color)
-    const _category = tr.category + ': ' + (baseCategories.includes(category) ? tr[category] : category)
-    setNotification(_id, title, notification, _category, hexColor)
+    const body = tr.category + ': ' + (baseCategories.includes(category) ? tr[category] : category)
+    setNotification(_id, title, body, notification, priority)
   } else removeNotifications([_id])
 }
 
@@ -699,11 +699,11 @@ const selectAll = () => {
   }
 }
 
-let _swiped = false, cl1 = 'item-sliding-active-swipe-start', cl2 = 'item-sliding-active-swipe-end'
+let _swiped = false, _class = 'item-sliding-active-swipe-'
 const onIonDrag = (e) => {
   _sliding = true
   const classes = e.target.className
-  const flag = classes.includes(cl1) || classes.includes(cl2)
+  const flag = classes.includes(_class + 'start') || classes.includes(_class + 'end')
   if (flag && !_swiped || !flag && _swiped) {
     _swiped = !_swiped
     Haptics.vibrate({ duration: 6 })
@@ -712,11 +712,12 @@ const onIonDrag = (e) => {
 
 const onTouchmove = () => _sliding = true
 
-const checkTask = (task) => timer2 = setTimeout(() => {
-  if (_sliding) return
-  select(task)
-  notOpen = true
-}, 700)
+const checkTask = (task) =>
+  timer2 = setTimeout(() => {
+    if (_sliding) return
+    select(task)
+    notOpen = true
+  }, 700)
 // #endregion
 
 // #region Notification
@@ -728,8 +729,12 @@ const checkNotificationPermission = () =>
     })
   })
 
-const setNotification = (id, title, dateTime, body, color) => {
-  const notification = { id, title, body, iconColor: color, sound: '', schedule: { at: new Date(dateTime) } }
+const setNotification = (id, title, body, dateTime, priority) => {
+  const iconColor = getHexColor(priorityType[priority])
+
+  const schedule = { at: new Date(dateTime) }
+  const notification = { id, title, body, iconColor, schedule }
+
   LocalNotifications.schedule({ notifications: [notification] })
 }
 
