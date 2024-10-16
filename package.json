@@ -21,14 +21,14 @@
     "@capacitor/share": "^6.0.2",
     "@capacitor/status-bar": "6.0.1",
     "@ionic/storage": "^4.0.0",
-    "@ionic/vue": "^8.0.0",
-    "@ionic/vue-router": "^8.0.0",
+    "@ionic/vue": "^8.3.2",
+    "@ionic/vue-router": "^8.3.2",
     "@vueuse/core": "^11.0.1",
-    "ionicons": "^7.0.0",
-    "pinia": "^2.2.2",
-    "sass": "^1.78.0",
-    "vue": "^3.3.0",
-    "vue-router": "^4.2.0"
+    "ionicons": "^7.4.0",
+    "pinia": "^2.2.4",
+    "sass": "^1.79.5",
+    "vue": "^3.5.12",
+    "vue-router": "^4.4.5"
   },
   "devDependencies": {
     "@capacitor/cli": "6.1.2",

@@ -70,7 +70,7 @@
       </ion-header>
 
       <ion-content>
-        <div v-show="loading" class="spinner-container">
+        <div v-show="loading" class="flex-center">
           <ion-spinner name="lines" />
         </div>
         <TransitionGroup v-show="filtered.length" ref="listRef" name="list" tag="ion-list">
@@ -99,7 +99,8 @@
             </ion-item-options>
           </ion-item-sliding>
         </TransitionGroup>
-        <ion-label v-show="!filtered.length" class="list-status" color="medium">{{ listStatus }}</ion-label>
+        <ion-label v-show="!filtered.length" class="flex-center" color="medium" style="font-size: x-large">{{ listStatus
+          }}</ion-label>
 
         <ion-modal :is-open="taskModal" @didDismiss="taskModal = false">
           <ion-header>
@@ -147,10 +148,7 @@
                 <IconBtn v-show="current.notification !== emptyDatetime" color="danger" :icon="closeCircleOutline"
                   @click="current.notification = emptyDatetime" />
               </ion-item>
-              <ion-modal keep-contents-mounted>
-                <ion-datetime id="datetime" v-model="current.notification" max="2100-12-31T00:00:00" :locale="tr._code"
-                  hour-cycle="h23" />
-              </ion-modal>
+              <DateTimeModal id="datetime" v-model="current.notification" />
               <ion-item>
                 <ion-label>{{ tr.priority }}</ion-label>
                 <ion-segment v-model="current.priority" mode="ios">
@@ -181,16 +179,13 @@
 
         <ion-modal :is-open="notificationModal" :initial-breakpoint="1" :breakpoints="[0, 1]"
           @didDismiss="notificationModal = false" style="--height: auto">
-          <div style="height: auto; padding: 30px 0 10px 0; text-align: center">
+          <div style="display: grid; margin: 0 auto; padding: 30px 0 10px">
             <ion-datetime-button datetime="group-dt" style="margin-bottom: 15px"
               :class="new Date() < getDT({ notification: groupNotification }) ? '' : 'passed-date'" />
             <IconTextBtn :text="tr.setNotification" :icon="checkmarkOutline" @click="changeNotifications()" />
             <IconTextBtn :text="tr.deleteNotification" :icon="closeCircleOutline" @click="changeNotifications(1)"
               color="danger" />
-            <ion-modal keep-contents-mounted>
-              <ion-datetime id="group-dt" v-model="groupNotification" max="2100-12-31T00:00:00" :locale="tr._code"
-                hour-cycle="h23" />
-            </ion-modal>
+            <DateTimeModal id="group-dt" v-model="groupNotification" />
           </div>
         </ion-modal>
 
@@ -236,7 +231,7 @@
 <script setup>
 import {
   useBackButton, useIonRouter, IonMenuButton, IonButton, IonContent, IonHeader, IonIcon, IonInput,
-  IonToolbar, IonModal, IonDatetime, IonReorderGroup, IonReorder, IonCheckbox, IonProgressBar, IonNote,
+  IonToolbar, IonModal, IonReorderGroup, IonReorder, IonCheckbox, IonProgressBar, IonNote,
   IonItem, IonLabel, IonList, IonPage, IonTitle, IonButtons, IonDatetimeButton, IonSegment, IonSegmentButton, IonTextarea,
   IonItemSliding, IonItemOptions, IonItemOption, IonSelectOption, IonFooter, IonSpinner, IonPopover,
 } from '@ionic/vue';
@@ -256,6 +251,7 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { Haptics } from "@capacitor/haptics";
 import { OptionsGroup, IconBtn, IconText, IconTextBtn } from "@/components/renderFunctions.js";
 import UiSelect from "@/components/UiSelect.vue";
+import DateTimeModal from "@/components/DateTimeModal.vue";
 import Menu from "@/components/Menu.vue";
 
 const { tr, params, storage, localeDate, toast, errToast, cancelToast, confirm, prompt, prompt2 } = useGlobalStore()
@@ -798,7 +794,7 @@ ion-progress-bar
   & > .native-wrapper
     max-width: fit-content
 
-.spinner-container
+.flex-center
   display: flex
   align-items: center
   justify-content: center
@@ -806,14 +802,6 @@ ion-progress-bar
 
 .passed-date
   --ion-text-color: orangered
-
-.list-status
-  height: 100%
-  margin: 0
-  display: flex
-  justify-content: center
-  align-items: center
-  font-size: x-large
 
 @each $pr, $color in (low: success, medium: warning, high: danger)
   .#{$pr}-item[aria-checked="true"]
