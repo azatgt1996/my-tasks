@@ -1,7 +1,7 @@
 <template>
   <div> <!-- need only one root node -->
     <Menu :tasksLength="tasks.length" :completedTasksLength="tasks.filter(it => it.completed).length"
-      @deleteAll="deleteAll" @deleteAllCompleted="deleteAllCompleted" @openCategories="openCategories" />
+      @deleteAll="deleteAll" @deleteAllCompleted="deleteAllCompleted" @openCategories="categoriesModal.open()" />
     <ion-page id="main-content">
       <ion-header>
         <ion-toolbar v-show="!selected.length">
@@ -102,80 +102,71 @@
         <ion-label v-show="!filtered.length" class="flex-center" color="medium" style="font-size: x-large">{{ listStatus
           }}</ion-label>
 
-        <ion-modal :is-open="taskModal" @didDismiss="taskModal = false">
-          <ion-header>
-            <ion-toolbar class="icon-modal">
-              <ion-icon slot="start" :icon="readerOutline" />
-              <ion-title>{{ tr.detailInfo }}</ion-title>
-              <ion-buttons slot="end">
-                <IconBtn :icon="saveOutline" :disabled="disabledSave" @click="saveTask(current)" />
-                <IconBtn :icon="closeOutline" @click="taskModal = false" />
-              </ion-buttons>
-            </ion-toolbar>
-          </ion-header>
-          <ion-content id="task-modal">
-            <ion-list @click.stop>
-              <ion-item>
-                <ion-input :label="tr.created" :value="localeDate(current.created)" readonly class="full-label" />
-              </ion-item>
-              <ion-item>
-                <ion-input :label="tr.changed" :value="localeDate(current.changed)" readonly class="full-label" />
-              </ion-item>
-              <ion-item>
-                <ion-input :label="tr.title" :placeholder="tr.typeTask" v-model="current.title" label-placement="fixed"
-                  :maxlength="taskLength" />
-              </ion-item>
-              <ion-item>
-                <ion-textarea :label="tr.description" v-model="current.description" :rows="4"
-                  :placeholder="tr.typeDescription" clear-input label-placement="fixed" :maxlength="300" />
-              </ion-item>
-              <ion-item>
-                <UiSelect v-model="current.category" :label="tr.category" :header="tr.selectCategory">
-                  <ion-select-option v-for="_category in categories.slice(1)" :value="_category">
-                    {{ baseCategories.includes(_category) ? tr[_category] : _category }}
-                  </ion-select-option>
-                </UiSelect>
-              </ion-item>
-              <ion-item>
-                <ion-label>{{ tr.notification }}</ion-label>
-                <ion-button v-show="current.notification === emptyDatetime" color="light"
-                  @click="current.notification = getLateDate()" style="--box-shadow: 0">
-                  <ion-icon :icon="addOutline" />
-                  <ion-icon :icon="alarmOutline" size="small" />
-                </ion-button>
-                <ion-datetime-button v-show="current.notification !== emptyDatetime" datetime="datetime"
-                  :class="new Date() < getDT(current) ? '' : 'passed-date'" />
-                <IconBtn v-show="current.notification !== emptyDatetime" color="danger" :icon="closeCircleOutline"
-                  @click="current.notification = emptyDatetime" />
-              </ion-item>
-              <DateTimeModal id="datetime" v-model="current.notification" />
-              <ion-item>
-                <ion-label>{{ tr.priority }}</ion-label>
-                <ion-segment v-model="current.priority" mode="ios">
-                  <ion-segment-button v-for="value in priorities" :value="value">
-                    <ion-label :color="priorityType[value]">{{ tr[value] }}</ion-label>
-                  </ion-segment-button>
-                </ion-segment>
-              </ion-item>
-              <ion-item>
-                <ion-checkbox v-model="current.completed" justify="space-between"
-                  :style="current.completed ? 'color: var(--ion-color-primary)' : ''">
-                  {{ tr.isCompleted }}
-                </ion-checkbox>
-              </ion-item>
-              <ion-item button @click="removeTask(current)">
-                <ion-icon :icon="trashOutline" color="danger" class="mr-10" />
-                <ion-label color="danger">{{ tr.delete }}</ion-label>
-              </ion-item>
-            </ion-list>
-          </ion-content>
-          <ion-footer v-show="filtered.length > 1" style="display: flex">
+        <UiModal id="task-modal" ref="taskModal" :icon="readerOutline" :title="tr.detailInfo">
+          <template #button>
+            <IconBtn :icon="saveOutline" :disabled="disabledSave" @click="saveTask(current)" />
+          </template>
+          <ion-list @click.stop>
+            <ion-item>
+              <ion-input :label="tr.created" :value="localeDate(current.created)" readonly class="full-label" />
+            </ion-item>
+            <ion-item>
+              <ion-input :label="tr.changed" :value="localeDate(current.changed)" readonly class="full-label" />
+            </ion-item>
+            <ion-item>
+              <ion-input :label="tr.title" :placeholder="tr.typeTask" v-model="current.title" label-placement="fixed"
+                :maxlength="taskLength" />
+            </ion-item>
+            <ion-item>
+              <ion-textarea :label="tr.description" v-model="current.description" :rows="4"
+                :placeholder="tr.typeDescription" clear-input label-placement="fixed" :maxlength="300" />
+            </ion-item>
+            <ion-item>
+              <UiSelect v-model="current.category" :label="tr.category" :header="tr.selectCategory">
+                <ion-select-option v-for="_category in categories.slice(1)" :value="_category">
+                  {{ baseCategories.includes(_category) ? tr[_category] : _category }}
+                </ion-select-option>
+              </UiSelect>
+            </ion-item>
+            <ion-item>
+              <ion-label>{{ tr.notification }}</ion-label>
+              <ion-button v-show="current.notification === emptyDatetime" color="light"
+                @click="current.notification = getLateDate()" style="--box-shadow: 0">
+                <ion-icon :icon="addOutline" />
+                <ion-icon :icon="alarmOutline" size="small" />
+              </ion-button>
+              <ion-datetime-button v-show="current.notification !== emptyDatetime" datetime="datetime"
+                :class="new Date() < getDT(current) ? '' : 'passed-date'" />
+              <IconBtn v-show="current.notification !== emptyDatetime" color="danger" :icon="closeCircleOutline"
+                @click="current.notification = emptyDatetime" />
+            </ion-item>
+            <DateTimeModal id="datetime" v-model="current.notification" />
+            <ion-item>
+              <ion-label>{{ tr.priority }}</ion-label>
+              <ion-segment v-model="current.priority" mode="ios">
+                <ion-segment-button v-for="value in priorities" :value="value">
+                  <ion-label :color="priorityType[value]">{{ tr[value] }}</ion-label>
+                </ion-segment-button>
+              </ion-segment>
+            </ion-item>
+            <ion-item>
+              <ion-checkbox v-model="current.completed" justify="space-between"
+                :style="current.completed ? 'color: var(--ion-color-primary)' : ''">
+                {{ tr.isCompleted }}
+              </ion-checkbox>
+            </ion-item>
+            <ion-item button @click="removeTask(current)">
+              <ion-icon :icon="trashOutline" color="danger" class="mr-10" />
+              <ion-label color="danger">{{ tr.delete }}</ion-label>
+            </ion-item>
+          </ion-list>
+          <template v-if="filtered.length > 1" #footer>
             <IconTextBtn size="small" style="width: 100%" :text="tr.prev" :icon="caretBackOutline"
               :disabled="filtered[0]?.id == current.id" @click="prevTask" />
             <IconTextBtn size="small" style="width: 100%" :text="tr.next" :icon="caretForwardOutline"
               :disabled="filtered.at(-1)?.id == current.id" iconPlace="end" @click="nextTask" />
-          </ion-footer>
-        </ion-modal>
+          </template>
+        </UiModal>
 
         <ion-modal :is-open="notificationModal" :initial-breakpoint="1" :breakpoints="[0, 1]"
           @didDismiss="notificationModal = false" style="--height: auto">
@@ -189,39 +180,30 @@
           </div>
         </ion-modal>
 
-        <ion-modal :is-open="categoriesModal" @didDismiss="categoriesModal = false">
-          <ion-header>
-            <ion-toolbar class="icon-modal">
-              <ion-icon slot="start" :icon="albumsOutline" />
-              <ion-title>{{ tr.categories }}</ion-title>
-              <ion-buttons slot="end">
-                <ion-button @click="addCategory()">{{ tr.add }}</ion-button>
-                <IconBtn :icon="closeOutline" @click="categoriesModal = false" />
-              </ion-buttons>
-            </ion-toolbar>
-          </ion-header>
-          <ion-content>
-            <ion-list>
-              <ion-item>
-                <ion-label>
-                  {{ tr.common }}
-                  <ion-note>({{ tasks.filter(it => it.category === 'common').length }})</ion-note>
+        <UiModal ref="categoriesModal" :icon="albumsOutline" :title="tr.categories">
+          <template #button>
+            <ion-button @click="addCategory()">{{ tr.add }}</ion-button>
+          </template>
+          <ion-list>
+            <ion-item>
+              <ion-label>
+                {{ tr.common }}
+                <ion-note>({{ tasks.filter(it => it.category === 'common').length }})</ion-note>
+              </ion-label>
+            </ion-item>
+            <ion-reorder-group :disabled="false" @ionItemReorder="onReorder">
+              <ion-item v-for="_category in categories.slice(2)" :key="_category">
+                <ion-label class="shorted-text">
+                  {{ baseCategories.includes(_category) ? tr[_category] : _category }}
+                  <ion-note>({{ tasks.filter(it => it.category === _category).length }})</ion-note>
                 </ion-label>
+                <IconBtn color="primary" size="small" :icon="pencilOutline" @click="renameCategory(_category)" />
+                <IconBtn color="danger" size="small" :icon="trashOutline" @click="deleteCategory(_category)" />
+                <ion-reorder slot="end" :style="categories.slice(2).length === 1 ? 'pointer-events: none' : ''" />
               </ion-item>
-              <ion-reorder-group :disabled="false" @ionItemReorder="onReorder">
-                <ion-item v-for="_category in categories.slice(2)" :key="_category">
-                  <ion-label class="shorted-text">
-                    {{ baseCategories.includes(_category) ? tr[_category] : _category }}
-                    <ion-note>({{ tasks.filter(it => it.category === _category).length }})</ion-note>
-                  </ion-label>
-                  <IconBtn color="primary" size="small" :icon="pencilOutline" @click="renameCategory(_category)" />
-                  <IconBtn color="danger" size="small" :icon="trashOutline" @click="deleteCategory(_category)" />
-                  <ion-reorder slot="end" :style="categories.slice(2).length === 1 ? 'pointer-events: none' : ''" />
-                </ion-item>
-              </ion-reorder-group>
-            </ion-list>
-          </ion-content>
-        </ion-modal>
+            </ion-reorder-group>
+          </ion-list>
+        </UiModal>
       </ion-content>
       <ion-progress-bar v-show="cancelTimer" :value="cancelTimer" color="secondary" />
     </ion-page>
@@ -233,13 +215,12 @@ import {
   useBackButton, useIonRouter, IonMenuButton, IonButton, IonContent, IonHeader, IonIcon, IonInput,
   IonToolbar, IonModal, IonReorderGroup, IonReorder, IonCheckbox, IonProgressBar, IonNote,
   IonItem, IonLabel, IonList, IonPage, IonTitle, IonButtons, IonDatetimeButton, IonSegment, IonSegmentButton, IonTextarea,
-  IonItemSliding, IonItemOptions, IonItemOption, IonSelectOption, IonFooter, IonSpinner, IonPopover,
+  IonItemSliding, IonItemOptions, IonItemOption, IonSelectOption, IonSpinner, IonPopover,
 } from '@ionic/vue';
 import {
   addCircle, ellipse, funnel, trashOutline, arrowUndoCircleOutline, checkmarkCircleOutline, addOutline, readerOutline,
   alarmOutline, searchCircleOutline, searchSharp, caretBackOutline, caretForwardOutline, saveOutline, closeOutline,
-  albumsOutline, pencilOutline, checkmarkOutline, checkmarkDoneCircle, ellipsisVertical, caretUpCircleOutline,
-  closeCircleOutline
+  albumsOutline, pencilOutline, checkmarkOutline, checkmarkDoneCircle, ellipsisVertical, caretUpCircleOutline, closeCircleOutline
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
 import { computed, onMounted, ref, watch, reactive } from "vue";
@@ -252,6 +233,7 @@ import { Haptics } from "@capacitor/haptics";
 import { OptionsGroup, IconBtn, IconText, IconTextBtn } from "@/components/renderFunctions.js";
 import UiSelect from "@/components/UiSelect.vue";
 import DateTimeModal from "@/components/DateTimeModal.vue";
+import UiModal from "@/components/UiModal.vue";
 import Menu from "@/components/Menu.vue";
 
 const { tr, params, storage, localeDate, toast, errToast, cancelToast, confirm, prompt, prompt2 } = useGlobalStore()
@@ -327,9 +309,7 @@ const baseCategories = ['allCategories', 'common', 'private', 'work']
 const categories = ref([])
 const category = ref('allCategories')
 const categorySelectKey = ref(0)
-const categoriesModal = ref(false)
-
-const openCategories = () => categoriesModal.value = true
+const categoriesModal = ref()
 
 const saveCategories = () => storage.set('categories', JSON.stringify(categories.value))
 
@@ -413,7 +393,7 @@ watch(tr, () => categorySelectKey.value++)
 // #region Main
 const tasks = reactive([])
 const title = ref(''), addTaskInput = ref()
-const taskModal = ref(false)
+const taskModal = ref()
 const listRef = ref()
 const taskLength = 50
 const emptyDatetime = '2100-01-01T00:00:00.000Z'
@@ -440,12 +420,13 @@ let tap
 const openTask = async (task) => {
   originalCurrent = clone(task)
   current.value = clone(task)
-  taskModal.value = true
+  taskModal.value.open()
 
   await delay(200)
-  $('#task-modal').addEventListener('swiped-left', () => filtered.value.at(-1)?.id !== current.value.id && nextTask())
-  $('#task-modal').addEventListener('swiped-right', () => filtered.value[0]?.id !== current.value.id && prevTask())
-  $('#task-modal').addEventListener('click', () => {
+  const taskModalContent = $('#task-modal ion-content')
+  taskModalContent.addEventListener('swiped-left', () => filtered.value.at(-1)?.id !== current.value.id && nextTask())
+  taskModalContent.addEventListener('swiped-right', () => filtered.value[0]?.id !== current.value.id && prevTask())
+  taskModalContent.addEventListener('click', () => {
     let now = new Date().getTime()
     var diff = now - tap
     if (diff < 600 && diff > 0 && !disabledSave.value) saveTask(current.value)
@@ -477,7 +458,7 @@ const saveTask = (cur) => {
   originalCurrent = clone(cur)
   current.value = clone(cur)
 
-  if (params.autoClose) taskModal.value = false
+  if (params.autoClose) taskModal.value.close()
 }
 
 const addTask = (_title) => {
@@ -536,7 +517,7 @@ const deleteTask = async (task) => {
 }
 
 const removeTask = (task) => {
-  taskModal.value = false
+  taskModal.value.close()
   deleteTask(task)
 }
 

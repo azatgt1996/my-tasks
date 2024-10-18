@@ -24,7 +24,7 @@
         <IconText :icon="mailOutline" :text="tr.contactUs" @click="contactUs" />
         <IconText :icon="shareSocialOutline" :text="tr.share" @click="shareApp" />
         <IconText :icon="starOutline" :text="tr.rateApp" @click="rateApp" />
-        <IconText :icon="languageOutline" :text="tr.helpWithTranslation" @click="trModal = true" />
+        <IconText :icon="languageOutline" :text="tr.helpWithTranslation" @click="translationModal.open()" />
         <IconText :icon="informationCircleOutline" :text="tr.aboutApp" @click="showAppInfo" />
         <IconText :icon="settingsOutline" :text="tr.settings" @click="openSettingsModal" />
         <IconText :icon="powerOutline" :text="tr.exit" @click="App.exitApp()" />
@@ -32,78 +32,58 @@
     </ion-content>
   </ion-menu>
 
-  <ion-modal :is-open="isOpen" @didDismiss="isOpen = false" @didPresent="closeMenu">
-    <ion-header>
-      <ion-toolbar class="icon-modal">
-        <ion-icon slot="start" :icon="settingsOutline" />
-        <ion-title>{{ tr.settings }}</ion-title>
-        <ion-buttons slot="end">
-          <IconBtn :icon="saveOutline" :disabled="isEqual($params, params)" @click="saveParams" />
-          <IconBtn :icon="closeOutline" @click="isOpen = false" />
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-    <ion-content>
-      <ion-list class="params-list">
-        <ToggleIconItem :icon="radioOutline" :label="tr.vibro" v-model="$params.vibro" />
-        <ToggleIconItem :icon="volumeMediumOutline" :label="tr.sound" v-model="$params.sound" />
-        <ToggleIconItem :icon="alertCircleOutline" :label="tr.offToastAlerts" v-model="$params.offToastAlerts" />
-        <ToggleIconItem :icon="searchCircleOutline" :label="tr.searchInDesc" v-model="$params.searchInDesc" />
-        <ToggleIconItem :icon="returnUpBackOutline" :label="tr.autoClose" v-model="$params.autoClose" />
-        <ToggleIconItem :icon="swapVerticalOutline" :label="tr.orderByDesc" v-model="$params.orderByDesc" />
-        <ion-item>
-          <ion-icon :icon="filterSharp" />
-          <UiSelect :label="tr.sortBy" v-model="$params.sortBy">
-            <ion-select-option v-for="val in sorts" :value="val">{{ tr[val].toLowerCase() }}</ion-select-option>
-          </UiSelect>
-        </ion-item>
-        <ion-item button @click="emit('deleteAll')" :disabled="!tasksLength">
-          <ion-icon :icon="trashOutline" color="danger" />
-          <ion-label color="danger">{{ tr.deleteAll }}</ion-label>
-        </ion-item>
-        <ion-item button @click="emit('deleteAllCompleted')" :disabled="!completedTasksLength">
-          <ion-icon :icon="trashBinOutline" color="danger" />
-          <ion-label color="danger">{{ tr.deleteAllCompleted }}</ion-label>
-        </ion-item>
-      </ion-list>
-    </ion-content>
-  </ion-modal>
+  <UiModal ref="settingsModal" :icon="settingsOutline" :title="tr.settings" @didPresent="closeMenu">
+    <template #button>
+      <IconBtn :icon="saveOutline" :disabled="isEqual($params, params)" @click="saveParams" />
+    </template>
+    <ion-list class="params-list">
+      <ToggleIconItem :icon="radioOutline" :label="tr.vibro" v-model="$params.vibro" />
+      <ToggleIconItem :icon="volumeMediumOutline" :label="tr.sound" v-model="$params.sound" />
+      <ToggleIconItem :icon="alertCircleOutline" :label="tr.offToastAlerts" v-model="$params.offToastAlerts" />
+      <ToggleIconItem :icon="searchCircleOutline" :label="tr.searchInDesc" v-model="$params.searchInDesc" />
+      <ToggleIconItem :icon="returnUpBackOutline" :label="tr.autoClose" v-model="$params.autoClose" />
+      <ToggleIconItem :icon="swapVerticalOutline" :label="tr.orderByDesc" v-model="$params.orderByDesc" />
+      <ion-item>
+        <ion-icon :icon="filterSharp" />
+        <UiSelect :label="tr.sortBy" v-model="$params.sortBy">
+          <ion-select-option v-for="val in sorts" :value="val">{{ tr[val].toLowerCase() }}</ion-select-option>
+        </UiSelect>
+      </ion-item>
+      <ion-item button @click="emit('deleteAll')" :disabled="!tasksLength">
+        <ion-icon :icon="trashOutline" color="danger" />
+        <ion-label color="danger">{{ tr.deleteAll }}</ion-label>
+      </ion-item>
+      <ion-item button @click="emit('deleteAllCompleted')" :disabled="!completedTasksLength">
+        <ion-icon :icon="trashBinOutline" color="danger" />
+        <ion-label color="danger">{{ tr.deleteAllCompleted }}</ion-label>
+      </ion-item>
+    </ion-list>
+  </UiModal>
 
-  <ion-modal :is-open="trModal" @didDismiss="trModal = false" @didPresent="closeMenu">
-    <ion-header>
-      <ion-toolbar class="icon-modal">
-        <ion-icon slot="start" :icon="languageOutline" />
-        <ion-title>
-          {{ tr.translation }}:
-          {{ Object.values(trData).filter(it => it?.trim()).length }}/{{ Object.keys(Translations[lang]).length - 2 }}
-        </ion-title>
-        <ion-buttons slot="end">
-          <ion-button @click="sendTranslation">{{ tr.send }}</ion-button>
-          <IconBtn :icon="closeOutline" @click="trModal = false" />
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-    <ion-content>
-      <ion-list lines="none" class="tr-list">
-        <ion-item>
-          <ion-input :label="tr.lang" v-model="trData._language" fill="outline" />
-        </ion-item>
-        <ion-item v-for="key in Object.keys(Translations[lang]).slice(3)">
-          <ion-input :value="Translations[lang][key].replaceAll('%s', ' ')" readonly fill="outline" />
-          <ion-input v-model="trData[key]" style="margin-left: 5px" fill="outline" />
-        </ion-item>
-      </ion-list>
-    </ion-content>
-  </ion-modal>
+  <UiModal ref="translationModal" :icon="languageOutline" @didPresent="closeMenu"
+    :title="`${tr.translation}: ${Object.values(trData).filter(it => it?.trim()).length}/${Object.keys(Translations[lang]).length - 2}`">
+    <template #button>
+      <ion-button @click="sendTranslation">{{ tr.send }}</ion-button>
+    </template>
+    <ion-list lines="none" class="tr-list">
+      <ion-item>
+        <ion-input :label="tr.lang" v-model="trData._language" fill="outline" />
+      </ion-item>
+      <ion-item v-for="key in Object.keys(Translations[lang]).slice(3)">
+        <ion-input :value="Translations[lang][key].replaceAll('%s', ' ')" readonly fill="outline" />
+        <ion-input v-model="trData[key]" style="margin-left: 5px" fill="outline" />
+      </ion-item>
+    </ion-list>
+  </UiModal>
 </template>
 
 <script setup>
 import {
-  IonMenu, IonButton, IonContent, IonHeader, IonIcon, IonToolbar, IonModal, IonItem, IonList, IonTitle, IonButtons,
+  IonMenu, IonButton, IonContent, IonHeader, IonIcon, IonToolbar, IonItem, IonList, IonTitle, IonButtons,
   IonSelectOption, IonLabel, IonInput, IonMenuButton
 } from '@ionic/vue';
 import {
-  closeOutline, mailOutline, powerOutline, informationCircleOutline, settingsOutline, starOutline, shareSocialOutline,
+  mailOutline, powerOutline, informationCircleOutline, settingsOutline, starOutline, shareSocialOutline,
   trashOutline, radioOutline, searchCircleOutline, filterSharp, volumeMediumOutline, swapVerticalOutline, saveOutline, returnUpBackOutline,
   languageOutline, sunny, moon, albumsOutline, alertCircleOutline, trashBinOutline,
 } from 'ionicons/icons';
@@ -116,6 +96,7 @@ import { Share } from '@capacitor/share';
 import { IconText, IconBtn } from "@/components/renderFunctions.js";
 import ToggleIconItem from "@/components/ToggleIconItem.vue";
 import UiSelect from "@/components/UiSelect.vue";
+import UiModal from "@/components/UiModal.vue";
 
 const props = defineProps({
   tasksLength: Number,
@@ -130,8 +111,8 @@ const ls = localStorage
 const getFlagImg = (name) => new URL(`../assets/flags/${name}.png`, import.meta.url).href
 const sorts = ['created', 'changed', 'title', 'priority', 'notification']
 const menuRef = ref()
-const isOpen = ref(false)
-const trModal = ref(false)
+const settingsModal = ref()
+const translationModal = ref()
 const trData = ref({})
 const appLink = 'https://play.google.com/store/apps/details?id=com.kvarta.mytasks'
 
@@ -166,19 +147,19 @@ const sendTranslation = () => {
   trData.value._baseLang = lang.value
   const trText = JSON.stringify(trData.value, null, 2).replace(/"([^"]+)":/g, '$1:')
   sendToEmail(trText, tr.translation)
-  trModal.value = false
+  translationModal.value.close()
 }
 
 const $params = reactive({})
 
 const openSettingsModal = () => {
   Object.assign($params, params)
-  isOpen.value = true
+  settingsModal.value.open()
 }
 
 const saveParams = () => {
   Object.assign(params, $params)
-  isOpen.value = false
+  settingsModal.value.close()
   toast(tr.paramsSaved)
 }
 
