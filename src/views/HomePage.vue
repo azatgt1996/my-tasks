@@ -168,8 +168,7 @@
           </template>
         </UiModal>
 
-        <ion-modal :is-open="notificationModal" :initial-breakpoint="1" :breakpoints="[0, 1]"
-          @didDismiss="notificationModal = false" style="--height: auto">
+        <UiModal ref="notificationModal" sheet style="--height: auto">
           <div style="display: grid; margin: 0 auto; padding: 30px 0 10px">
             <ion-datetime-button datetime="group-dt" style="margin-bottom: 15px"
               :class="new Date() < getDT({ notification: groupNotification }) ? '' : 'passed-date'" />
@@ -178,7 +177,7 @@
               color="danger" />
             <DateTimeModal id="group-dt" v-model="groupNotification" />
           </div>
-        </ion-modal>
+        </UiModal>
 
         <UiModal ref="categoriesModal" :icon="albumsOutline" :title="tr.categories">
           <template #button>
@@ -213,7 +212,7 @@
 <script setup>
 import {
   useBackButton, useIonRouter, IonMenuButton, IonButton, IonContent, IonHeader, IonIcon, IonInput,
-  IonToolbar, IonModal, IonReorderGroup, IonReorder, IonCheckbox, IonProgressBar, IonNote,
+  IonToolbar, IonReorderGroup, IonReorder, IonCheckbox, IonProgressBar, IonNote,
   IonItem, IonLabel, IonList, IonPage, IonTitle, IonButtons, IonDatetimeButton, IonSegment, IonSegmentButton, IonTextarea,
   IonItemSliding, IonItemOptions, IonItemOption, IonSelectOption, IonSpinner, IonPopover,
 } from '@ionic/vue';
@@ -654,18 +653,18 @@ const changePriority = () => {
 
 const uncompleteSelected = () => groupExec('completed', false)
 
-const notificationModal = ref(false)
+const notificationModal = ref()
 const groupNotification = ref()
 
 const openNotificationModal = () => {
   groupNotification.value = getLateDate()
-  notificationModal.value = true
+  notificationModal.value.open()
 }
 
 const changeNotifications = (isDel) => {
   const val = isDel ? emptyDatetime : groupNotification.value
   groupExec('notification', val)
-  notificationModal.value = false
+  notificationModal.value.close()
 }
 
 const selectAll = () => {
