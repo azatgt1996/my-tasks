@@ -99,8 +99,9 @@
             </ion-item-options>
           </ion-item-sliding>
         </TransitionGroup>
-        <ion-label v-show="!filtered.length" class="flex-center" color="medium" style="font-size: x-large">{{ listStatus
-          }}</ion-label>
+        <ion-label v-show="!filtered.length" class="flex-center" color="medium" style="font-size: x-large">
+          {{ listStatus }}
+        </ion-label>
 
         <UiModal id="task-modal" ref="taskModal" :icon="readerOutline" :title="tr.detailInfo">
           <template #button>
