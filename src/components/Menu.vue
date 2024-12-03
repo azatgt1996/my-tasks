@@ -87,13 +87,13 @@ import {
   languageOutline, sunny, moon, albumsOutline, alertCircleOutline, trashBinOutline,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
-import { $, $$, delay, str, isEqual, sendToEmail } from "@/utils.js";
-import { langs, Translations } from "@/translations.js";
+import { $, $$, delay, str, isEqual, sendToEmail } from "@/helpers/utils.js";
+import { langs, Translations } from "@/helpers/translations.js";
 import { computed, onMounted, reactive, ref, watch } from "vue";
-import { useGlobalStore } from "@/global.js";
+import { useGlobalStore } from "@/stores/global.js";
 import { Share } from '@capacitor/share';
 import { IconText, IconBtn } from "@/components/renderFunctions.js";
-import $bus from '@/eventBus';
+import $bus from '@/helpers/eventBus';
 import ToggleIconItem from "@/components/ToggleIconItem.vue";
 import UiSelect from "@/components/UiSelect.vue";
 import UiModal from "@/components/UiModal.vue";

@@ -6,7 +6,7 @@
 
 <script setup>
 import { IonSelect } from '@ionic/vue';
-import { useGlobalStore } from '@/global';
+import { useGlobalStore } from '@/stores/global';
 
 const { tr } = useGlobalStore()
 

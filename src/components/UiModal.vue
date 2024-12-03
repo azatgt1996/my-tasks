@@ -24,7 +24,7 @@ import { IonModal, IonHeader, IonToolbar, IonIcon, IonTitle, IonButtons, IonCont
 import { closeOutline } from 'ionicons/icons';
 import { IconBtn } from "@/components/renderFunctions.js";
 import { ref } from 'vue';
-import $bus from '@/eventBus';
+import $bus from '@/helpers/eventBus';
 
 const props = defineProps({
   name: { type: String, required: true },
