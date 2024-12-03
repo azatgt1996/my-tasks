@@ -2,8 +2,8 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router';
-import './styles.sass'
-import './swiped-events.min.js'
+import './theme/styles.sass'
+import './helpers/swiped-events.min.js'
 
 import { IonicVue } from '@ionic/vue';
 
