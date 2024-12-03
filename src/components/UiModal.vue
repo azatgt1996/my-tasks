@@ -1,5 +1,5 @@
 <template>
-  <ion-modal :isOpen @didDismiss="isOpen = false" v-bind="sheet ? {initialBreakpoint: 1, breakpoints: [0, 1]} : {}">
+  <ion-modal :isOpen @didDismiss="isOpen = false" v-bind="sheet ? { initialBreakpoint: 1, breakpoints: [0, 1] } : {}">
     <ion-header v-if="title">
       <ion-toolbar class="icon-modal">
         <ion-icon v-if="icon" slot="start" :icon />
@@ -10,7 +10,7 @@
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
-    <component :is="sheet ? 'div' : 'ion-content'">
+    <component :is="sheet ? 'div' : IonContent">
       <slot />
     </component>
     <ion-footer style="display: flex">
@@ -24,14 +24,22 @@ import { IonModal, IonHeader, IonToolbar, IonIcon, IonTitle, IonButtons, IonCont
 import { closeOutline } from 'ionicons/icons';
 import { IconBtn } from "@/components/renderFunctions.js";
 import { ref } from 'vue';
+import $bus from '@/eventBus';
 
-defineProps({ icon: String, title: String, sheet: Boolean })
+const props = defineProps({
+  name: { type: String, required: true },
+  icon: String,
+  title: String,
+  sheet: Boolean,
+})
 
 const isOpen = ref(false)
 
-defineExpose({
-  open: () => isOpen.value = true,
-  close: () => isOpen.value = false,
+$bus.on('openModal', (modalName) => {
+  if (props.name === modalName) isOpen.value = true
 })
 
+$bus.on('closeModal', (modalName) => {
+  if (props.name === modalName) isOpen.value = false
+})
 </script>

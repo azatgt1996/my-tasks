@@ -1,7 +1,7 @@
 <template>
   <div> <!-- need only one root node -->
     <Menu :tasksLength="tasks.length" :completedTasksLength="tasks.filter(it => it.completed).length"
-      @deleteAll="deleteAll" @deleteAllCompleted="deleteAllCompleted" @openCategories="categoriesModal.open()" />
+      @deleteAll="deleteAll" @deleteAllCompleted="deleteAllCompleted" @openCategories="openCategoriesModal" />
     <ion-page id="main-content">
       <ion-header>
         <ion-toolbar v-show="!selected.length">
@@ -103,7 +103,7 @@
           {{ listStatus }}
         </ion-label>
 
-        <UiModal id="task-modal" ref="taskModal" :icon="readerOutline" :title="tr.detailInfo">
+        <UiModal id="task-modal" name="TaskModal" :icon="readerOutline" :title="tr.detailInfo">
           <template #button>
             <IconBtn :icon="saveOutline" :disabled="disabledSave" @click="saveTask(current)" />
           </template>
@@ -169,7 +169,7 @@
           </template>
         </UiModal>
 
-        <UiModal ref="notificationModal" sheet style="--height: auto">
+        <UiModal name="NotificationModal" sheet style="--height: auto">
           <div style="display: grid; margin: 0 auto; padding: 30px 0 10px">
             <ion-datetime-button datetime="group-dt" style="margin-bottom: 15px"
               :class="new Date() < getDT({ notification: groupNotification }) ? '' : 'passed-date'" />
@@ -180,7 +180,7 @@
           </div>
         </UiModal>
 
-        <UiModal ref="categoriesModal" :icon="albumsOutline" :title="tr.categories">
+        <UiModal name="CategoriesModal" :icon="albumsOutline" :title="tr.categories">
           <template #button>
             <ion-button @click="addCategory()">{{ tr.add }}</ion-button>
           </template>
@@ -231,6 +231,7 @@ import { useGlobalStore } from "@/global.js";
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Haptics } from "@capacitor/haptics";
 import { OptionsGroup, IconBtn, IconText, IconTextBtn } from "@/components/renderFunctions.js";
+import $bus from '@/eventBus';
 import UiSelect from "@/components/UiSelect.vue";
 import DateTimeModal from "@/components/DateTimeModal.vue";
 import UiModal from "@/components/UiModal.vue";
@@ -309,7 +310,8 @@ const baseCategories = ['allCategories', 'common', 'private', 'work']
 const categories = ref([])
 const category = ref('allCategories')
 const categorySelectKey = ref(0)
-const categoriesModal = ref()
+
+const openCategoriesModal = () => $bus.open('CategoriesModal')
 
 const saveCategories = () => storage.set('categories', JSON.stringify(categories.value))
 
@@ -393,7 +395,6 @@ watch(tr, () => categorySelectKey.value++)
 // #region Main
 const tasks = reactive([])
 const title = ref(''), addTaskInput = ref()
-const taskModal = ref()
 const listRef = ref()
 const taskLength = 50
 const emptyDatetime = '2100-01-01T00:00:00.000Z'
@@ -420,7 +421,7 @@ let tap
 const openTask = async (task) => {
   originalCurrent = clone(task)
   current.value = clone(task)
-  taskModal.value.open()
+  $bus.open('TaskModal')
 
   await delay(200)
   const taskModalContent = $('#task-modal ion-content')
@@ -458,7 +459,7 @@ const saveTask = (cur) => {
   originalCurrent = clone(cur)
   current.value = clone(cur)
 
-  if (params.autoClose) taskModal.value.close()
+  if (params.autoClose) $bus.close('TaskModal')
 }
 
 const addTask = (_title) => {
@@ -517,7 +518,7 @@ const deleteTask = async (task) => {
 }
 
 const removeTask = (task) => {
-  taskModal.value.close()
+  $bus.close('TaskModal')
   deleteTask(task)
 }
 
@@ -654,18 +655,17 @@ const changePriority = () => {
 
 const uncompleteSelected = () => groupExec('completed', false)
 
-const notificationModal = ref()
 const groupNotification = ref()
 
 const openNotificationModal = () => {
   groupNotification.value = getLateDate()
-  notificationModal.value.open()
+  $bus.open('NotificationModal')
 }
 
 const changeNotifications = (isDel) => {
   const val = isDel ? emptyDatetime : groupNotification.value
   groupExec('notification', val)
-  notificationModal.value.close()
+  $bus.close('NotificationModal')
 }
 
 const selectAll = () => {

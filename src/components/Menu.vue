@@ -24,7 +24,7 @@
         <IconText :icon="mailOutline" :text="tr.contactUs" @click="contactUs" />
         <IconText :icon="shareSocialOutline" :text="tr.share" @click="shareApp" />
         <IconText :icon="starOutline" :text="tr.rateApp" @click="rateApp" />
-        <IconText :icon="languageOutline" :text="tr.helpWithTranslation" @click="translationModal.open()" />
+        <IconText :icon="languageOutline" :text="tr.helpWithTranslation" @click="openTranslationModal" />
         <IconText :icon="informationCircleOutline" :text="tr.aboutApp" @click="showAppInfo" />
         <IconText :icon="settingsOutline" :text="tr.settings" @click="openSettingsModal" />
         <IconText :icon="powerOutline" :text="tr.exit" @click="App.exitApp()" />
@@ -32,7 +32,7 @@
     </ion-content>
   </ion-menu>
 
-  <UiModal ref="settingsModal" :icon="settingsOutline" :title="tr.settings" @didPresent="closeMenu">
+  <UiModal name="SettingsModal" :icon="settingsOutline" :title="tr.settings" @didPresent="closeMenu">
     <template #button>
       <IconBtn :icon="saveOutline" :disabled="isEqual($params, params)" @click="saveParams" />
     </template>
@@ -60,8 +60,7 @@
     </ion-list>
   </UiModal>
 
-  <UiModal ref="translationModal" :icon="languageOutline" @didPresent="closeMenu"
-    :title="`${tr.translation}: ${Object.values(trData).filter(it => it?.trim()).length}/${Object.keys(Translations[lang]).length - 2}`">
+  <UiModal name="TranslationModal" :icon="languageOutline" @didPresent="closeMenu" :title="translationModalTitle">
     <template #button>
       <ion-button @click="sendTranslation">{{ tr.send }}</ion-button>
     </template>
@@ -90,10 +89,11 @@ import {
 import { App } from '@capacitor/app';
 import { $, $$, delay, str, isEqual, sendToEmail } from "@/utils.js";
 import { langs, Translations } from "@/translations.js";
-import { onMounted, reactive, ref, watch } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useGlobalStore } from "@/global.js";
 import { Share } from '@capacitor/share';
 import { IconText, IconBtn } from "@/components/renderFunctions.js";
+import $bus from '@/eventBus';
 import ToggleIconItem from "@/components/ToggleIconItem.vue";
 import UiSelect from "@/components/UiSelect.vue";
 import UiModal from "@/components/UiModal.vue";
@@ -111,10 +111,15 @@ const ls = localStorage
 const getFlagImg = (name) => new URL(`../assets/flags/${name}.png`, import.meta.url).href
 const sorts = ['created', 'changed', 'title', 'priority', 'notification']
 const menuRef = ref()
-const settingsModal = ref()
-const translationModal = ref()
 const trData = ref({})
 const appLink = 'https://play.google.com/store/apps/details?id=com.kvarta.mytasks'
+
+const translationModalTitle = computed(() => {
+  const filled = Object.values(trData.value).filter(it => it?.trim()).length
+  const all = Object.keys(Translations[lang.value]).length - 2
+
+  return `${tr.translation}: ${filled}/${all}`
+})
 
 const closeMenu = () => menuRef.value.$el.close()
 
@@ -139,6 +144,8 @@ const showAppInfo = () => {
   alert(msg, tr.appInfo)
 }
 
+const openTranslationModal = () => $bus.open('TranslationModal')
+
 const sendTranslation = () => {
   if (!trData.value._language?.trim()) return errToast(tr.fillAllFields)
   for (const key of Object.keys(Translations[lang.value]).slice(3))
@@ -147,19 +154,19 @@ const sendTranslation = () => {
   trData.value._baseLang = lang.value
   const trText = JSON.stringify(trData.value, null, 2).replace(/"([^"]+)":/g, '$1:')
   sendToEmail(trText, tr.translation)
-  translationModal.value.close()
+  $bus.close('TranslationModal')
 }
 
 const $params = reactive({})
 
 const openSettingsModal = () => {
   Object.assign($params, params)
-  settingsModal.value.open()
+  $bus.open('SettingsModal')
 }
 
 const saveParams = () => {
   Object.assign(params, $params)
-  settingsModal.value.close()
+  $bus.close('SettingsModal')
   toast(tr.paramsSaved)
 }
 
