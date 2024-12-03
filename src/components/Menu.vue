@@ -20,7 +20,7 @@
     </ion-header>
     <ion-content>
       <ion-list>
-        <IconText :icon="albumsOutline" :text="tr.categories" @click="closeMenu(); emit('openCategories')" />
+        <IconText :icon="albumsOutline" :text="tr.categories" @click="openCategoriesModal" />
         <IconText :icon="mailOutline" :text="tr.contactUs" @click="contactUs" />
         <IconText :icon="shareSocialOutline" :text="tr.share" @click="shareApp" />
         <IconText :icon="starOutline" :text="tr.rateApp" @click="rateApp" />
@@ -103,7 +103,12 @@ const props = defineProps({
   completedTasksLength: Number,
 })
 
-const emit = defineEmits(['deleteAll', 'deleteAllCompleted', 'openCategories'])
+const emit = defineEmits(['deleteAll', 'deleteAllCompleted'])
+
+const openCategoriesModal = () => {
+  closeMenu()
+  $bus.open('CategoriesModal')
+}
 
 const { tr, params, storage, alert, toast, errToast } = useGlobalStore()
 

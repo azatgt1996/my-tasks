@@ -1,7 +1,7 @@
 <template>
   <div> <!-- need only one root node -->
     <Menu :tasksLength="tasks.length" :completedTasksLength="tasks.filter(it => it.completed).length"
-      @deleteAll="deleteAll" @deleteAllCompleted="deleteAllCompleted" @openCategories="openCategoriesModal" />
+      @deleteAll="deleteAll" @deleteAllCompleted="deleteAllCompleted" />
     <ion-page id="main-content">
       <ion-header>
         <ion-toolbar v-show="!selected.length">
@@ -310,8 +310,6 @@ const baseCategories = ['allCategories', 'common', 'private', 'work']
 const categories = ref([])
 const category = ref('allCategories')
 const categorySelectKey = ref(0)
-
-const openCategoriesModal = () => $bus.open('CategoriesModal')
 
 const saveCategories = () => storage.set('categories', JSON.stringify(categories.value))
 
