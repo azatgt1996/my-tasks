@@ -43,10 +43,10 @@
 
         <ion-item>
           <ion-input :placeholder="tr.search" v-model="keyword" :maxlength="taskLength" clear-input :debounce="500"
-            :disabled>
+            :disabled="hasSelected">
             <ion-icon slot="start" color="medium" size="small"
               :icon="params.searchInDesc ? searchCircleOutline : searchSharp" />
-            <IconBtn slot="end" size="small" :icon="funnel" @click="$('#filterSelect').click()" :disabled
+            <IconBtn slot="end" size="small" :icon="funnel" @click="$('#filterSelect').click()" :disabled="hasSelected"
               :color="filters.length === 3 && isEqual(filters, priorities) ? 'medium' : 'primary'"
               style="margin-left: 0" />
           </ion-input>
@@ -62,9 +62,9 @@
         </ion-item>
         <ion-item lines="none">
           <ion-input :placeholder="tr.newTask" v-model="title" :maxlength="taskLength" clear-input
-            @keyup.enter="addTask(title)" :disabled ref="addTaskInput">
+            @keyup.enter="addTask(title)" :disabled="hasSelected" ref="addTaskInput">
             <IconBtn slot="end" size="small" :icon="addCircle" :color="!title?.trim() ? 'secondary' : 'primary'"
-              @click="addTask(title)" :disabled style="margin-left: 0" />
+              @click="addTask(title)" :disabled="hasSelected" style="margin-left: 0" />
           </ion-input>
         </ion-item>
       </ion-header>
@@ -74,7 +74,7 @@
           <ion-spinner name="lines" />
         </div>
         <TransitionGroup v-show="filtered.length" ref="listRef" name="list" tag="ion-list">
-          <ion-item-sliding v-for="task in filtered" :key="task.id" :disabled @ionDrag="onIonDrag">
+          <ion-item-sliding v-for="task in filtered" :key="task.id" :disabled="hasSelected" @ionDrag="onIonDrag">
             <ion-item-options side="start" @ion-swipe="toggleCompleted(task)">
               <ion-item-option color="primary">
                 <ion-icon slot="icon-only" :icon="task.completed ? arrowUndoCircleOutline : checkmarkCircleOutline" />
@@ -575,9 +575,10 @@ const nextTask = () => {
 // #endregion
 
 // #region Selecting
-const selected = ref([])
-const disabled = computed(() => selected.value.length > 0)
+const hasSelected = computed(() => selected.value.length > 0)
 let timer, notOpen = false, _sliding = false, _swiped = false
+
+const selected = ref([])
 watch(selected, val => !val.length && (notOpen = false))
 
 const select = (task) => {
@@ -603,6 +604,31 @@ const clearTimer = () => {
   clearTimeout(timer)
   _sliding = false
 }
+
+const selectAll = () => {
+  if (filtered.value.length == selected.value.length) selected.value = []
+  else {
+    selected.value = filtered.value.map(task => task.id)
+    if (params.vibro) Haptics.vibrate({ duration: 14 })
+  }
+}
+
+const onIonDrag = (e) => {
+  _sliding = true
+
+  const flag = /item-sliding-active-swipe-(start|end)/.test(e.target.className)
+  if (flag !== _swiped) {
+    _swiped = !_swiped
+    Haptics.vibrate({ duration: 6 })
+  }
+}
+
+const checkTask = (task) =>
+  timer = setTimeout(() => {
+    if (_sliding) return
+    select(task)
+    notOpen = true
+  }, 700)
 
 const removeNotificationsOfSelected = () => {
   const ids = tasks.filter(it => selected.value.includes(it.id)).map(getNumId)
@@ -665,31 +691,6 @@ const changeNotifications = (isDel) => {
   groupExec('notification', val)
   $bus.close('NotificationModal')
 }
-
-const selectAll = () => {
-  if (filtered.value.length == selected.value.length) selected.value = []
-  else {
-    selected.value = filtered.value.map(task => task.id)
-    if (params.vibro) Haptics.vibrate({ duration: 14 })
-  }
-}
-
-const onIonDrag = (e) => {
-  _sliding = true
-
-  const flag = /item-sliding-active-swipe-(start|end)/.test(e.target.className)
-  if (flag !== _swiped) {
-    _swiped = !_swiped
-    Haptics.vibrate({ duration: 6 })
-  }
-}
-
-const checkTask = (task) =>
-  timer = setTimeout(() => {
-    if (_sliding) return
-    select(task)
-    notOpen = true
-  }, 700)
 // #endregion
 
 // #region Notification
