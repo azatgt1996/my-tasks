@@ -25,7 +25,7 @@
           <IconBtn slot="end" color="primary" :icon="checkmarkCircleOutline" @click="completeSelected" />
           <IconBtn slot="end" color="danger" :icon="trashOutline" @click="deleteSelected" />
           <IconBtn slot="end" :color="selected.length == filtered.length ? 'success' : 'medium'"
-            :icon="checkmarkDoneCircle" @click="selectAll" />
+            :icon="checkmarkDoneCircle" @click="listRef.selectAll()" />
           <IconBtn id="more-btn" slot="end" color="medium" :icon="ellipsisVertical" style="margin: 0 3px" />
           <ion-popover trigger="more-btn" dismiss-on-select size="auto">
             <ion-content>
@@ -73,32 +73,20 @@
         <div v-show="loading" class="flex-center">
           <ion-spinner name="lines" />
         </div>
-        <TransitionGroup v-show="filtered.length" ref="listRef" name="list" tag="ion-list">
-          <ion-item-sliding v-for="task in filtered" :key="task.id" :disabled="hasSelected" @ionDrag="onIonDrag">
-            <ion-item-options side="start" @ion-swipe="toggleCompleted(task)">
-              <ion-item-option color="primary">
-                <ion-icon slot="icon-only" :icon="task.completed ? arrowUndoCircleOutline : checkmarkCircleOutline" />
-              </ion-item-option>
-            </ion-item-options>
-            <ion-item button @click="clickTask(task)" @touchstart="checkTask(task)" @touchend="clearTimer"
-              @touchmove="_sliding = true">
-              <ion-icon v-show="selected.includes(task.id)" :icon="checkmarkOutline" color="success"
-                class="check-icon mr-10" />
-              <ion-label class="shorted-text" :class="{ 'striked-text': task.completed }">
-                {{ task.title }}
-              </ion-label>
-              <ion-icon v-if="task.completed" :icon="checkmarkCircleOutline" size="small" style="margin-right: 2px" />
-              <ion-icon v-if="task.notification !== emptyDatetime" :icon="alarmOutline" size="small"
-                style="margin-right: 2px" :style="{ color: new Date() < getDT(task) ? '' : 'orangered' }" />
-              <ion-icon :icon="ellipse" :color="priorityType[task.priority]" style="font-size: 14px" />
-            </ion-item>
-            <ion-item-options side="end" @ion-swipe="deleteTask(task)">
-              <ion-item-option color="danger">
-                <ion-icon slot="icon-only" :icon="trashOutline" />
-              </ion-item-option>
-            </ion-item-options>
-          </ion-item-sliding>
-        </TransitionGroup>
+        <SlidingList ref="listRef" v-model="selected" :data="filtered" :withVibro="params.vibro" :rightIcon="() => trashOutline"
+          :leftIcon="task => task.completed ? arrowUndoCircleOutline : checkmarkCircleOutline"
+          @to-left="task => toggleCompleted(task)" @to-right="task => deleteTask(task)"
+          @click-item="task => openTask(task)">
+          <template #item="task">
+            <ion-label class="shorted-text" :class="{ 'striked-text': task.completed }">
+              {{ task.title }}
+            </ion-label>
+            <ion-icon v-if="task.completed" :icon="checkmarkCircleOutline" size="small" style="margin-right: 2px" />
+            <ion-icon v-if="task.notification !== emptyDatetime" :icon="alarmOutline" size="small"
+              style="margin-right: 2px" :style="{ color: new Date() < getDT(task) ? '' : 'orangered' }" />
+            <ion-icon :icon="ellipse" :color="priorityType[task.priority]" style="font-size: 14px" />
+          </template>
+        </SlidingList>
         <ion-label v-show="!filtered.length" class="flex-center" color="medium" style="font-size: x-large">
           {{ listStatus }}
         </ion-label>
@@ -213,9 +201,8 @@
 <script setup>
 import {
   useBackButton, useIonRouter, IonMenuButton, IonButton, IonContent, IonHeader, IonIcon, IonInput,
-  IonToolbar, IonReorderGroup, IonReorder, IonCheckbox, IonProgressBar, IonNote,
-  IonItem, IonLabel, IonList, IonPage, IonTitle, IonButtons, IonDatetimeButton, IonSegment, IonSegmentButton, IonTextarea,
-  IonItemSliding, IonItemOptions, IonItemOption, IonSelectOption, IonSpinner, IonPopover,
+  IonToolbar, IonReorderGroup, IonReorder, IonCheckbox, IonProgressBar, IonNote, IonSelectOption, IonSpinner, IonPopover,
+  IonItem, IonLabel, IonList, IonPage, IonTitle, IonButtons, IonDatetimeButton, IonSegment, IonSegmentButton, IonTextarea
 } from '@ionic/vue';
 import {
   addCircle, ellipse, funnel, trashOutline, arrowUndoCircleOutline, checkmarkCircleOutline, addOutline, readerOutline,
@@ -224,7 +211,6 @@ import {
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
 import { computed, onMounted, ref, watch, reactive } from "vue";
-import { onClickOutside } from '@vueuse/core';
 import { nanoid } from "nanoid";
 import { clone, isEqual, $, delay, log, arrayMove, getLateDate } from "@/helpers/utils.js";
 import { useGlobalStore } from "@/stores/global.js";
@@ -236,6 +222,7 @@ import UiSelect from "@/components/UiSelect.vue";
 import DateTimeModal from "@/components/DateTimeModal.vue";
 import UiModal from "@/components/UiModal.vue";
 import Menu from "@/components/Menu.vue";
+import SlidingList from '@/components/SlidingList.vue';
 
 const { tr, params, storage, localeDate, toast, errToast, cancelToast, confirm, prompt, prompt2 } = useGlobalStore()
 
@@ -402,13 +389,10 @@ let originalCurrent = {}
 
 const disabledSave = computed(() => isEqual(originalCurrent, current.value))
 
-onClickOutside(listRef, () => listRef.value.$el.closeSlidingItems())
-
 const saveTasks = (isDel) => {
   tasks.length = tasks.length
   storage.set('tasks', JSON.stringify(tasks))
   selected.value = []
-  _swiped = false
 
   if (isDel == 2) return
   if (params.sound) (isDel ? audio2 : audio).play().catch(log)
@@ -481,12 +465,12 @@ const addTask = (_title) => {
   saveTasks()
 }
 
-let timer2
+let timer
 const cancelTimer = ref(0)
 
 const deleteTask = async (task) => {
   const reset = () => {
-    clearInterval(timer2)
+    clearInterval(timer)
     cancelTimer.value = 0
   }
   reset()
@@ -496,7 +480,7 @@ const deleteTask = async (task) => {
   tasks.splice(idx, 1)
   let isDeleted = true
 
-  timer2= setInterval(() => {
+  timer = setInterval(() => {
     cancelTimer.value += 0.01
     if (cancelTimer.value > 1) reset()
   }, 30)
@@ -547,7 +531,7 @@ const deleteAllCompleted = async () => {
 
 const toggleCompleted = async (task) => {
   const idx = tasks.findIndex(it => it.id === task.id)
-  listRef.value?.$el.closeSlidingItems()
+
   await delay(200)
   const isCompleted = !task.completed
   tasks[idx].completed = isCompleted
@@ -575,60 +559,8 @@ const nextTask = () => {
 // #endregion
 
 // #region Selecting
-const hasSelected = computed(() => selected.value.length > 0)
-let timer, notOpen = false, _sliding = false, _swiped = false
-
 const selected = ref([])
-watch(selected, val => !val.length && (notOpen = false))
-
-const select = (task) => {
-  if (selected.value.includes(task.id))
-    selected.value = selected.value.filter(id => id !== task.id)
-  else {
-    selected.value.push(task.id)
-    if (params.vibro) Haptics.vibrate({ duration: 12 })
-  }
-}
-
-const clickTask = async (task) => {
-  if (selected.value.length) {
-    select(task)
-    return notOpen = false
-  }
-
-  if (notOpen) return notOpen = false
-  openTask(task)
-}
-
-const clearTimer = () => {
-  clearTimeout(timer)
-  _sliding = false
-}
-
-const selectAll = () => {
-  if (filtered.value.length == selected.value.length) selected.value = []
-  else {
-    selected.value = filtered.value.map(task => task.id)
-    if (params.vibro) Haptics.vibrate({ duration: 14 })
-  }
-}
-
-const onIonDrag = (e) => {
-  _sliding = true
-
-  const flag = /item-sliding-active-swipe-(start|end)/.test(e.target.className)
-  if (flag !== _swiped) {
-    _swiped = !_swiped
-    Haptics.vibrate({ duration: 6 })
-  }
-}
-
-const checkTask = (task) =>
-  timer = setTimeout(() => {
-    if (_sliding) return
-    select(task)
-    notOpen = true
-  }, 700)
+const hasSelected = computed(() => selected.value.length > 0)
 
 const removeNotificationsOfSelected = () => {
   const ids = tasks.filter(it => selected.value.includes(it.id)).map(getNumId)
@@ -744,9 +676,6 @@ ion-progress-bar
 
 .group-actions > ion-button
   margin: 0
-
-.check-icon
-  --ionicon-stroke-width: 80px
 
 .options-group
   pointer-events: none
