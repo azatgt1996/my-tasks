@@ -80,8 +80,8 @@
                 <ion-icon slot="icon-only" :icon="task.completed ? arrowUndoCircleOutline : checkmarkCircleOutline" />
               </ion-item-option>
             </ion-item-options>
-            <ion-item button @click="clickTask(task)" @touchstart="checkTask(task)" @touchend="clearTimer2"
-              @touchmove="onTouchmove">
+            <ion-item button @click="clickTask(task)" @touchstart="checkTask(task)" @touchend="clearTimer"
+              @touchmove="_sliding = true">
               <ion-icon v-show="selected.includes(task.id)" :icon="checkmarkOutline" color="success"
                 class="check-icon mr-10" />
               <ion-label class="shorted-text" :class="{ 'striked-text': task.completed }">
@@ -481,12 +481,12 @@ const addTask = (_title) => {
   saveTasks()
 }
 
-let timer
+let timer2
 const cancelTimer = ref(0)
 
 const deleteTask = async (task) => {
   const reset = () => {
-    clearInterval(timer)
+    clearInterval(timer2)
     cancelTimer.value = 0
   }
   reset()
@@ -496,7 +496,7 @@ const deleteTask = async (task) => {
   tasks.splice(idx, 1)
   let isDeleted = true
 
-  timer = setInterval(() => {
+  timer2= setInterval(() => {
     cancelTimer.value += 0.01
     if (cancelTimer.value > 1) reset()
   }, 30)
@@ -577,7 +577,7 @@ const nextTask = () => {
 // #region Selecting
 const selected = ref([])
 const disabled = computed(() => selected.value.length > 0)
-let timer2, notOpen = false, _sliding = false
+let timer, notOpen = false, _sliding = false, _swiped = false
 watch(selected, val => !val.length && (notOpen = false))
 
 const select = (task) => {
@@ -599,8 +599,8 @@ const clickTask = async (task) => {
   openTask(task)
 }
 
-const clearTimer2 = () => {
-  clearTimeout(timer2)
+const clearTimer = () => {
+  clearTimeout(timer)
   _sliding = false
 }
 
@@ -674,21 +674,18 @@ const selectAll = () => {
   }
 }
 
-let _swiped = false, _class = 'item-sliding-active-swipe-'
 const onIonDrag = (e) => {
   _sliding = true
-  const classes = e.target.className
-  const flag = classes.includes(_class + 'start') || classes.includes(_class + 'end')
-  if (flag && !_swiped || !flag && _swiped) {
+
+  const flag = /item-sliding-active-swipe-(start|end)/.test(e.target.className)
+  if (flag !== _swiped) {
     _swiped = !_swiped
     Haptics.vibrate({ duration: 6 })
   }
 }
 
-const onTouchmove = () => _sliding = true
-
 const checkTask = (task) =>
-  timer2 = setTimeout(() => {
+  timer = setTimeout(() => {
     if (_sliding) return
     select(task)
     notOpen = true

@@ -39,6 +39,8 @@ import './theme/variables.css';
 
 const pinia = createPinia()
 
+window.ls = localStorage
+
 const app = createApp(App)
   .use(IonicVue)
   .use(pinia)

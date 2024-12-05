@@ -112,7 +112,6 @@ const openCategoriesModal = () => {
 
 const { tr, params, storage, alert, toast, errToast } = useGlobalStore()
 
-const ls = localStorage
 const getFlagImg = (name) => new URL(`../assets/flags/${name}.png`, import.meta.url).href
 const sorts = ['created', 'changed', 'title', 'priority', 'notification']
 const menuRef = ref()
