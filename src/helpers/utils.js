@@ -1,3 +1,5 @@
+import { Haptics } from "@capacitor/haptics";
+
 export const clone = (obj) => JSON.parse(JSON.stringify(obj))
 
 export const isEqual = (obj1, obj2) => JSON.stringify(obj1) === JSON.stringify(obj2)
@@ -25,3 +27,5 @@ export const getLateDate = () => {
     const next = new Date(now.setTime(now.getTime() + 5 * 60000))
     return new Date(next).toISOString().slice(0, -8)
 }
+
+export const vibrate = (duration = 10) => Haptics.vibrate({ duration })

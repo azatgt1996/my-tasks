@@ -24,7 +24,7 @@
           <ion-title>{{ tr.selected }}: {{ selected.length }}</ion-title>
           <IconBtn slot="end" color="primary" :icon="checkmarkCircleOutline" @click="completeSelected" />
           <IconBtn slot="end" color="danger" :icon="trashOutline" @click="deleteSelected" />
-          <IconBtn slot="end" :color="selected.length == filtered.length ? 'success' : 'medium'"
+          <IconBtn slot="end" :color="selected.length === filtered.length ? 'success' : 'medium'"
             :icon="checkmarkDoneCircle" @click="listRef.selectAll()" />
           <IconBtn id="more-btn" slot="end" color="medium" :icon="ellipsisVertical" style="margin: 0 3px" />
           <ion-popover trigger="more-btn" dismiss-on-select size="auto">
@@ -73,7 +73,8 @@
         <div v-show="loading" class="flex-center">
           <ion-spinner name="lines" />
         </div>
-        <SlidingList ref="listRef" v-model="selected" :data="filtered" :withVibro="params.vibro" :rightIcon="() => trashOutline"
+        <SlidingList ref="listRef" v-model="selected" :data="filtered" :withVibro="params.vibro"
+          :rightIcon="() => trashOutline"
           :leftIcon="task => task.completed ? arrowUndoCircleOutline : checkmarkCircleOutline"
           @to-left="task => toggleCompleted(task)" @to-right="task => deleteTask(task)"
           @click-item="task => openTask(task)">
@@ -151,9 +152,9 @@
           </ion-list>
           <template v-if="filtered.length > 1" #footer>
             <IconTextBtn size="small" style="width: 100%" :text="tr.prev" :icon="caretBackOutline"
-              :disabled="filtered[0]?.id == current.id" @click="prevTask" />
+              :disabled="filtered[0]?.id === current.id" @click="prevTask" />
             <IconTextBtn size="small" style="width: 100%" :text="tr.next" :icon="caretForwardOutline"
-              :disabled="filtered.at(-1)?.id == current.id" iconPlace="end" @click="nextTask" />
+              :disabled="filtered.at(-1)?.id === current.id" iconPlace="end" @click="nextTask" />
           </template>
         </UiModal>
 
@@ -212,10 +213,9 @@ import {
 import { App } from '@capacitor/app';
 import { computed, onMounted, ref, watch, reactive } from "vue";
 import { nanoid } from "nanoid";
-import { clone, isEqual, $, delay, log, arrayMove, getLateDate } from "@/helpers/utils.js";
+import { clone, isEqual, $, delay, log, arrayMove, getLateDate, vibrate } from "@/helpers/utils.js";
 import { useGlobalStore } from "@/stores/global.js";
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { Haptics } from "@capacitor/haptics";
 import { OptionsGroup, IconBtn, IconText, IconTextBtn } from "@/components/renderFunctions.js";
 import $bus from '@/helpers/eventBus';
 import UiSelect from "@/components/UiSelect.vue";
@@ -256,8 +256,8 @@ const priorityNum = { low: 0, medium: 1, high: 2 }
 watch(filters, (val) => storage.set('filters', JSON.stringify(val)))
 
 const grouped = computed(() => { // grouped by category
-  if (category.value == 'allCategories') return tasks
-  return tasks.filter(it => it.category == category.value)
+  if (category.value === 'allCategories') return tasks
+  return tasks.filter(it => it.category === category.value)
 })
 
 const filtered = computed(() => {
@@ -394,9 +394,9 @@ const saveTasks = (isDel) => {
   storage.set('tasks', JSON.stringify(tasks))
   selected.value = []
 
-  if (isDel == 2) return
+  if (isDel === 2) return
   if (params.sound) (isDel ? audio2 : audio).play().catch(log)
-  if (params.vibro) Haptics.vibrate({ duration: 22 })
+  if (params.vibro) vibrate(22)
 }
 
 let tap
@@ -718,9 +718,4 @@ ion-progress-bar
       border-color: var(--ion-color-#{$color}) !important
       .alert-radio-inner
         background-color: var(--ion-color-#{$color})
-
-.list-enter-active, .list-leave-active
-  transition: all 0.4s ease
-.list-enter-from, .list-leave-to
-  opacity: 0
 </style>

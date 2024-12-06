@@ -1,7 +1,7 @@
 <template>
   <TransitionGroup v-show="data.length" ref="listRef" name="list" tag="ion-list">
     <ion-item-sliding v-for="item in data" :key="item.id" :disabled="selected.length > 0" @ionDrag="onIonDrag">
-      <ion-item-options side="start" @ion-swipe="swipeTo('left', item)">
+      <ion-item-options side="start" @ion-swipe="swipedTo('left', item)">
         <ion-item-option color="primary">
           <ion-icon slot="icon-only" :icon="leftIcon(item)" />
         </ion-item-option>
@@ -10,9 +10,9 @@
         @touchmove="sliding = true">
         <ion-icon v-show="selected.includes(item.id)" :icon="checkmarkOutline" color="success"
           class="check-icon mr-10" />
-        <slot name="item" v-bind="item"/>
+        <slot name="item" v-bind="item" />
       </ion-item>
-      <ion-item-options side="end" @ion-swipe="swipeTo('right', item)">
+      <ion-item-options side="end" @ion-swipe="swipedTo('right', item)">
         <ion-item-option color="danger">
           <ion-icon slot="icon-only" :icon="rightIcon(item)" />
         </ion-item-option>
@@ -23,10 +23,10 @@
 
 <script setup>
 import { onClickOutside } from '@vueuse/core';
-import { Haptics } from "@capacitor/haptics";
-import { IonIcon, IonItem, IonList/*dont_remove*/, IonItemSliding, IonItemOptions, IonItemOption } from '@ionic/vue';
+import { IonIcon, IonItem, IonItemSliding, IonItemOptions, IonItemOption, IonList/*dont_remove*/ } from '@ionic/vue';
 import { checkmarkOutline } from 'ionicons/icons';
 import { watch, ref } from 'vue';
+import { vibrate } from "@/helpers/utils.js";
 
 const props = defineProps({
   data: Array, // example: [{id: '1', name: 'val1'}, {id: '2', name: 'val2'}] //id is required
@@ -37,7 +37,7 @@ const props = defineProps({
 
 const emit = defineEmits(['to-left', 'to-right', 'click-item'])
 
-const swipeTo = (direction, item) => {
+const swipedTo = (direction, item) => {
   listRef.value.$el.closeSlidingItems()
   emit(`to-${direction}`, item)
 }
@@ -60,7 +60,7 @@ const select = (item) => {
     selected.value = selected.value.filter(id => id !== item.id)
   } else {
     selected.value.push(item.id)
-    if (props.withVibro) Haptics.vibrate({ duration: 12 })
+    if (props.withVibro) vibrate(12)
   }
 }
 
@@ -80,10 +80,10 @@ const clearTimer = () => {
 }
 
 const selectAll = () => {
-  if (props.data.length == selected.value.length) selected.value = []
+  if (props.data.length === selected.value.length) selected.value = []
   else {
     selected.value = props.data.map(item => item.id)
-    if (props.withVibro) Haptics.vibrate({ duration: 14 })
+    if (props.withVibro) vibrate(14)
   }
 }
 
@@ -93,7 +93,7 @@ const onIonDrag = (e) => {
   const flag = /item-sliding-active-swipe-(start|end)/.test(e.target.className)
   if (flag !== swiped) {
     swiped = !swiped
-    Haptics.vibrate({ duration: 6 })
+    if (props.withVibro) vibrate(6)
   }
 }
 
@@ -109,5 +109,23 @@ defineExpose({ selectAll })
 
 <style lang="sass">
 .check-icon
-  --ionicon-stroke-width: 80px
+  --ionicon-stroke-width: 100px
+
+.list-enter-active, .list-leave-active
+  transition: all 0.4s ease
+.list-enter-from, .list-leave-to
+  opacity: 0
+
+ion-item-sliding .item-options-start ion-item-option
+  padding-right: 100%
+ion-item-sliding .item-options-end ion-item-option
+  padding-left: 100%
+
+ion-item-sliding ion-item-options
+  pointer-events: none
+
+.item-sliding-active-options-start ion-item
+  border-radius: 12px 0 0 12px
+.item-sliding-active-options-end ion-item
+  border-radius: 0 12px 12px 0
 </style>
