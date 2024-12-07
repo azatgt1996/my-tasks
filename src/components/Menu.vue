@@ -24,19 +24,20 @@
         <IconText icon="mail" :text="tr.contactUs" @click="contactUs" />
         <IconText icon="share" :text="tr.share" @click="shareApp" />
         <IconText icon="star" :text="tr.rateApp" @click="rateApp" />
-        <IconText icon="language" :text="tr.helpWithTranslation" @click="openTranslationModal" />
+        <IconText icon="language" :text="tr.helpWithTranslation" @click="$bus.open('TranslationModal')" />
         <IconText icon="information" :text="tr.aboutApp" @click="showAppInfo" />
-        <IconText icon="settings" :text="tr.settings" @click="openSettingsModal" />
+        <IconText icon="settings" :text="tr.settings" @click="$bus.open('SettingsModal')" />
         <IconText icon="power" :text="tr.exit" @click="App.exitApp()" />
       </ion-list>
     </ion-content>
   </ion-menu>
 
-  <UiModal name="SettingsModal" icon="settings" :title="tr.settings" @didPresent="closeMenu">
+  <UiModal name="SettingsModal" icon="settings" :title="tr.settings" @didPresent="closeMenu"
+    @willPresent="Object.assign($params, params)">
     <template #button>
       <IconBtn icon="save" :disabled="isEqual($params, params)" @click="saveParams" />
     </template>
-    <ion-list class="params-list">
+    <ion-list>
       <ToggleIconItem icon="radio" :label="tr.vibro" v-model="$params.vibro" />
       <ToggleIconItem icon="volume" :label="tr.sound" v-model="$params.sound" />
       <ToggleIconItem icon="alert" :label="tr.offToastAlerts" v-model="$params.offToastAlerts" />
@@ -44,12 +45,11 @@
       <ToggleIconItem icon="return" :label="tr.autoClose" v-model="$params.autoClose" />
       <ToggleIconItem icon="swapVertical" :label="tr.orderByDesc" v-model="$params.orderByDesc" />
       <ion-item>
-        <Ikon icon="filter" />
+        <Ikon icon="filter" class="mr-10" />
         <UiSelect :label="tr.sortBy" v-model="$params.sortBy">
           <ion-select-option v-for="val in sorts" :value="val">{{ tr[val].toLowerCase() }}</ion-select-option>
         </UiSelect>
       </ion-item>
-
       <IconText icon="trash" :text="tr.deleteAll" color="danger" :disabled="!tasksLength" @click="emit('deleteAll')" />
       <IconText icon="trashBin" :text="tr.deleteAllCompleted" color="danger" :disabled="!completedTasksLength"
         @click="emit('deleteAllCompleted')" />
@@ -139,8 +139,6 @@ const showAppInfo = () => {
   alert(msg, tr.appInfo)
 }
 
-const openTranslationModal = () => $bus.open('TranslationModal')
-
 const sendTranslation = () => {
   if (!trData.value._language?.trim()) return errToast(tr.fillAllFields)
   for (const key of Object.keys(Translations[lang.value]).slice(3))
@@ -153,11 +151,6 @@ const sendTranslation = () => {
 }
 
 const $params = reactive({})
-
-const openSettingsModal = () => {
-  Object.assign($params, params)
-  $bus.open('SettingsModal')
-}
 
 const saveParams = () => {
   Object.assign(params, $params)
@@ -212,9 +205,6 @@ onMounted(async () => {
 <style scoped lang="sass">
 .tr-list ion-input
   min-height: 36px
-
-.params-list ion-icon
-  margin-right: 10px
 </style>
 
 <style lang="sass">
@@ -224,5 +214,4 @@ onMounted(async () => {
 
 .alert-radio-label
   display: flex
-
 </style>

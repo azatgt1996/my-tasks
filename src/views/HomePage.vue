@@ -29,11 +29,11 @@
           <IconBtn id="more-btn" slot="end" color="medium" icon="ellipsisVertical" style="margin: 0 3px" />
           <ion-popover trigger="more-btn" dismiss-on-select size="auto">
             <ion-content>
-              <ion-list>
-                <IconText lines="none" icon="arrowUndo" :text="tr.uncompleteTasks" @click="uncompleteSelected" />
-                <IconText lines="none" icon="albums" :text="tr.changeCategory" @click="changeCategory" />
-                <IconText lines="none" icon="caretUpCircle" :text="tr.changePriority" @click="changePriority" />
-                <IconText lines="none" icon="alarm" :text="tr.changeNotification" @click="openNotificationModal" />
+              <ion-list lines="none">
+                <IconText icon="arrowUndo" :text="tr.uncompleteTasks" @click="uncompleteSelected" />
+                <IconText icon="albums" :text="tr.changeCategory" @click="changeCategory" />
+                <IconText icon="caretUpCircle" :text="tr.changePriority" @click="changePriority" />
+                <IconText icon="alarm" :text="tr.changeNotification" @click="$bus.open('NotificationModal')" />
               </ion-list>
             </ion-content>
           </ion-popover>
@@ -150,7 +150,7 @@
           </template>
         </UiModal>
 
-        <UiModal name="NotificationModal" sheet style="--height: auto">
+        <UiModal name="NotificationModal" sheet style="--height: auto" @willPresent="groupNotification = getLateDate()">
           <div style="display: grid; margin: 0 auto; padding: 30px 0 10px">
             <ion-datetime-button datetime="group-dt" style="margin-bottom: 15px"
               :class="new Date() < getDT({ notification: groupNotification }) ? '' : 'passed-date'" />
@@ -599,11 +599,6 @@ const changePriority = () => {
 const uncompleteSelected = () => groupExec('completed', false)
 
 const groupNotification = ref()
-
-const openNotificationModal = () => {
-  groupNotification.value = getLateDate()
-  $bus.open('NotificationModal')
-}
 
 const changeNotifications = (isDel) => {
   const val = isDel ? emptyDatetime : groupNotification.value

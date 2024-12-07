@@ -14,7 +14,7 @@ import { Ikon } from "@/components/renderFunctions.js";
 defineProps({
   icon: { type: String, required: true },
   label: { type: String, required: true },
-  modelValue: { type: Boolean, required: true }
+  modelValue: Boolean,
 })
 
 const emit = defineEmits(['update:modelValue'])
