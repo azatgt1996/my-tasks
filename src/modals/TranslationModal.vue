@@ -1,17 +1,17 @@
 <template>
   <UiModal name="TranslationModal" icon="languageO" :title="translationModalTitle">
     <template #button>
-      <ion-button @click="sendTranslation">{{ tr.send }}</ion-button>
+      <IonButton @click="sendTranslation">{{ tr.send }}</IonButton>
     </template>
-    <ion-list lines="none" class="tr-list">
-      <ion-item>
-        <ion-input :label="tr.lang" v-model="trData._language" fill="outline" />
-      </ion-item>
-      <ion-item v-for="key in Object.keys(Translations[lang]).slice(3)">
-        <ion-input :value="Translations[lang][key].replaceAll('%s', ' ')" readonly fill="outline" />
-        <ion-input v-model="trData[key]" style="margin-left: 5px" fill="outline" />
-      </ion-item>
-    </ion-list>
+    <IonList lines="none" class="tr-list">
+      <IonItem>
+        <IonInput :label="tr.lang" v-model="trData._language" fill="outline" />
+      </IonItem>
+      <IonItem v-for="key in Object.keys(Translations[lang]).slice(3)">
+        <IonInput :value="Translations[lang][key].replaceAll('%s', ' ')" readonly fill="outline" />
+        <IonInput v-model="trData[key]" style="margin-left: 5px" fill="outline" />
+      </IonItem>
+    </IonList>
   </UiModal>
 </template>
 

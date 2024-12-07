@@ -1,9 +1,9 @@
 <template>
-  <ion-app>
-    <ion-content>
+  <IonApp>
+    <IonContent>
       <HomePage />
-    </ion-content>
-  </ion-app>
+    </IonContent>
+  </IonApp>
 </template>
 
 <script setup>

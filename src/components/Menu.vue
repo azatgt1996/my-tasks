@@ -1,23 +1,23 @@
 <template>
-  <ion-menu content-id="main-content" id="main-menu">
-    <ion-header>
-      <ion-toolbar>
+  <IonMenu content-id="main-content" id="main-menu">
+    <IonHeader>
+      <IonToolbar>
         <MenuBtn />
-        <ion-title>{{ tr.menu }}</ion-title>
+        <IonTitle>{{ tr.menu }}</IonTitle>
         <UiSelect v-show="false" v-model="lang" id="langSelect" :header="tr.selectLang">
-          <ion-select-option v-for="_lang in langs" :value="_lang">{{ _lang }}</ion-select-option>
+          <IonSelectOption v-for="_lang in langs" :value="_lang">{{ _lang }}</IonSelectOption>
         </UiSelect>
-        <ion-button slot="end" color="medium" shape="round" fill="clear" @click="langClick">
+        <IonButton slot="end" color="medium" shape="round" fill="clear" @click="langClick">
           <img slot="icon-only" class="flag-icon" :src="getFlagImg(lang)" :alt="lang" width="22" />
-        </ion-button>
-        <ion-button slot="end" color="medium" shape="round" fill="clear" @click="toggleDarkMode" class="mr-10">
+        </IonButton>
+        <IonButton slot="end" color="medium" shape="round" fill="clear" @click="toggleDarkMode" class="mr-10">
           <Ikon :icon="darkMode ? 'moon' : 'sunny'" slot="icon-only"
             :style="{ color: darkMode ? 'yellow' : 'orange' }" />
-        </ion-button>
-      </ion-toolbar>
-    </ion-header>
-    <ion-content>
-      <ion-list>
+        </IonButton>
+      </IonToolbar>
+    </IonHeader>
+    <IonContent>
+      <IonList>
         <IconText icon="albumsO" :text="tr.categories" @click="$bus.open('CategoriesModal')" />
         <IconText icon="mailO" :text="tr.contactUs" @click="sendToEmail('', 'Support')" />
         <IconText icon="shareSocialO" :text="tr.share" @click="shareApp" />
@@ -26,9 +26,9 @@
         <IconText icon="informationCO" :text="tr.aboutApp" @click="showAppInfo" />
         <IconText icon="settingsO" :text="tr.settings" @click="$bus.open('SettingsModal')" />
         <IconText icon="powerO" :text="tr.exit" @click="App.exitApp()" />
-      </ion-list>
-    </ion-content>
-  </ion-menu>
+      </IonList>
+    </IonContent>
+  </IonMenu>
 
   <SettingsModal />
   <TranslationModal :lang />

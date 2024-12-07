@@ -1,10 +1,10 @@
 <template>
-  <ion-item>
+  <IonItem>
     <Ikon :icon class="mr-10" />
-    <ion-toggle :checked="modelValue" @ionChange="val => emit('update:modelValue', val.detail.checked)">
+    <IonToggle :checked="modelValue" @ionChange="val => emit('update:modelValue', val.detail.checked)">
       {{ label }}
-    </ion-toggle>
-  </ion-item>
+    </IonToggle>
+  </IonItem>
 </template>
 
 <script setup>
@@ -18,5 +18,4 @@ defineProps({
 })
 
 const emit = defineEmits(['update:modelValue'])
-
 </script>

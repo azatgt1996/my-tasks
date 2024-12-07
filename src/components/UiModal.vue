@@ -1,22 +1,22 @@
 <template>
-  <ion-modal :isOpen @didDismiss="isOpen = false" v-bind="sheet ? { initialBreakpoint: 1, breakpoints: [0, 1] } : {}">
-    <ion-header v-if="title">
-      <ion-toolbar class="icon-modal">
+  <IonModal :isOpen @didDismiss="isOpen = false" v-bind="sheet ? { initialBreakpoint: 1, breakpoints: [0, 1] } : {}">
+    <IonHeader v-if="title">
+      <IonToolbar class="icon-modal">
         <Ikon v-if="icon" slot="start" :icon />
-        <ion-title>{{ title }}</ion-title>
-        <ion-buttons slot="end">
+        <IonTitle>{{ title }}</IonTitle>
+        <IonButtons slot="end">
           <slot name="button" />
           <IconBtn icon="closeO" @click="isOpen = false" />
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
+        </IonButtons>
+      </IonToolbar>
+    </IonHeader>
     <component :is="sheet ? 'div' : IonContent">
       <slot />
     </component>
-    <ion-footer style="display: flex">
+    <IonFooter style="display: flex">
       <slot name="footer" />
-    </ion-footer>
-  </ion-modal>
+    </IonFooter>
+  </IonModal>
 </template>
 
 <script setup>

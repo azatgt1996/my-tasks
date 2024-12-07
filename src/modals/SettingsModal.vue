@@ -3,24 +3,24 @@
     <template #button>
       <IconBtn icon="saveO" :disabled="isEqual($params, params)" @click="saveParams" />
     </template>
-    <ion-list>
+    <IonList>
       <ToggleIconItem icon="radioO" :label="tr.vibro" v-model="$params.vibro" />
       <ToggleIconItem icon="volumeMediumO" :label="tr.sound" v-model="$params.sound" />
       <ToggleIconItem icon="alertCO" :label="tr.offToastAlerts" v-model="$params.offToastAlerts" />
       <ToggleIconItem icon="searchCO" :label="tr.searchInDesc" v-model="$params.searchInDesc" />
       <ToggleIconItem icon="returnUpBackO" :label="tr.autoClose" v-model="$params.autoClose" />
       <ToggleIconItem icon="swapVerticalO" :label="tr.orderByDesc" v-model="$params.orderByDesc" />
-      <ion-item>
+      <IonItem>
         <Ikon icon="filterS" class="mr-10" />
         <UiSelect :label="tr.sortBy" v-model="$params.sortBy">
-          <ion-select-option v-for="val in sorts" :value="val">{{ tr[val].toLowerCase() }}</ion-select-option>
+          <IonSelectOption v-for="val in sorts" :value="val">{{ tr[val].toLowerCase() }}</IonSelectOption>
         </UiSelect>
-      </ion-item>
+      </IonItem>
       <IconText icon="trashO" :text="tr.deleteAll" color="danger" :disabled="!tasks.length"
         @click="$bus.emit('deleteAll')" />
       <IconText icon="trashBinO" :text="tr.deleteAllCompleted" color="danger"
         :disabled="!tasks.filter(it => it.completed).length" @click="$bus.emit('deleteAllCompleted')" />
-    </ion-list>
+    </IonList>
   </UiModal>
 </template>
 

@@ -1,8 +1,8 @@
 <template>
-  <ion-select v-model="model" v-bind="$attrs" :label :cancelText="tr.cancel" :interfaceOptions="{ header }"
+  <IonSelect v-model="model" v-bind="$attrs" :label :cancelText="tr.cancel" :interfaceOptions="{ header }"
     :toggleIcon="chevronDown" :expandedIcon="chevronUp">
     <slot />
-  </ion-select>
+  </IonSelect>
 </template>
 
 <script setup>

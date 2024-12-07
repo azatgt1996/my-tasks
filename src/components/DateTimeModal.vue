@@ -1,7 +1,7 @@
 <template>
-  <ion-modal keep-contents-mounted>
-    <ion-datetime :id v-model="model" max="2100-12-31T00:00:00" :locale="tr._code" hour-cycle="h23" :firstDayOfWeek />
-  </ion-modal>
+  <IonModal keep-contents-mounted>
+    <IonDatetime :id v-model="model" max="2100-12-31T00:00:00" :locale="tr._code" hour-cycle="h23" :firstDayOfWeek />
+  </IonModal>
 </template>
 
 <script setup>

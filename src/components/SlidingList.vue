@@ -1,22 +1,22 @@
 <template>
   <TransitionGroup v-show="data.length" ref="listRef" name="list" tag="ion-list">
-    <ion-item-sliding v-for="item in data" :key="item.id" :disabled="selected.length > 0" @ionDrag="onIonDrag">
-      <ion-item-options side="start" @ion-swipe="swipedTo('left', item)">
-        <ion-item-option color="primary">
+    <IonItemSliding v-for="item in data" :key="item.id" :disabled="selected.length > 0" @ionDrag="onIonDrag">
+      <IonItemOptions side="start" @ion-swipe="swipedTo('left', item)">
+        <IonItemOption color="primary">
           <Ikon slot="icon-only" :icon="typeof leftIcon === 'string' ? leftIcon : leftIcon(item)" />
-        </ion-item-option>
-      </ion-item-options>
-      <ion-item button @click="clickItem(item)" @touchstart="checkItem(item)" @touchend="clearTimer"
+        </IonItemOption>
+      </IonItemOptions>
+      <IonItem button @click="clickItem(item)" @touchstart="checkItem(item)" @touchend="clearTimer"
         @touchmove="sliding = true">
         <Ikon v-show="selected.includes(item.id)" icon="checkmarkO" color="success" class="check-icon mr-10" />
         <slot name="item" v-bind="item" />
-      </ion-item>
-      <ion-item-options side="end" @ion-swipe="swipedTo('right', item)">
-        <ion-item-option color="danger">
+      </IonItem>
+      <IonItemOptions side="end" @ion-swipe="swipedTo('right', item)">
+        <IonItemOption color="danger">
           <Ikon slot="icon-only" :icon="typeof rightIcon === 'string' ? rightIcon : rightIcon(item)" />
-        </ion-item-option>
-      </ion-item-options>
-    </ion-item-sliding>
+        </IonItemOption>
+      </IonItemOptions>
+    </IonItemSliding>
   </TransitionGroup>
 </template>
 
