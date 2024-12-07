@@ -1,4 +1,4 @@
-class EventBus {
+export default class EventBus {
   constructor() {
     this.eventObject = {};
     this.callbackId = 0;
@@ -43,7 +43,3 @@ class EventBus {
     return this.emit('closeModal', modalName, ...args)
   }
 }
-
-const $bus = new EventBus()
-
-export default $bus

@@ -197,11 +197,10 @@ import {
 import { App } from '@capacitor/app';
 import { computed, onMounted, ref, watch, reactive } from "vue";
 import { nanoid } from "nanoid";
-import { clone, isEqual, $, delay, log, arrayMove, getLateDate, vibrate } from "@/helpers/utils.js";
+import { clone, isEqual, $, $bus, delay, log, arrayMove, getLateDate, vibrate } from "@/helpers/utils.js";
 import { useGlobalStore } from "@/stores/global.js";
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { OptionsGroup, IconBtn, IconText, IconTextBtn, Ikon } from "@/components/renderFunctions.js";
-import $bus from '@/helpers/eventBus';
 import UiSelect from "@/components/UiSelect.vue";
 import DateTimeModal from "@/components/DateTimeModal.vue";
 import UiModal from "@/components/UiModal.vue";

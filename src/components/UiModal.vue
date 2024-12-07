@@ -23,7 +23,7 @@
 import { IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonContent, IonFooter } from '@ionic/vue';
 import { IconBtn, Ikon } from "@/components/renderFunctions.js";
 import { ref } from 'vue';
-import $bus from '@/helpers/eventBus';
+import { $, $bus } from "@/helpers/utils.js";
 
 const props = defineProps({
   name: { type: String, required: true },
@@ -35,7 +35,10 @@ const props = defineProps({
 const isOpen = ref(false)
 
 $bus.on('openModal', (modalName) => {
-  if (props.name === modalName) isOpen.value = true
+  if (props.name === modalName) {
+    isOpen.value = true
+    $('#main-menu').close()
+  }
 })
 
 $bus.on('closeModal', (modalName) => {

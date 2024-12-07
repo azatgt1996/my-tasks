@@ -1,4 +1,5 @@
 import { Haptics } from "@capacitor/haptics";
+import EventBus from "@/helpers/eventBus";
 
 export const clone = (obj) => JSON.parse(JSON.stringify(obj))
 
@@ -29,3 +30,5 @@ export const getLateDate = () => {
 }
 
 export const vibrate = (duration = 10) => Haptics.vibrate({ duration })
+
+export const $bus = new EventBus()

@@ -1,5 +1,5 @@
 <template>
-  <ion-menu content-id="main-content" ref="menuRef">
+  <ion-menu content-id="main-content" id="main-menu">
     <ion-header>
       <ion-toolbar>
         <ion-buttons slot="start">
@@ -20,7 +20,7 @@
     </ion-header>
     <ion-content>
       <ion-list>
-        <IconText icon="albums" :text="tr.categories" @click="openCategoriesModal" />
+        <IconText icon="albums" :text="tr.categories" @click="$bus.open('CategoriesModal')" />
         <IconText icon="mail" :text="tr.contactUs" @click="contactUs" />
         <IconText icon="share" :text="tr.share" @click="shareApp" />
         <IconText icon="star" :text="tr.rateApp" @click="rateApp" />
@@ -32,8 +32,7 @@
     </ion-content>
   </ion-menu>
 
-  <UiModal name="SettingsModal" icon="settings" :title="tr.settings" @didPresent="closeMenu"
-    @willPresent="Object.assign($params, params)">
+  <UiModal name="SettingsModal" icon="settings" :title="tr.settings" @willPresent="Object.assign($params, params)">
     <template #button>
       <IconBtn icon="save" :disabled="isEqual($params, params)" @click="saveParams" />
     </template>
@@ -56,7 +55,7 @@
     </ion-list>
   </UiModal>
 
-  <UiModal name="TranslationModal" icon="language" :title="translationModalTitle" @didPresent="closeMenu">
+  <UiModal name="TranslationModal" icon="language" :title="translationModalTitle">
     <template #button>
       <ion-button @click="sendTranslation">{{ tr.send }}</ion-button>
     </template>
@@ -78,13 +77,12 @@ import {
   IonSelectOption, IonInput, IonMenuButton
 } from '@ionic/vue';
 import { App } from '@capacitor/app';
-import { $, $$, delay, str, isEqual, sendToEmail } from "@/helpers/utils.js";
+import { $, $$, $bus, delay, str, isEqual, sendToEmail } from "@/helpers/utils.js";
 import { langs, Translations } from "@/helpers/translations.js";
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useGlobalStore } from "@/stores/global.js";
 import { Share } from '@capacitor/share';
 import { IconText, IconBtn, Ikon } from "@/components/renderFunctions.js";
-import $bus from '@/helpers/eventBus';
 import ToggleIconItem from "@/components/ToggleIconItem.vue";
 import UiSelect from "@/components/UiSelect.vue";
 import UiModal from "@/components/UiModal.vue";
@@ -96,16 +94,10 @@ const props = defineProps({
 
 const emit = defineEmits(['deleteAll', 'deleteAllCompleted'])
 
-const openCategoriesModal = () => {
-  closeMenu()
-  $bus.open('CategoriesModal')
-}
-
 const { tr, params, storage, alert, toast, errToast } = useGlobalStore()
 
 const getFlagImg = (name) => new URL(`../assets/flags/${name}.png`, import.meta.url).href
 const sorts = ['created', 'changed', 'title', 'priority', 'notification']
-const menuRef = ref()
 const trData = ref({})
 const appLink = 'https://play.google.com/store/apps/details?id=com.kvarta.mytasks'
 
@@ -115,8 +107,6 @@ const translationModalTitle = computed(() => {
 
   return `${tr.translation}: ${filled}/${all}`
 })
-
-const closeMenu = () => menuRef.value.$el.close()
 
 watch(params, (val) => storage.set('params', JSON.stringify(val)), { deep: true })
 
