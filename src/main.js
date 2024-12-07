@@ -1,7 +1,6 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
-import router from './router';
 import './theme/styles.sass'
 import './helpers/swiped-events.min.js'
 
@@ -41,11 +40,7 @@ const pinia = createPinia()
 
 window.ls = localStorage
 
-const app = createApp(App)
+createApp(App)
   .use(IonicVue)
   .use(pinia)
-  .use(router);
-
-router.isReady().then(() => {
-  app.mount('#app');
-});
+  .mount('#app')

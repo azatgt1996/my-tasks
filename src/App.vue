@@ -1,9 +1,12 @@
 <template>
   <ion-app>
-    <ion-router-outlet />
+    <ion-content>
+      <HomePage />
+    </ion-content>
   </ion-app>
 </template>
 
 <script setup>
-import { IonApp, IonRouterOutlet } from '@ionic/vue';
+import { IonApp, IonContent } from '@ionic/vue';
+import HomePage from './views/HomePage.vue';
 </script>
