@@ -13,8 +13,8 @@
           <img slot="icon-only" class="flag-icon" :src="getFlagImg(lang)" :alt="lang" width="22" />
         </ion-button>
         <ion-button slot="end" color="medium" shape="round" fill="clear" @click="toggleDarkMode" class="mr-10">
-          <ion-icon slot="icon-only" :icon="darkMode ? moon : sunny"
-            :style="{ color: darkMode ? '#FFFF77' : 'orange' }" />
+          <Ikon :icon="darkMode ? 'moon' : 'sunny'" slot="icon-only"
+            :style="{ color: darkMode ? 'yellow' : 'orange' }" />
         </ion-button>
       </ion-toolbar>
     </ion-header>
@@ -44,19 +44,16 @@
       <ToggleIconItem :icon="returnUpBackOutline" :label="tr.autoClose" v-model="$params.autoClose" />
       <ToggleIconItem :icon="swapVerticalOutline" :label="tr.orderByDesc" v-model="$params.orderByDesc" />
       <ion-item>
-        <ion-icon :icon="filterSharp" />
+        <Ikon icon="filter" />
         <UiSelect :label="tr.sortBy" v-model="$params.sortBy">
           <ion-select-option v-for="val in sorts" :value="val">{{ tr[val].toLowerCase() }}</ion-select-option>
         </UiSelect>
       </ion-item>
-      <ion-item button @click="emit('deleteAll')" :disabled="!tasksLength">
-        <ion-icon :icon="trashOutline" color="danger" />
-        <ion-label color="danger">{{ tr.deleteAll }}</ion-label>
-      </ion-item>
-      <ion-item button @click="emit('deleteAllCompleted')" :disabled="!completedTasksLength">
-        <ion-icon :icon="trashBinOutline" color="danger" />
-        <ion-label color="danger">{{ tr.deleteAllCompleted }}</ion-label>
-      </ion-item>
+
+      <IconText :icon="trashOutline" :text="tr.deleteAll" color="danger" :disabled="!tasksLength"
+        @click="emit('deleteAll')" />
+      <IconText :icon="trashBinOutline" :text="tr.deleteAllCompleted" color="danger" :disabled="!completedTasksLength"
+        @click="emit('deleteAllCompleted')" />
     </ion-list>
   </UiModal>
 
@@ -78,13 +75,13 @@
 
 <script setup>
 import {
-  IonMenu, IonButton, IonContent, IonHeader, IonIcon, IonToolbar, IonItem, IonList, IonTitle, IonButtons,
-  IonSelectOption, IonLabel, IonInput, IonMenuButton
+  IonMenu, IonButton, IonContent, IonHeader, IonToolbar, IonItem, IonList, IonTitle, IonButtons,
+  IonSelectOption, IonInput, IonMenuButton
 } from '@ionic/vue';
 import {
   mailOutline, powerOutline, informationCircleOutline, settingsOutline, starOutline, shareSocialOutline,
-  trashOutline, radioOutline, searchCircleOutline, filterSharp, volumeMediumOutline, swapVerticalOutline, saveOutline, returnUpBackOutline,
-  languageOutline, sunny, moon, albumsOutline, alertCircleOutline, trashBinOutline,
+  trashOutline, radioOutline, searchCircleOutline, volumeMediumOutline, swapVerticalOutline, saveOutline, returnUpBackOutline,
+  languageOutline, albumsOutline, alertCircleOutline, trashBinOutline,
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
 import { $, $$, delay, str, isEqual, sendToEmail } from "@/helpers/utils.js";
@@ -92,7 +89,7 @@ import { langs, Translations } from "@/helpers/translations.js";
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useGlobalStore } from "@/stores/global.js";
 import { Share } from '@capacitor/share';
-import { IconText, IconBtn } from "@/components/renderFunctions.js";
+import { IconText, IconBtn, Ikon } from "@/components/renderFunctions.js";
 import $bus from '@/helpers/eventBus';
 import ToggleIconItem from "@/components/ToggleIconItem.vue";
 import UiSelect from "@/components/UiSelect.vue";

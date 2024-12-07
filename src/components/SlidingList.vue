@@ -3,18 +3,17 @@
     <ion-item-sliding v-for="item in data" :key="item.id" :disabled="selected.length > 0" @ionDrag="onIonDrag">
       <ion-item-options side="start" @ion-swipe="swipedTo('left', item)">
         <ion-item-option color="primary">
-          <ion-icon slot="icon-only" :icon="leftIcon(item)" />
+          <Ikon slot="icon-only" :icon="typeof leftIcon === 'string' ? leftIcon : leftIcon(item)" />
         </ion-item-option>
       </ion-item-options>
       <ion-item button @click="clickItem(item)" @touchstart="checkItem(item)" @touchend="clearTimer"
         @touchmove="sliding = true">
-        <ion-icon v-show="selected.includes(item.id)" :icon="checkmarkOutline" color="success"
-          class="check-icon mr-10" />
+        <Ikon v-show="selected.includes(item.id)" icon="check" color="success" class="check-icon mr-10" />
         <slot name="item" v-bind="item" />
       </ion-item>
       <ion-item-options side="end" @ion-swipe="swipedTo('right', item)">
         <ion-item-option color="danger">
-          <ion-icon slot="icon-only" :icon="rightIcon(item)" />
+          <Ikon slot="icon-only" :icon="typeof rightIcon === 'string' ? rightIcon : rightIcon(item)" />
         </ion-item-option>
       </ion-item-options>
     </ion-item-sliding>
@@ -23,15 +22,15 @@
 
 <script setup>
 import { onClickOutside } from '@vueuse/core';
-import { IonIcon, IonItem, IonItemSliding, IonItemOptions, IonItemOption, IonList/*dont_remove*/ } from '@ionic/vue';
-import { checkmarkOutline } from 'ionicons/icons';
+import { IonItem, IonItemSliding, IonItemOptions, IonItemOption, IonList/*dont_remove*/ } from '@ionic/vue';
+import { Ikon } from "@/components/renderFunctions.js";
 import { watch, ref } from 'vue';
 import { vibrate } from "@/helpers/utils.js";
 
 const props = defineProps({
   data: Array, // example: [{id: '1', name: 'val1'}, {id: '2', name: 'val2'}] //id is required
-  leftIcon: Function,
-  rightIcon: Function,
+  leftIcon: { type: [String, Function] },
+  rightIcon: { type: [String, Function] },
   withVibro: Boolean,
 })
 

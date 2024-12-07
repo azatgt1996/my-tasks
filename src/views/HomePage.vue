@@ -44,8 +44,7 @@
         <ion-item>
           <ion-input :placeholder="tr.search" v-model="keyword" :maxlength="taskLength" clear-input :debounce="500"
             :disabled="hasSelected">
-            <ion-icon slot="start" color="medium" size="small"
-              :icon="params.searchInDesc ? searchCircleOutline : searchSharp" />
+            <Ikon slot="start" color="medium" small :icon="params.searchInDesc ? 'searchCircle' : 'search'" />
             <IconBtn slot="end" size="small" :icon="funnel" @click="$('#filterSelect').click()" :disabled="hasSelected"
               :color="filters.length === 3 && isEqual(filters, priorities) ? 'medium' : 'primary'"
               style="margin-left: 0" />
@@ -73,19 +72,17 @@
         <div v-show="loading" class="flex-center">
           <ion-spinner name="lines" />
         </div>
-        <SlidingList ref="listRef" v-model="selected" :data="filtered" :withVibro="params.vibro"
-          :rightIcon="() => trashOutline"
-          :leftIcon="task => task.completed ? arrowUndoCircleOutline : checkmarkCircleOutline"
-          @to-left="task => toggleCompleted(task)" @to-right="task => deleteTask(task)"
-          @click-item="task => openTask(task)">
+        <SlidingList ref="listRef" v-model="selected" :data="filtered" :withVibro="params.vibro" rightIcon="trash"
+          :leftIcon="task => task.completed ? 'arrowUndo' : 'checkCircle'" @to-left="task => toggleCompleted(task)"
+          @to-right="task => deleteTask(task)" @click-item="task => openTask(task)">
           <template #item="task">
             <ion-label class="shorted-text" :class="{ 'striked-text': task.completed }">
               {{ task.title }}
             </ion-label>
-            <ion-icon v-if="task.completed" :icon="checkmarkCircleOutline" size="small" style="margin-right: 2px" />
-            <ion-icon v-if="task.notification !== emptyDatetime" :icon="alarmOutline" size="small"
-              style="margin-right: 2px" :style="{ color: new Date() < getDT(task) ? '' : 'orangered' }" />
-            <ion-icon :icon="ellipse" :color="priorityType[task.priority]" style="font-size: 14px" />
+            <Ikon v-if="task.completed" icon="checkCircle" small style="margin-right: 2px" />
+            <Ikon v-if="task.notification !== emptyDatetime" icon="alarm" small style="margin-right: 2px"
+              :style="{ color: new Date() < getDT(task) ? '' : 'orangered' }" />
+            <Ikon icon="ellipse" :color="priorityType[task.priority]" style="font-size: 14px" />
           </template>
         </SlidingList>
         <ion-label v-show="!filtered.length" class="flex-center" color="medium" style="font-size: x-large">
@@ -122,8 +119,8 @@
               <ion-label>{{ tr.notification }}</ion-label>
               <ion-button v-show="current.notification === emptyDatetime" color="light"
                 @click="current.notification = getLateDate()" style="--box-shadow: 0">
-                <ion-icon :icon="addOutline" />
-                <ion-icon :icon="alarmOutline" size="small" />
+                <Ikon icon="add" />
+                <Ikon icon="alarm" small />
               </ion-button>
               <ion-datetime-button v-show="current.notification !== emptyDatetime" datetime="datetime"
                 :class="new Date() < getDT(current) ? '' : 'passed-date'" />
@@ -145,10 +142,7 @@
                 {{ tr.isCompleted }}
               </ion-checkbox>
             </ion-item>
-            <ion-item button @click="removeTask(current)">
-              <ion-icon :icon="trashOutline" color="danger" class="mr-10" />
-              <ion-label color="danger">{{ tr.delete }}</ion-label>
-            </ion-item>
+            <IconText :icon="trashOutline" :text="tr.delete" color="danger" @click="removeTask(current)" />
           </ion-list>
           <template v-if="filtered.length > 1" #footer>
             <IconTextBtn size="small" style="width: 100%" :text="tr.prev" :icon="caretBackOutline"
@@ -201,13 +195,13 @@
 
 <script setup>
 import {
-  useBackButton, useIonRouter, IonMenuButton, IonButton, IonContent, IonHeader, IonIcon, IonInput,
+  useBackButton, useIonRouter, IonMenuButton, IonButton, IonContent, IonHeader, IonInput,
   IonToolbar, IonReorderGroup, IonReorder, IonCheckbox, IonProgressBar, IonNote, IonSelectOption, IonSpinner, IonPopover,
   IonItem, IonLabel, IonList, IonPage, IonTitle, IonButtons, IonDatetimeButton, IonSegment, IonSegmentButton, IonTextarea
 } from '@ionic/vue';
 import {
-  addCircle, ellipse, funnel, trashOutline, arrowUndoCircleOutline, checkmarkCircleOutline, addOutline, readerOutline,
-  alarmOutline, searchCircleOutline, searchSharp, caretBackOutline, caretForwardOutline, saveOutline, closeOutline,
+  addCircle, funnel, trashOutline, arrowUndoCircleOutline, checkmarkCircleOutline, readerOutline,
+  alarmOutline, caretBackOutline, caretForwardOutline, saveOutline, closeOutline,
   albumsOutline, pencilOutline, checkmarkOutline, checkmarkDoneCircle, ellipsisVertical, caretUpCircleOutline, closeCircleOutline
 } from 'ionicons/icons';
 import { App } from '@capacitor/app';
@@ -216,7 +210,7 @@ import { nanoid } from "nanoid";
 import { clone, isEqual, $, delay, log, arrayMove, getLateDate, vibrate } from "@/helpers/utils.js";
 import { useGlobalStore } from "@/stores/global.js";
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { OptionsGroup, IconBtn, IconText, IconTextBtn } from "@/components/renderFunctions.js";
+import { OptionsGroup, IconBtn, IconText, IconTextBtn, Ikon } from "@/components/renderFunctions.js";
 import $bus from '@/helpers/eventBus';
 import UiSelect from "@/components/UiSelect.vue";
 import DateTimeModal from "@/components/DateTimeModal.vue";
