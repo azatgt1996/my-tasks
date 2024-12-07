@@ -1,19 +1,20 @@
 <template>
-    <ion-item>
-        <ion-icon :icon class="mr-10" />
-        <ion-toggle :checked="modelValue" @ionChange="val => emit('update:modelValue', val.detail.checked)">
-            {{ label }}
-        </ion-toggle>
-    </ion-item>
+  <ion-item>
+    <Ikon :icon class="mr-10" />
+    <ion-toggle :checked="modelValue" @ionChange="val => emit('update:modelValue', val.detail.checked)">
+      {{ label }}
+    </ion-toggle>
+  </ion-item>
 </template>
 
 <script setup>
-import { IonItem, IonIcon, IonToggle } from '@ionic/vue';
+import { IonItem, IonToggle } from '@ionic/vue';
+import { Ikon } from "@/components/renderFunctions.js";
 
 defineProps({
-    icon: { type: String, required: true },
-    label: { type: String, required: true },
-    modelValue: { type: Boolean, required: true }
+  icon: { type: String, required: true },
+  label: { type: String, required: true },
+  modelValue: { type: Boolean, required: true }
 })
 
 const emit = defineEmits(['update:modelValue'])

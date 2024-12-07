@@ -20,29 +20,29 @@
     </ion-header>
     <ion-content>
       <ion-list>
-        <IconText :icon="albumsOutline" :text="tr.categories" @click="openCategoriesModal" />
-        <IconText :icon="mailOutline" :text="tr.contactUs" @click="contactUs" />
-        <IconText :icon="shareSocialOutline" :text="tr.share" @click="shareApp" />
-        <IconText :icon="starOutline" :text="tr.rateApp" @click="rateApp" />
-        <IconText :icon="languageOutline" :text="tr.helpWithTranslation" @click="openTranslationModal" />
-        <IconText :icon="informationCircleOutline" :text="tr.aboutApp" @click="showAppInfo" />
-        <IconText :icon="settingsOutline" :text="tr.settings" @click="openSettingsModal" />
-        <IconText :icon="powerOutline" :text="tr.exit" @click="App.exitApp()" />
+        <IconText icon="albums" :text="tr.categories" @click="openCategoriesModal" />
+        <IconText icon="mail" :text="tr.contactUs" @click="contactUs" />
+        <IconText icon="share" :text="tr.share" @click="shareApp" />
+        <IconText icon="star" :text="tr.rateApp" @click="rateApp" />
+        <IconText icon="language" :text="tr.helpWithTranslation" @click="openTranslationModal" />
+        <IconText icon="information" :text="tr.aboutApp" @click="showAppInfo" />
+        <IconText icon="settings" :text="tr.settings" @click="openSettingsModal" />
+        <IconText icon="power" :text="tr.exit" @click="App.exitApp()" />
       </ion-list>
     </ion-content>
   </ion-menu>
 
-  <UiModal name="SettingsModal" :icon="settingsOutline" :title="tr.settings" @didPresent="closeMenu">
+  <UiModal name="SettingsModal" icon="settings" :title="tr.settings" @didPresent="closeMenu">
     <template #button>
-      <IconBtn :icon="saveOutline" :disabled="isEqual($params, params)" @click="saveParams" />
+      <IconBtn icon="save" :disabled="isEqual($params, params)" @click="saveParams" />
     </template>
     <ion-list class="params-list">
-      <ToggleIconItem :icon="radioOutline" :label="tr.vibro" v-model="$params.vibro" />
-      <ToggleIconItem :icon="volumeMediumOutline" :label="tr.sound" v-model="$params.sound" />
-      <ToggleIconItem :icon="alertCircleOutline" :label="tr.offToastAlerts" v-model="$params.offToastAlerts" />
-      <ToggleIconItem :icon="searchCircleOutline" :label="tr.searchInDesc" v-model="$params.searchInDesc" />
-      <ToggleIconItem :icon="returnUpBackOutline" :label="tr.autoClose" v-model="$params.autoClose" />
-      <ToggleIconItem :icon="swapVerticalOutline" :label="tr.orderByDesc" v-model="$params.orderByDesc" />
+      <ToggleIconItem icon="radio" :label="tr.vibro" v-model="$params.vibro" />
+      <ToggleIconItem icon="volume" :label="tr.sound" v-model="$params.sound" />
+      <ToggleIconItem icon="alert" :label="tr.offToastAlerts" v-model="$params.offToastAlerts" />
+      <ToggleIconItem icon="searchCircle" :label="tr.searchInDesc" v-model="$params.searchInDesc" />
+      <ToggleIconItem icon="return" :label="tr.autoClose" v-model="$params.autoClose" />
+      <ToggleIconItem icon="swapVertical" :label="tr.orderByDesc" v-model="$params.orderByDesc" />
       <ion-item>
         <Ikon icon="filter" />
         <UiSelect :label="tr.sortBy" v-model="$params.sortBy">
@@ -50,14 +50,13 @@
         </UiSelect>
       </ion-item>
 
-      <IconText :icon="trashOutline" :text="tr.deleteAll" color="danger" :disabled="!tasksLength"
-        @click="emit('deleteAll')" />
-      <IconText :icon="trashBinOutline" :text="tr.deleteAllCompleted" color="danger" :disabled="!completedTasksLength"
+      <IconText icon="trash" :text="tr.deleteAll" color="danger" :disabled="!tasksLength" @click="emit('deleteAll')" />
+      <IconText icon="trashBin" :text="tr.deleteAllCompleted" color="danger" :disabled="!completedTasksLength"
         @click="emit('deleteAllCompleted')" />
     </ion-list>
   </UiModal>
 
-  <UiModal name="TranslationModal" :icon="languageOutline" @didPresent="closeMenu" :title="translationModalTitle">
+  <UiModal name="TranslationModal" icon="language" @didPresent="closeMenu" :title="translationModalTitle">
     <template #button>
       <ion-button @click="sendTranslation">{{ tr.send }}</ion-button>
     </template>
@@ -78,11 +77,6 @@ import {
   IonMenu, IonButton, IonContent, IonHeader, IonToolbar, IonItem, IonList, IonTitle, IonButtons,
   IonSelectOption, IonInput, IonMenuButton
 } from '@ionic/vue';
-import {
-  mailOutline, powerOutline, informationCircleOutline, settingsOutline, starOutline, shareSocialOutline,
-  trashOutline, radioOutline, searchCircleOutline, volumeMediumOutline, swapVerticalOutline, saveOutline, returnUpBackOutline,
-  languageOutline, albumsOutline, alertCircleOutline, trashBinOutline,
-} from 'ionicons/icons';
 import { App } from '@capacitor/app';
 import { $, $$, delay, str, isEqual, sendToEmail } from "@/helpers/utils.js";
 import { langs, Translations } from "@/helpers/translations.js";
