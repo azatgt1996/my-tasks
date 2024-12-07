@@ -55,37 +55,25 @@
     </ion-list>
   </UiModal>
 
-  <UiModal name="TranslationModal" icon="languageO" :title="translationModalTitle">
-    <template #button>
-      <ion-button @click="sendTranslation">{{ tr.send }}</ion-button>
-    </template>
-    <ion-list lines="none" class="tr-list">
-      <ion-item>
-        <ion-input :label="tr.lang" v-model="trData._language" fill="outline" />
-      </ion-item>
-      <ion-item v-for="key in Object.keys(Translations[lang]).slice(3)">
-        <ion-input :value="Translations[lang][key].replaceAll('%s', ' ')" readonly fill="outline" />
-        <ion-input v-model="trData[key]" style="margin-left: 5px" fill="outline" />
-      </ion-item>
-    </ion-list>
-  </UiModal>
+  <TranslationModal :lang />
 </template>
 
 <script setup>
 import {
-  IonMenu, IonButton, IonContent, IonHeader, IonToolbar, IonItem, IonList, IonTitle, IonButtons,
-  IonSelectOption, IonInput, IonMenuButton
+  IonMenu, IonButton, IonContent, IonHeader, IonToolbar, IonItem, IonList,
+  IonTitle, IonButtons, IonSelectOption, IonMenuButton
 } from '@ionic/vue';
 import { App } from '@capacitor/app';
 import { $, $$, $bus, delay, str, isEqual, sendToEmail } from "@/helpers/utils.js";
 import { langs, Translations } from "@/helpers/translations.js";
-import { computed, onMounted, reactive, ref, watch } from "vue";
+import { onMounted, reactive, ref, watch } from "vue";
 import { useGlobalStore } from "@/stores/global.js";
 import { Share } from '@capacitor/share';
 import { IconText, IconBtn, Ikon } from "@/components/renderFunctions.js";
 import ToggleIconItem from "@/components/ToggleIconItem.vue";
 import UiSelect from "@/components/UiSelect.vue";
 import UiModal from "@/components/UiModal.vue";
+import TranslationModal from '@/modals/TranslationModal.vue';
 
 const props = defineProps({
   tasksLength: Number,
@@ -94,19 +82,11 @@ const props = defineProps({
 
 const emit = defineEmits(['deleteAll', 'deleteAllCompleted'])
 
-const { tr, params, storage, alert, toast, errToast } = useGlobalStore()
+const { tr, params, storage, alert, toast } = useGlobalStore()
 
 const getFlagImg = (name) => new URL(`../assets/flags/${name}.png`, import.meta.url).href
 const sorts = ['created', 'changed', 'title', 'priority', 'notification']
-const trData = ref({})
 const appLink = 'https://play.google.com/store/apps/details?id=com.kvarta.mytasks'
-
-const translationModalTitle = computed(() => {
-  const filled = Object.values(trData.value).filter(it => it?.trim()).length
-  const all = Object.keys(Translations[lang.value]).length - 2
-
-  return `${tr.translation}: ${filled}/${all}`
-})
 
 const contactUs = () => sendToEmail('', 'Support')
 
@@ -125,17 +105,6 @@ const showAppInfo = () => {
 
   const msg = str(fullText, author, techStack, flagIconsLink, soundsLink)
   alert(msg, tr.appInfo)
-}
-
-const sendTranslation = () => {
-  if (!trData.value._language?.trim()) return errToast(tr.fillAllFields)
-  for (const key of Object.keys(Translations[lang.value]).slice(3))
-    if (!trData.value[key]?.trim()) return errToast(tr.fillAllFields)
-
-  trData.value._baseLang = lang.value
-  const trText = JSON.stringify(trData.value, null, 2).replace(/"([^"]+)":/g, '$1:')
-  sendToEmail(trText, tr.translation)
-  $bus.close('TranslationModal')
 }
 
 watch(params, (val) => storage.set('params', JSON.stringify(val)), { deep: true })
@@ -191,11 +160,6 @@ onMounted(async () => {
   Object.assign(params, _params)
 })
 </script>
-
-<style scoped lang="sass">
-.tr-list ion-input
-  min-height: 36px
-</style>
 
 <style lang="sass">
 .flag-icon
