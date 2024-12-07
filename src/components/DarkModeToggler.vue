@@ -1,0 +1,21 @@
+<template>
+  <IonButton slot="end" color="medium" shape="round" fill="clear" @click="toggleDarkMode" class="mr-10">
+    <Ikon :icon="darkMode ? 'moon' : 'sunny'" slot="icon-only" :style="{ color: darkMode ? 'yellow' : 'orange' }" />
+  </IonButton>
+</template>
+
+<script setup>
+import { IonButton } from '@ionic/vue';
+import { Ikon } from "@/components/renderFunctions.js";
+import { ref } from "vue";
+
+const _darkMode = (ls.darkMode ?? window.matchMedia?.('(prefers-color-scheme: dark)').matches.toString()) === 'true'
+const darkMode = ref(_darkMode)
+document.documentElement.classList.toggle('ion-palette-dark', _darkMode)
+
+const toggleDarkMode = () => {
+  darkMode.value = !darkMode.value
+  ls.darkMode = darkMode.value
+  document.documentElement.classList.toggle('ion-palette-dark', darkMode.value)
+}
+</script>

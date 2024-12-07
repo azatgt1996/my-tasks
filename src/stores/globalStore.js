@@ -1,11 +1,12 @@
 import { defineStore } from 'pinia'
-import { onBeforeMount, reactive } from 'vue'
+import { onBeforeMount, reactive, ref } from 'vue'
 import { toastController, alertController } from '@ionic/vue'
 import { Storage } from "@ionic/storage";
 
 export const useGlobalStore = defineStore('globalStore', () => {
     const storage = new Storage()
     const tr = reactive({})
+    const lang = ref('')
     const params = reactive({}) // setting params
 
     const localeDate = (date, noTime = false) => {
@@ -70,5 +71,5 @@ export const useGlobalStore = defineStore('globalStore', () => {
 
     onBeforeMount(() => storage.create())
 
-    return { tr, params, storage, localeDate, toast, errToast, cancelToast, alert, confirm, prompt, prompt2 }
+    return { tr, params, storage, lang, localeDate, toast, errToast, cancelToast, alert, confirm, prompt, prompt2 }
 })
