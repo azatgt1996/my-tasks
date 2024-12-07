@@ -11,7 +11,7 @@
           <ion-title>
             {{ tr.myTasks }}{{ filtered.length ? `: ${filtered.length}` : '' }}
           </ion-title>
-          <UiSelect :key="categorySelectKey" slot="end" interface="popover" v-model="category" class="mr-10"
+          <UiSelect slot="end" interface="popover" v-model="category" class="mr-10"
             style="max-width: 44%; padding-top: 3px">
             <ion-select-option v-for="_category in categories" :value="_category">
               {{ baseCategories.includes(_category) ? tr[_category] : _category }}
@@ -154,7 +154,7 @@
           <div style="display: grid; margin: 0 auto; padding: 30px 0 10px">
             <ion-datetime-button datetime="group-dt" style="margin-bottom: 15px"
               :class="new Date() < getDT({ notification: groupNotification }) ? '' : 'passed-date'" />
-            <IconTextBtn :text="tr.setNotification" icon="checkmark" @click="changeNotifications()" />
+            <IconTextBtn :text="tr.setNotification" icon="checkCircle" @click="changeNotifications()" />
             <IconTextBtn :text="tr.deleteNotification" icon="closeCircle" @click="changeNotifications(1)"
               color="danger" />
             <DateTimeModal id="group-dt" v-model="groupNotification" />
@@ -283,7 +283,6 @@ const listStatus = computed(() => {
 const baseCategories = ['allCategories', 'common', 'private', 'work']
 const categories = ref([])
 const category = ref('allCategories')
-const categorySelectKey = ref(0)
 
 const saveCategories = () => storage.set('categories', JSON.stringify(categories.value))
 
@@ -360,8 +359,6 @@ watch(category, (val, old) => {
     addCategory(1)
   } else storage.set('category', val)
 })
-
-watch(tr, () => categorySelectKey.value++)
 // #endregion
 
 // #region Main
