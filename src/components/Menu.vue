@@ -19,7 +19,7 @@
     <ion-content>
       <ion-list>
         <IconText icon="albumsO" :text="tr.categories" @click="$bus.open('CategoriesModal')" />
-        <IconText icon="mailO" :text="tr.contactUs" @click="contactUs" />
+        <IconText icon="mailO" :text="tr.contactUs" @click="sendToEmail('', 'Support')" />
         <IconText icon="shareSocialO" :text="tr.share" @click="shareApp" />
         <IconText icon="starO" :text="tr.rateApp" @click="rateApp" />
         <IconText icon="languageO" :text="tr.helpWithTranslation" @click="$bus.open('TranslationModal')" />
@@ -30,88 +30,38 @@
     </ion-content>
   </ion-menu>
 
-  <UiModal name="SettingsModal" icon="settingsO" :title="tr.settings" @willPresent="Object.assign($params, params)">
-    <template #button>
-      <IconBtn icon="saveO" :disabled="isEqual($params, params)" @click="saveParams" />
-    </template>
-    <ion-list>
-      <ToggleIconItem icon="radioO" :label="tr.vibro" v-model="$params.vibro" />
-      <ToggleIconItem icon="volumeMediumO" :label="tr.sound" v-model="$params.sound" />
-      <ToggleIconItem icon="alertCO" :label="tr.offToastAlerts" v-model="$params.offToastAlerts" />
-      <ToggleIconItem icon="searchCO" :label="tr.searchInDesc" v-model="$params.searchInDesc" />
-      <ToggleIconItem icon="returnUpBackO" :label="tr.autoClose" v-model="$params.autoClose" />
-      <ToggleIconItem icon="swapVerticalO" :label="tr.orderByDesc" v-model="$params.orderByDesc" />
-      <ion-item>
-        <Ikon icon="filterS" class="mr-10" />
-        <UiSelect :label="tr.sortBy" v-model="$params.sortBy">
-          <ion-select-option v-for="val in sorts" :value="val">{{ tr[val].toLowerCase() }}</ion-select-option>
-        </UiSelect>
-      </ion-item>
-      <IconText icon="trashO" :text="tr.deleteAll" color="danger" :disabled="!tasksLength" @click="emit('deleteAll')" />
-      <IconText icon="trashBinO" :text="tr.deleteAllCompleted" color="danger" :disabled="!completedTasksLength"
-        @click="emit('deleteAllCompleted')" />
-    </ion-list>
-  </UiModal>
-
+  <SettingsModal />
   <TranslationModal :lang />
 </template>
 
 <script setup>
-import {
-  IonMenu, IonButton, IonContent, IonHeader, IonToolbar, IonItem, IonList, IonTitle, IonSelectOption
-} from '@ionic/vue';
+import { IonMenu, IonButton, IonContent, IonHeader, IonToolbar, IonList, IonTitle, IonSelectOption } from '@ionic/vue';
 import { App } from '@capacitor/app';
-import { $, $$, $bus, delay, str, isEqual, sendToEmail } from "@/helpers/utils.js";
+import { $, $$, $bus, delay, str, sendToEmail } from "@/helpers/utils.js";
 import { langs, Translations } from "@/helpers/translations.js";
-import { onMounted, reactive, ref, watch } from "vue";
-import { useGlobalStore } from "@/stores/global.js";
+import { ref, watch } from "vue";
+import { useGlobalStore } from "@/stores/globalStore";
 import { Share } from '@capacitor/share';
-import { IconText, IconBtn, Ikon, MenuBtn } from "@/components/renderFunctions.js";
-import ToggleIconItem from "@/components/ToggleIconItem.vue";
+import { IconText, Ikon, MenuBtn } from "@/components/renderFunctions.js";
 import UiSelect from "@/components/UiSelect.vue";
-import UiModal from "@/components/UiModal.vue";
 import TranslationModal from '@/modals/TranslationModal.vue';
+import SettingsModal from '@/modals/SettingsModal.vue';
 
-const props = defineProps({
-  tasksLength: Number,
-  completedTasksLength: Number,
-})
-
-const emit = defineEmits(['deleteAll', 'deleteAllCompleted'])
-
-const { tr, params, storage, alert, toast } = useGlobalStore()
+const { tr, alert } = useGlobalStore()
 
 const getFlagImg = (name) => new URL(`../assets/flags/${name}.png`, import.meta.url).href
-const sorts = ['created', 'changed', 'title', 'priority', 'notification']
 const appLink = 'https://play.google.com/store/apps/details?id=com.kvarta.mytasks'
-
-const contactUs = () => sendToEmail('', 'Support')
 
 const shareApp = () => Share.share({ text: tr.shareText, url: appLink, dialogTitle: tr.shareUsing })
 
 const rateApp = () => window.location.href = appLink
 
 const showAppInfo = () => {
-  const author = 'Galyautdinov Azat'
-  const techStack = 'Ionic Framework 8, VueJs 3'
-  const flagIconsLink = 'https://www.flaticon.com'
-  const soundsLink = 'https://mixkit.co/free-sound-effects'
-
   const trAuthors = Object.keys(Translations).map(key => ` ${Translations[key]._language}: ${Translations[key]._trAuthor}`).join('\n')
   const fullText = tr.aboutText + `${tr.translation}:\n` + trAuthors
 
-  const msg = str(fullText, author, techStack, flagIconsLink, soundsLink)
+  const msg = str(fullText, 'Galyautdinov Azat', 'Ionic Framework 8, VueJs 3', 'https://www.flaticon.com', 'https://mixkit.co/free-sound-effects')
   alert(msg, tr.appInfo)
-}
-
-watch(params, (val) => storage.set('params', JSON.stringify(val)), { deep: true })
-
-const $params = reactive({})
-
-const saveParams = () => {
-  Object.assign(params, $params)
-  $bus.close('SettingsModal')
-  toast(tr.paramsSaved)
 }
 
 // Dark mode
@@ -146,16 +96,6 @@ const langClick = async () => {
     opt.innerHTML = `<img src="${flagHref}" class="flag-icon mr-10" style="width: 20px"/>` + Translations[_lang]._language
   }
 }
-
-onMounted(async () => {
-  let _params = await storage.get('params')
-  const defaultParams = {
-    vibro: true, sound: false, offToastAlerts: false, searchInDesc: false,
-    sortBy: 'created', orderByDesc: false, autoClose: true,
-  }
-  _params = _params ? JSON.parse(_params) : defaultParams
-  Object.assign(params, _params)
-})
 </script>
 
 <style lang="sass">

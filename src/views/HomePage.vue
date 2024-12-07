@@ -1,6 +1,5 @@
 <template>
-  <Menu :tasksLength="tasks.length" :completedTasksLength="tasks.filter(it => it.completed).length"
-    @deleteAll="deleteAll" @deleteAllCompleted="deleteAllCompleted" />
+  <Menu />
   <ion-page id="main-content">
     <ion-header>
       <ion-toolbar v-show="!selected.length">
@@ -193,10 +192,11 @@ import {
   IonDatetimeButton, IonSegment, IonSegmentButton, IonTextarea
 } from '@ionic/vue';
 import { App } from '@capacitor/app';
-import { computed, onMounted, ref, watch, reactive } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { nanoid } from "nanoid";
 import { clone, isEqual, $, $bus, delay, log, arrayMove, getLateDate, vibrate } from "@/helpers/utils.js";
-import { useGlobalStore } from "@/stores/global.js";
+import { useGlobalStore } from "@/stores/globalStore";
+import { useTaskStore } from "@/stores/taskStore";
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { OptionsGroup, IconBtn, IconText, IconTextBtn, Ikon, MenuBtn } from "@/components/renderFunctions.js";
 import UiSelect from "@/components/UiSelect.vue";
@@ -206,6 +206,7 @@ import Menu from "@/components/Menu.vue";
 import SlidingList from '@/components/SlidingList.vue';
 
 const { tr, params, storage, localeDate, toast, errToast, cancelToast, confirm, prompt, prompt2 } = useGlobalStore()
+const { tasks } = useTaskStore()
 
 // #region Others
 const audio = new Audio('/change.wav')
@@ -354,7 +355,6 @@ watch(category, (val, old) => {
 // #endregion
 
 // #region Main
-const tasks = reactive([])
 const setTasks = (arr) => (tasks.length = 0, Object.assign(tasks, arr))
 
 const title = ref(''), addTaskInput = ref()
@@ -482,7 +482,7 @@ const removeTask = (task) => {
   deleteTask(task)
 }
 
-const deleteAll = async () => {
+$bus.on('deleteAll', async () => {
   if (!await confirm(tr.aysToDelete)) return
 
   const ids = tasks.map(getNumId)
@@ -491,9 +491,9 @@ const deleteAll = async () => {
   setTasks([])
   saveTasks(1)
   toast(tr.allDeleted)
-}
+})
 
-const deleteAllCompleted = async () => {
+$bus.on('deleteAllCompleted', async () => {
   if (!await confirm(tr.aysToDeleteAllCompleted)) return
 
   const uncompletedTasks = tasks.filter(it => !it.completed)
@@ -504,7 +504,7 @@ const deleteAllCompleted = async () => {
 
   const ids = completedTasks.map(getNumId)
   removeNotifications(ids)
-}
+})
 
 const toggleCompleted = async (task) => {
   const idx = tasks.findIndex(it => it.id === task.id)

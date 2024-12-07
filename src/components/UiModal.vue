@@ -37,7 +37,7 @@ const isOpen = ref(false)
 $bus.on('openModal', (modalName) => {
   if (props.name === modalName) {
     isOpen.value = true
-    $('#main-menu').close()
+    setTimeout(() => $('#main-menu').close(), 400)
   }
 })
 

@@ -17,7 +17,7 @@
 
 <script setup>
 import { IonItem, IonList, IonButton, IonInput } from '@ionic/vue';
-import { useGlobalStore } from '@/stores/global';
+import { useGlobalStore } from '@/stores/globalStore';
 import { ref, computed } from 'vue';
 import { Translations } from "@/helpers/translations.js";
 import { $bus, sendToEmail } from "@/helpers/utils.js";

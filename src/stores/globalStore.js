@@ -3,7 +3,7 @@ import { onBeforeMount, reactive } from 'vue'
 import { toastController, alertController } from '@ionic/vue'
 import { Storage } from "@ionic/storage";
 
-export const useGlobalStore = defineStore('global', () => {
+export const useGlobalStore = defineStore('globalStore', () => {
     const storage = new Storage()
     const tr = reactive({})
     const params = reactive({}) // setting params

@@ -6,7 +6,7 @@
 
 <script setup>
 import { IonModal, IonDatetime } from '@ionic/vue';
-import { useGlobalStore } from '@/stores/global';
+import { useGlobalStore } from '@/stores/globalStore';
 import { computed } from 'vue';
 
 const { tr } = useGlobalStore()

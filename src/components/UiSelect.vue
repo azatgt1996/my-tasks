@@ -7,7 +7,7 @@
 
 <script setup>
 import { IonSelect } from '@ionic/vue';
-import { useGlobalStore } from '@/stores/global';
+import { useGlobalStore } from '@/stores/globalStore';
 import { chevronDown, chevronUp } from 'ionicons/icons';
 
 const { tr } = useGlobalStore()
