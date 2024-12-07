@@ -1,4 +1,4 @@
-import { IonSelectOption, IonItem, IonIcon, IonLabel, IonButton } from '@ionic/vue';
+import { IonSelectOption, IonItem, IonIcon, IonLabel, IonButton, IonButtons, IonMenuButton } from '@ionic/vue';
 import { h } from 'vue';
 import * as ionicons from 'ionicons/icons';
 
@@ -21,6 +21,8 @@ export const IconText = ({ icon, text, color, ...props }) =>
   h(IonItem, { button: true, ...props }, () => [
     h(Ikon, { icon, color, class: 'mr-10' }), h(IonLabel, { color }, () => text)
   ])
+
+export const MenuBtn = () => h(IonButtons, { slot: 'start' }, () => h(IonMenuButton))
 
 export const OptionsGroup = ({ label }) =>
   h(IonSelectOption, { disabled: true, class: 'options-group' }, () => label)

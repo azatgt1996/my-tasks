@@ -2,9 +2,7 @@
   <ion-menu content-id="main-content" id="main-menu">
     <ion-header>
       <ion-toolbar>
-        <ion-buttons slot="start">
-          <ion-menu-button />
-        </ion-buttons>
+        <MenuBtn />
         <ion-title>{{ tr.menu }}</ion-title>
         <UiSelect v-show="false" v-model="lang" id="langSelect" :header="tr.selectLang">
           <ion-select-option v-for="_lang in langs" :value="_lang">{{ _lang }}</ion-select-option>
@@ -60,8 +58,7 @@
 
 <script setup>
 import {
-  IonMenu, IonButton, IonContent, IonHeader, IonToolbar, IonItem, IonList,
-  IonTitle, IonButtons, IonSelectOption, IonMenuButton
+  IonMenu, IonButton, IonContent, IonHeader, IonToolbar, IonItem, IonList, IonTitle, IonSelectOption
 } from '@ionic/vue';
 import { App } from '@capacitor/app';
 import { $, $$, $bus, delay, str, isEqual, sendToEmail } from "@/helpers/utils.js";
@@ -69,7 +66,7 @@ import { langs, Translations } from "@/helpers/translations.js";
 import { onMounted, reactive, ref, watch } from "vue";
 import { useGlobalStore } from "@/stores/global.js";
 import { Share } from '@capacitor/share';
-import { IconText, IconBtn, Ikon } from "@/components/renderFunctions.js";
+import { IconText, IconBtn, Ikon, MenuBtn } from "@/components/renderFunctions.js";
 import ToggleIconItem from "@/components/ToggleIconItem.vue";
 import UiSelect from "@/components/UiSelect.vue";
 import UiModal from "@/components/UiModal.vue";

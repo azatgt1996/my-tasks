@@ -4,9 +4,7 @@
   <ion-page id="main-content">
     <ion-header>
       <ion-toolbar v-show="!selected.length">
-        <ion-buttons slot="start">
-          <ion-menu-button />
-        </ion-buttons>
+        <MenuBtn />
         <ion-title>
           {{ tr.myTasks }}{{ filtered.length ? `: ${filtered.length}` : '' }}
         </ion-title>
@@ -190,9 +188,9 @@
 
 <script setup>
 import {
-  useBackButton, IonMenuButton, IonButton, IonContent, IonHeader, IonInput,
-  IonToolbar, IonReorderGroup, IonReorder, IonCheckbox, IonProgressBar, IonNote, IonSelectOption, IonSpinner, IonPopover,
-  IonItem, IonLabel, IonList, IonPage, IonTitle, IonButtons, IonDatetimeButton, IonSegment, IonSegmentButton, IonTextarea
+  useBackButton, IonButton, IonContent, IonHeader, IonInput, IonToolbar, IonReorderGroup, IonReorder, IonCheckbox,
+  IonProgressBar, IonNote, IonSelectOption, IonSpinner, IonPopover, IonItem, IonLabel, IonList, IonPage, IonTitle,
+  IonDatetimeButton, IonSegment, IonSegmentButton, IonTextarea
 } from '@ionic/vue';
 import { App } from '@capacitor/app';
 import { computed, onMounted, ref, watch, reactive } from "vue";
@@ -200,7 +198,7 @@ import { nanoid } from "nanoid";
 import { clone, isEqual, $, $bus, delay, log, arrayMove, getLateDate, vibrate } from "@/helpers/utils.js";
 import { useGlobalStore } from "@/stores/global.js";
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { OptionsGroup, IconBtn, IconText, IconTextBtn, Ikon } from "@/components/renderFunctions.js";
+import { OptionsGroup, IconBtn, IconText, IconTextBtn, Ikon, MenuBtn } from "@/components/renderFunctions.js";
 import UiSelect from "@/components/UiSelect.vue";
 import DateTimeModal from "@/components/DateTimeModal.vue";
 import UiModal from "@/components/UiModal.vue";
@@ -317,8 +315,7 @@ const deleteCategory = async (_category) => {
       removeNotifications(ids)
 
       const _tasks = tasks.filter(it => it.category !== _category)
-      tasks.length = 0
-      Object.assign(tasks, _tasks)
+      setTasks(_tasks)
       saveTasks(1)
       toast(tr.tasksOfCategoryDeleted)
     }
@@ -358,6 +355,8 @@ watch(category, (val, old) => {
 
 // #region Main
 const tasks = reactive([])
+const setTasks = (arr) => (tasks.length = 0, Object.assign(tasks, arr))
+
 const title = ref(''), addTaskInput = ref()
 const listRef = ref()
 const taskLength = 50
@@ -489,7 +488,7 @@ const deleteAll = async () => {
   const ids = tasks.map(getNumId)
   removeNotifications(ids)
 
-  tasks.length = 0
+  setTasks([])
   saveTasks(1)
   toast(tr.allDeleted)
 }
@@ -499,8 +498,7 @@ const deleteAllCompleted = async () => {
 
   const uncompletedTasks = tasks.filter(it => !it.completed)
   const completedTasks = tasks.filter(it => it.completed)
-  tasks.length = 0
-  Object.assign(tasks, uncompletedTasks)
+  setTasks(uncompletedTasks)
   saveTasks(1)
   toast(tr.allCompletedDeleted)
 
@@ -563,8 +561,7 @@ const deleteSelected = async () => {
   removeNotificationsOfSelected()
 
   const _tasks = tasks.filter(it => !selected.value.includes(it.id))
-  tasks.length = 0
-  Object.assign(tasks, _tasks)
+  setTasks(_tasks)
   saveTasks(1)
   toast(tr.selectedDeleted)
 }
