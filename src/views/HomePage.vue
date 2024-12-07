@@ -19,20 +19,20 @@
         </UiSelect>
       </ion-toolbar>
       <ion-toolbar v-show="selected.length" class="group-actions">
-        <IconBtn slot="start" color="medium" icon="close" @click="selected = []" style="margin: 0 3px" />
+        <IconBtn slot="start" color="medium" icon="closeO" @click="selected = []" style="margin: 0 3px" />
         <ion-title>{{ tr.selected }}: {{ selected.length }}</ion-title>
-        <IconBtn slot="end" color="primary" icon="checkCircle" @click="completeSelected" />
-        <IconBtn slot="end" color="danger" icon="trash" @click="deleteSelected" />
-        <IconBtn slot="end" :color="selected.length === filtered.length ? 'success' : 'medium'" icon="checkDone"
+        <IconBtn slot="end" color="primary" icon="checkmarkCO" @click="completeSelected" />
+        <IconBtn slot="end" color="danger" icon="trashO" @click="deleteSelected" />
+        <IconBtn slot="end" :color="selected.length === filtered.length ? 'success' : 'medium'" icon="checkmarkDoneO"
           @click="listRef.selectAll()" />
         <IconBtn id="more-btn" slot="end" color="medium" icon="ellipsisVertical" style="margin: 0 3px" />
         <ion-popover trigger="more-btn" dismiss-on-select size="auto">
           <ion-content>
             <ion-list lines="none">
-              <IconText icon="arrowUndo" :text="tr.uncompleteTasks" @click="uncompleteSelected" />
-              <IconText icon="albums" :text="tr.changeCategory" @click="changeCategory" />
-              <IconText icon="caretUpCircle" :text="tr.changePriority" @click="changePriority" />
-              <IconText icon="alarm" :text="tr.changeNotification" @click="$bus.open('NotificationModal')" />
+              <IconText icon="arrowUndoCO" :text="tr.uncompleteTasks" @click="uncompleteSelected" />
+              <IconText icon="albumsO" :text="tr.changeCategory" @click="changeCategory" />
+              <IconText icon="caretUpCO" :text="tr.changePriority" @click="changePriority" />
+              <IconText icon="alarmO" :text="tr.changeNotification" @click="$bus.open('NotificationModal')" />
             </ion-list>
           </ion-content>
         </ion-popover>
@@ -41,7 +41,7 @@
       <ion-item>
         <ion-input :placeholder="tr.search" v-model="keyword" :maxlength="taskLength" clear-input :debounce="500"
           :disabled="hasSelected">
-          <Ikon slot="start" color="medium" small :icon="params.searchInDesc ? 'searchCircle' : 'search'" />
+          <Ikon slot="start" color="medium" small :icon="params.searchInDesc ? 'searchC' : 'searchS'" />
           <IconBtn slot="end" size="small" icon="funnel" @click="$('#filterSelect').click()" :disabled="hasSelected"
             :color="filters.length === 3 && isEqual(filters, priorities) ? 'medium' : 'primary'"
             style="margin-left: 0" />
@@ -59,7 +59,7 @@
       <ion-item lines="none">
         <ion-input :placeholder="tr.newTask" v-model="title" :maxlength="taskLength" clear-input
           @keyup.enter="addTask(title)" :disabled="hasSelected" ref="addTaskInput">
-          <IconBtn slot="end" size="small" icon="addCircle" :color="!title?.trim() ? 'secondary' : 'primary'"
+          <IconBtn slot="end" size="small" icon="addC" :color="!title?.trim() ? 'secondary' : 'primary'"
             @click="addTask(title)" :disabled="hasSelected" style="margin-left: 0" />
         </ion-input>
       </ion-item>
@@ -69,15 +69,15 @@
       <div v-show="loading" class="flex-center">
         <ion-spinner name="lines" />
       </div>
-      <SlidingList ref="listRef" v-model="selected" :data="filtered" :withVibro="params.vibro" rightIcon="trash"
-        :leftIcon="task => task.completed ? 'arrowUndo' : 'checkCircle'" @to-left="task => toggleCompleted(task)"
+      <SlidingList ref="listRef" v-model="selected" :data="filtered" :withVibro="params.vibro" rightIcon="trashO"
+        :leftIcon="task => task.completed ? 'arrowUndoCO' : 'checkmarkCO'" @to-left="task => toggleCompleted(task)"
         @to-right="task => deleteTask(task)" @click-item="task => openTask(task)">
         <template #item="task">
           <ion-label class="shorted-text" :class="{ 'striked-text': task.completed }">
             {{ task.title }}
           </ion-label>
-          <Ikon v-if="task.completed" icon="checkCircle" small style="margin-right: 2px" />
-          <Ikon v-if="task.notification !== emptyDatetime" icon="alarm" small style="margin-right: 2px"
+          <Ikon v-if="task.completed" icon="checkmarkCO" small style="margin-right: 2px" />
+          <Ikon v-if="task.notification !== emptyDatetime" icon="alarmO" small style="margin-right: 2px"
             :style="{ color: new Date() < getDT(task) ? '' : 'orangered' }" />
           <Ikon icon="ellipse" :color="priorityType[task.priority]" style="font-size: 14px" />
         </template>
@@ -89,9 +89,9 @@
     <ion-progress-bar v-show="cancelTimer" :value="cancelTimer" color="secondary" />
   </ion-page>
 
-  <UiModal id="task-modal" name="TaskModal" icon="reader" :title="tr.detailInfo">
+  <UiModal id="task-modal" name="TaskModal" icon="readerO" :title="tr.detailInfo">
     <template #button>
-      <IconBtn icon="save" :disabled="disabledSave" @click="saveTask(current)" />
+      <IconBtn icon="saveO" :disabled="disabledSave" @click="saveTask(current)" />
     </template>
     <ion-list @click.stop>
       <ion-item>
@@ -119,12 +119,12 @@
         <ion-label>{{ tr.notification }}</ion-label>
         <ion-button v-show="current.notification === emptyDatetime" color="light"
           @click="current.notification = getLateDate()" style="--box-shadow: 0">
-          <Ikon icon="add" />
-          <Ikon icon="alarm" small />
+          <Ikon icon="addO" />
+          <Ikon icon="alarmO" small />
         </ion-button>
         <ion-datetime-button v-show="current.notification !== emptyDatetime" datetime="datetime"
           :class="new Date() < getDT(current) ? '' : 'passed-date'" />
-        <IconBtn v-show="current.notification !== emptyDatetime" color="danger" icon="closeCircle"
+        <IconBtn v-show="current.notification !== emptyDatetime" color="danger" icon="closeCO"
           @click="current.notification = emptyDatetime" />
       </ion-item>
       <DateTimeModal id="datetime" v-model="current.notification" />
@@ -142,12 +142,12 @@
           {{ tr.isCompleted }}
         </ion-checkbox>
       </ion-item>
-      <IconText icon="trash" :text="tr.delete" color="danger" @click="removeTask(current)" />
+      <IconText icon="trashO" :text="tr.delete" color="danger" @click="removeTask(current)" />
     </ion-list>
     <template v-if="filtered.length > 1" #footer>
-      <IconTextBtn size="small" style="width: 100%" :text="tr.prev" icon="caretBack"
+      <IconTextBtn size="small" style="width: 100%" :text="tr.prev" icon="caretBackO"
         :disabled="filtered[0]?.id === current.id" @click="prevTask" />
-      <IconTextBtn size="small" style="width: 100%" :text="tr.next" icon="caretForward"
+      <IconTextBtn size="small" style="width: 100%" :text="tr.next" icon="caretForwardO"
         :disabled="filtered.at(-1)?.id === current.id" iconPlace="end" @click="nextTask" />
     </template>
   </UiModal>
@@ -156,13 +156,13 @@
     <div style="display: grid; margin: 0 auto; padding: 30px 0 10px">
       <ion-datetime-button datetime="group-dt" style="margin-bottom: 15px"
         :class="new Date() < getDT({ notification: groupNotification }) ? '' : 'passed-date'" />
-      <IconTextBtn :text="tr.setNotification" icon="checkCircle" @click="changeNotifications()" />
-      <IconTextBtn :text="tr.deleteNotification" icon="closeCircle" @click="changeNotifications(1)" color="danger" />
+      <IconTextBtn :text="tr.setNotification" icon="checkmarkCO" @click="changeNotifications()" />
+      <IconTextBtn :text="tr.deleteNotification" icon="closeCO" @click="changeNotifications(1)" color="danger" />
       <DateTimeModal id="group-dt" v-model="groupNotification" />
     </div>
   </UiModal>
 
-  <UiModal name="CategoriesModal" icon="albums" :title="tr.categories">
+  <UiModal name="CategoriesModal" icon="albumsO" :title="tr.categories">
     <template #button>
       <ion-button @click="addCategory()">{{ tr.add }}</ion-button>
     </template>
@@ -179,8 +179,8 @@
             {{ baseCategories.includes(_category) ? tr[_category] : _category }}
             <ion-note>({{ tasks.filter(it => it.category === _category).length }})</ion-note>
           </ion-label>
-          <IconBtn color="primary" size="small" icon="pencil" @click="renameCategory(_category)" />
-          <IconBtn color="danger" size="small" icon="trash" @click="deleteCategory(_category)" />
+          <IconBtn color="primary" size="small" icon="pencilO" @click="renameCategory(_category)" />
+          <IconBtn color="danger" size="small" icon="trashO" @click="deleteCategory(_category)" />
           <ion-reorder slot="end" :style="categories.slice(2).length === 1 ? 'pointer-events: none' : ''" />
         </ion-item>
       </ion-reorder-group>

@@ -8,7 +8,7 @@
       </ion-item-options>
       <ion-item button @click="clickItem(item)" @touchstart="checkItem(item)" @touchend="clearTimer"
         @touchmove="sliding = true">
-        <Ikon v-show="selected.includes(item.id)" icon="check" color="success" class="check-icon mr-10" />
+        <Ikon v-show="selected.includes(item.id)" icon="checkmarkO" color="success" class="check-icon mr-10" />
         <slot name="item" v-bind="item" />
       </ion-item>
       <ion-item-options side="end" @ion-swipe="swipedTo('right', item)">

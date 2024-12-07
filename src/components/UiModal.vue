@@ -6,7 +6,7 @@
         <ion-title>{{ title }}</ion-title>
         <ion-buttons slot="end">
           <slot name="button" />
-          <IconBtn icon="close" @click="isOpen = false" />
+          <IconBtn icon="closeO" @click="isOpen = false" />
         </ion-buttons>
       </ion-toolbar>
     </ion-header>

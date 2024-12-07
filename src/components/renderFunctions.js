@@ -1,9 +1,12 @@
 import { IonSelectOption, IonItem, IonIcon, IonLabel, IonButton } from '@ionic/vue';
 import { h } from 'vue';
-import iconMap from '@/constants/iconMap';
+import * as ionicons from 'ionicons/icons';
+
+let f = (s) => s.replace(/C(?![a-z])|O(?![a-z])|S(?![a-z])/g,
+  c => ({ C: 'Circle', O: 'Outline', S: 'Sharp' })[c])
 
 export const Ikon = ({ icon, small, ...props }) =>
-  h(IonIcon, { icon: iconMap[icon], size: small === '' ? 'small' : '', ...props })
+  h(IonIcon, { icon: ionicons[f(icon)], size: small === '' ? 'small' : '', ...props })
 
 export const IconBtn = ({ icon, size, ...props }) =>
   h(IonButton, { shape: 'round', fill: 'clear', ...props },
