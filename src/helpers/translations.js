@@ -147,7 +147,7 @@ const Translations = {}
 langs.forEach((lang, index) => {
   Translations[lang] = {}
   for (const key in translations)
-    Translations[lang][key] = translations[key][index]
+    Translations[lang][key] = translations[key][index] ?? translations[key][0]
 })
 
 export { Translations, langs }

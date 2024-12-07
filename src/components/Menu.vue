@@ -56,7 +56,7 @@
     </ion-list>
   </UiModal>
 
-  <UiModal name="TranslationModal" icon="language" @didPresent="closeMenu" :title="translationModalTitle">
+  <UiModal name="TranslationModal" icon="language" :title="translationModalTitle" @didPresent="closeMenu">
     <template #button>
       <ion-button @click="sendTranslation">{{ tr.send }}</ion-button>
     </template>
