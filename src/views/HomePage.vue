@@ -168,6 +168,7 @@ import {
   clone, isEqual, $, $bus, delay, getLateDate, getDT,
   isLater, getNumId, setNotification, removeNotifications
 } from "@/helpers/utils.js";
+import { useActionWithCancel } from "@/helpers/actionWithCancel"
 import { emptyDatetime } from "@/helpers/constants.js";
 import { useGlobalStore } from "@/stores/globalStore";
 import { useTaskStore } from "@/stores/taskStore";
@@ -181,7 +182,8 @@ import SlidingList from '@/components/SlidingList.vue';
 import NotificationModal from '@/modals/NotificationModal.vue';
 import CategoriesModal from '@/modals/CategoriesModal.vue';
 
-const { tr, params, storage, localeDate, toast, errToast, cancelToast, confirm, prompt2 } = useGlobalStore()
+const { cancelTimer, execute } = useActionWithCancel()
+const { tr, params, storage, localeDate, toast, errToast, confirm, prompt2 } = useGlobalStore()
 const { tasks, setTasks, saveTasks } = useTaskStore()
 const { selected } = toRefs(useTaskStore())
 
@@ -302,38 +304,20 @@ const addTask = (_title) => {
   saveTasks()
 }
 
-let timer
-const cancelTimer = ref(0)
-
 const deleteTask = async (task) => {
-  const reset = () => {
-    clearInterval(timer)
-    cancelTimer.value = 0
-  }
-  reset()
-
-  const idx = tasks.findIndex(it => it.id === task.id)
-  const deleted = tasks[idx]
-  tasks.splice(idx, 1)
-  saveTasks(1)
-
-  let isDeleted = true
-  timer = setInterval(() => {
-    cancelTimer.value += 0.01
-    if (cancelTimer.value > 1) reset()
-  }, 30)
-
-  cancelToast(tr.taskDeleted, () => {
-    isDeleted = false
-    reset()
+  execute(tr.taskDeleted, () => {
+    const idx = tasks.findIndex(it => it.id === task.id)
+    const deleted = tasks[idx]
+    tasks.splice(idx, 1)
+    saveTasks(1)
+    return { idx, deleted }
+  }, ({ deleted }) => {
+    const _id = getNumId(deleted)
+    removeNotifications([_id])
+  }, ({ idx, deleted }) => {
     tasks.splice(idx, 0, deleted)
     saveTasks(2)
   })
-
-  await delay(3500)
-  if (!isDeleted) return
-  const _id = getNumId(deleted)
-  removeNotifications([_id])
 }
 
 const removeTask = (task) => {
