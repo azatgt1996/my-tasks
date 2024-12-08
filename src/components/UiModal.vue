@@ -33,13 +33,14 @@ const props = defineProps({
   sheet: Boolean,
 })
 
-const emit = defineEmits(['dblClick', 'swipedLeft', 'swipedRight'])
+const emit = defineEmits(['dblClick', 'swipedLeft', 'swipedRight', 'opened'])
 
 const isOpen = ref(false)
 
-$bus.on('openModal', (modalName) => {
+$bus.on('openModal', (modalName, ...args) => {
   if (props.name === modalName) {
     isOpen.value = true
+    emit('opened', ...args)
     setTimeout(() => $('#main-menu').close(), 400)
   }
 })

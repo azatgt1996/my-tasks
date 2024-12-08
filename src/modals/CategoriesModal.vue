@@ -13,7 +13,7 @@
       <IonReorderGroup :disabled="false" @ionItemReorder="onReorder">
         <IonItem v-for="_category in categories.slice(2)" :key="_category">
           <IonLabel class="shorted-text">
-            {{ baseCategories.includes(_category) ? tr[_category] : _category }}
+            {{ getCategoryName(_category) }}
             <IonNote>({{ tasks.filter(it => it.category === _category).length }})</IonNote>
           </IonLabel>
           <IconBtn color="primary" size="small" icon="pencilO" @click="renameCategory(_category)" />
@@ -38,7 +38,7 @@ import UiModal from "@/components/UiModal.vue";
 const { tr, storage, prompt, errToast, confirm, toast } = useGlobalStore()
 const { tasks, setTasks, saveTasks } = useTaskStore()
 
-const { baseCategories } = useCategoryStore()
+const { baseCategories, getCategoryName } = useCategoryStore()
 const { category, categories } = toRefs(useCategoryStore())
 
 watch(category, (val, old) => {
@@ -59,7 +59,7 @@ const addCategory = (isToggle) =>
   })
 
 const renameCategory = (_category) => {
-  const oldValue = baseCategories.includes(_category) ? tr[_category] : _category
+  const oldValue = getCategoryName(_category)
 
   prompt(tr.renameCategory, tr.typeCategory, oldValue, val => {
     if (oldValue === val) return

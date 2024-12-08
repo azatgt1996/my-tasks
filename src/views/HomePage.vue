@@ -10,7 +10,7 @@
         <UiSelect slot="end" interface="popover" v-model="category" class="mr-10"
           style="max-width: 44%; padding-top: 3px">
           <IonSelectOption v-for="_category in categories" :value="_category">
-            {{ baseCategories.includes(_category) ? tr[_category] : _category }}
+            {{ getCategoryName(_category) }}
           </IonSelectOption>
           <IonSelectOption class="primary" value="">+ {{ tr.newCategory }}</IonSelectOption>
         </UiSelect>
@@ -36,7 +36,7 @@
       </IonToolbar>
 
       <IonItem>
-        <IonInput :placeholder="tr.search" v-model="keyword" :maxlength="taskLength" clear-input :debounce="500"
+        <IonInput :placeholder="tr.search" v-model="keyword" :maxlength="50" clear-input :debounce="500"
           :disabled="hasSelected">
           <Ikon slot="start" color="medium" small :icon="params.searchInDesc ? 'searchC' : 'searchS'" />
           <IconBtn slot="end" size="small" icon="funnel" @click="$('#filterSelect').click()" :disabled="hasSelected"
@@ -54,8 +54,8 @@
         </UiSelect>
       </IonItem>
       <IonItem lines="none">
-        <IonInput :placeholder="tr.newTask" v-model="title" :maxlength="taskLength" clear-input
-          @keyup.enter="addTask(title)" :disabled="hasSelected" ref="addTaskInput">
+        <IonInput ref="addTaskInput" :placeholder="tr.newTask" v-model="title" :disabled="hasSelected" :maxlength="50"
+          clear-input @keyup.enter="addTask(title)">
           <IconBtn slot="end" size="small" icon="addC" :color="!title?.trim() ? 'secondary' : 'primary'"
             @click="addTask(title)" :disabled="hasSelected" style="margin-left: 0" />
         </IonInput>
@@ -67,8 +67,8 @@
         <IonSpinner name="lines" />
       </div>
       <SlidingList ref="listRef" v-model="selected" :data="filtered" :withVibro="params.vibro" rightIcon="trashO"
-        :leftIcon="task => task.completed ? 'arrowUndoCO' : 'checkmarkCO'" @to-left="task => toggleCompleted(task)"
-        @to-right="task => deleteTask(task)" @click-item="task => openTask(task)">
+        :leftIcon="task => task.completed ? 'arrowUndoCO' : 'checkmarkCO'" @to-left="toggleCompleted"
+        @to-right="deleteTask" @click-item="task => $bus.open('TaskModal', task)">
         <template #item="task">
           <IonLabel class="shorted-text" :class="{ 'striked-text': task.completed }">
             {{ task.title }}
@@ -86,108 +86,39 @@
     <IonProgressBar v-show="cancelTimer" :value="cancelTimer" color="secondary" />
   </IonPage>
 
-  <UiModal name="TaskModal" icon="readerO" :title="tr.detailInfo"
-    @dblClick="!isEqual(originalCurrent, current) && saveTask(current)"
-    @swipedLeft="filtered.at(-1)?.id !== current.id && nextTask()"
-    @swipedRight="filtered[0]?.id !== current.id && prevTask()">
-    <template #button>
-      <IconBtn icon="saveO" :disabled="isEqual(originalCurrent, current)" @click="saveTask(current)" />
-    </template>
-    <IonList @click.stop>
-      <IonItem>
-        <IonInput :label="tr.created" :value="localeDate(current.created)" readonly class="full-label" />
-      </IonItem>
-      <IonItem>
-        <IonInput :label="tr.changed" :value="localeDate(current.changed)" readonly class="full-label" />
-      </IonItem>
-      <IonItem>
-        <IonInput :label="tr.title" :placeholder="tr.typeTask" v-model="current.title" label-placement="fixed"
-          :maxlength="taskLength" />
-      </IonItem>
-      <IonItem>
-        <IonTextarea :label="tr.description" v-model="current.description" :rows="4" :placeholder="tr.typeDescription"
-          clear-input label-placement="fixed" :maxlength="300" />
-      </IonItem>
-      <IonItem>
-        <UiSelect v-model="current.category" :label="tr.category" :header="tr.selectCategory">
-          <IonSelectOption v-for="_category in categories.slice(1)" :value="_category">
-            {{ baseCategories.includes(_category) ? tr[_category] : _category }}
-          </IonSelectOption>
-        </UiSelect>
-      </IonItem>
-      <IonItem>
-        <IonLabel>{{ tr.notification }}</IonLabel>
-        <IonButton v-show="current.notification === emptyDatetime" color="light"
-          @click="current.notification = getLateDate()" style="--box-shadow: 0">
-          <Ikon icon="addO" />
-          <Ikon icon="alarmO" small />
-        </IonButton>
-        <IonDatetimeButton v-show="current.notification !== emptyDatetime" datetime="datetime"
-          :class="isLater(current.notification) ? '' : 'passed-date'" />
-        <IconBtn v-show="current.notification !== emptyDatetime" color="danger" icon="closeCO"
-          @click="current.notification = emptyDatetime" />
-      </IonItem>
-      <DateTimeModal id="datetime" v-model="current.notification" />
-      <IonItem>
-        <IonLabel>{{ tr.priority }}</IonLabel>
-        <IonSegment v-model="current.priority" mode="ios">
-          <IonSegmentButton v-for="value in priorities" :value="value">
-            <IonLabel :color="priorityType[value]">{{ tr[value] }}</IonLabel>
-          </IonSegmentButton>
-        </IonSegment>
-      </IonItem>
-      <IonItem>
-        <IonCheckbox v-model="current.completed" justify="space-between" :class="{ primary: current.completed }">
-          {{ tr.isCompleted }}
-        </IonCheckbox>
-      </IonItem>
-      <IconText icon="trashO" :text="tr.delete" color="danger" @click="removeTask(current)" />
-    </IonList>
-    <template v-if="filtered.length > 1" #footer>
-      <IconTextBtn size="small" style="width: 100%" :text="tr.prev" icon="caretBackO"
-        :disabled="filtered[0]?.id === current.id" @click="prevTask" />
-      <IconTextBtn size="small" style="width: 100%" :text="tr.next" icon="caretForwardO"
-        :disabled="filtered.at(-1)?.id === current.id" iconPlace="end" @click="nextTask" />
-    </template>
-  </UiModal>
-
+  <TaskModal :data="filtered" @delete="deleteTask" @save="saveTask" />
   <NotificationModal @changeNotifications="changeNotifications" />
   <CategoriesModal />
 </template>
 
 <script setup>
 import {
-  useBackButton, IonButton, IonContent, IonHeader, IonInput, IonToolbar, IonCheckbox,
+  useBackButton, IonContent, IonHeader, IonInput, IonToolbar,
   IonProgressBar, IonSelectOption, IonSpinner, IonPopover, IonItem, IonLabel, IonList, IonPage, IonTitle,
-  IonDatetimeButton, IonSegment, IonSegmentButton, IonTextarea
 } from '@ionic/vue';
 import { App } from '@capacitor/app';
 import { computed, onMounted, ref, watch, toRefs } from "vue";
 import { nanoid } from "nanoid";
-import {
-  clone, isEqual, $, $bus, delay, getLateDate, getDT,
-  isLater, getNumId, setNotification, removeNotifications
-} from "@/helpers/utils.js";
+import { isEqual, $, $bus, delay, getDT, isLater, getNumId, setNotification, removeNotifications } from "@/helpers/utils.js";
 import { useActionWithCancel } from "@/helpers/actionWithCancel"
-import { emptyDatetime } from "@/helpers/constants.js";
+import { emptyDatetime, priorityType, priorities, priorityNum } from "@/helpers/constants.js";
 import { useGlobalStore } from "@/stores/globalStore";
 import { useTaskStore } from "@/stores/taskStore";
 import { useCategoryStore } from "@/stores/categoryStore";
-import { OptionsGroup, IconBtn, IconText, IconTextBtn, Ikon, MenuBtn } from "@/components/renderFunctions.js";
+import { OptionsGroup, IconBtn, IconText, Ikon, MenuBtn } from "@/components/renderFunctions.js";
 import UiSelect from "@/components/UiSelect.vue";
-import DateTimeModal from "@/components/DateTimeModal.vue";
-import UiModal from "@/components/UiModal.vue";
 import Menu from "@/components/Menu.vue";
 import SlidingList from '@/components/SlidingList.vue';
+import TaskModal from '@/modals/TaskModal.vue';
 import NotificationModal from '@/modals/NotificationModal.vue';
 import CategoriesModal from '@/modals/CategoriesModal.vue';
 
 const { cancelTimer, execute } = useActionWithCancel()
-const { tr, params, storage, localeDate, toast, errToast, confirm, prompt2 } = useGlobalStore()
+const { tr, params, storage, toast, errToast, confirm, prompt2 } = useGlobalStore()
 const { tasks, setTasks, saveTasks } = useTaskStore()
 const { selected } = toRefs(useTaskStore())
 
-const { baseCategories } = useCategoryStore()
+const { getCategoryName } = useCategoryStore()
 const { category, categories } = toRefs(useCategoryStore())
 const loading = ref(true)
 
@@ -197,11 +128,8 @@ useBackButton(-1, () => {
 })
 
 // #region Filter
-const priorityType = { low: 'success', medium: 'warning', high: 'danger' }
-const priorities = Object.keys(priorityType)
 const keyword = ref('')
 const filters = ref([])
-const priorityNum = { low: 0, medium: 1, high: 2 }
 
 watch(filters, (val) => storage.set('filters', JSON.stringify(val)))
 
@@ -245,22 +173,12 @@ const listStatus = computed(() => {
 // #region Main
 const title = ref(''), addTaskInput = ref()
 const listRef = ref()
-const taskLength = 50
-
-const current = ref({})
-let originalCurrent = {}
-
-const openTask = (task) => {
-  originalCurrent = clone(task)
-  current.value = clone(task)
-  $bus.open('TaskModal')
-}
 
 const changeNotification = (task) => {
   const _id = getNumId(task)
   const { notification, completed, priority, category, title } = task
   if (isLater(notification) && !completed) {
-    const body = tr.category + ': ' + (baseCategories.includes(category) ? tr[category] : category)
+    const body = tr.category + ': ' + getCategoryName(category)
     setNotification(_id, title, body, notification, priorityType[priority])
   } else removeNotifications([_id])
 }
@@ -277,10 +195,6 @@ const saveTask = (cur) => {
 
   toast(tr.taskChanged)
   saveTasks()
-  originalCurrent = clone(cur)
-  current.value = clone(cur)
-
-  if (params.autoClose) $bus.close('TaskModal')
 }
 
 const addTask = (_title) => {
@@ -320,11 +234,6 @@ const deleteTask = async (task) => {
   })
 }
 
-const removeTask = (task) => {
-  $bus.close('TaskModal')
-  deleteTask(task)
-}
-
 $bus.on('deleteAll', async () => {
   if (!await confirm(tr.aysToDelete)) return
 
@@ -361,20 +270,6 @@ const toggleCompleted = async (task) => {
 
   saveTasks()
   toast(isCompleted ? tr.taskCompleted : tr.taskUncompleted)
-}
-
-const prevTask = () => {
-  const idx = filtered.value.findIndex(it => it.id === current.value.id)
-  const prev = idx === 0 ? filtered.value.at(-1) : filtered.value[idx - 1]
-  originalCurrent = clone(prev)
-  current.value = clone(prev)
-}
-
-const nextTask = () => {
-  const idx = filtered.value.findIndex(it => it.id === current.value.id)
-  const next = idx === (filtered.value.length - 1) ? filtered.value[0] : filtered.value[idx + 1]
-  originalCurrent = clone(next)
-  current.value = clone(next)
 }
 // #endregion
 
@@ -418,7 +313,7 @@ const groupExec = (prop, val) => {
 }
 
 const changeCategory = () => {
-  const options = categories.value.slice(1).map(it => ({ label: baseCategories.includes(it) ? tr[it] : it, value: it }))
+  const options = categories.value.slice(1).map(it => ({ label: getCategoryName(it), value: it }))
   prompt2(tr.selectCategory, options, val => groupExec('category', val))
 }
 
@@ -450,13 +345,6 @@ onMounted(async () => {
 
 .group-actions > ion-button
   margin: 0
-
-.options-group
-  pointer-events: none
-  & .alert-checkbox-icon
-    display: none
-  & .alert-checkbox-label
-    padding-left: 26px
 
 .full-label > label
   justify-content: space-between
