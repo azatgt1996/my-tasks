@@ -30,8 +30,9 @@ export const getLateDate = () => {
     return new Date(next).toISOString().slice(0, -8)
 }
 
-/** Returns datetime string date */
 export const getDT = (date) => new Date(date === emptyDatetime ? 0 : date)
+
+export const isLater = (date) => new Date() < getDT(date)
 
 // type: primary, danger, secondary etc
 export const getHexColor = (type) => getComputedStyle(document.documentElement).getPropertyValue(`--ion-color-${type}`)

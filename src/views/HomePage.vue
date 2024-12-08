@@ -75,7 +75,7 @@
           </IonLabel>
           <Ikon v-if="task.completed" icon="checkmarkCO" small style="margin-right: 2px" />
           <Ikon v-if="task.notification !== emptyDatetime" icon="alarmO" small style="margin-right: 2px"
-            :style="{ color: new Date() < getDT(task.notification) ? '' : 'orangered' }" />
+            :style="{ color: isLater(task.notification) ? '' : 'orangered' }" />
           <Ikon icon="ellipse" :color="priorityType[task.priority]" style="font-size: 14px" />
         </template>
       </SlidingList>
@@ -122,7 +122,7 @@
           <Ikon icon="alarmO" small />
         </IonButton>
         <IonDatetimeButton v-show="current.notification !== emptyDatetime" datetime="datetime"
-          :class="new Date() < getDT(current.notification) ? '' : 'passed-date'" />
+          :class="isLater(current.notification) ? '' : 'passed-date'" />
         <IconBtn v-show="current.notification !== emptyDatetime" color="danger" icon="closeCO"
           @click="current.notification = emptyDatetime" />
       </IonItem>
@@ -188,7 +188,7 @@ import {
 import { App } from '@capacitor/app';
 import { computed, onMounted, ref, watch, toRefs } from "vue";
 import { nanoid } from "nanoid";
-import { clone, isEqual, $, $bus, delay, log, arrayMove, getLateDate, getDT, getHexColor, vibrate } from "@/helpers/utils.js";
+import { clone, isEqual, $, $bus, delay, log, arrayMove, getLateDate, getDT, isLater, getHexColor, vibrate } from "@/helpers/utils.js";
 import { emptyDatetime } from "@/helpers/constants.js";
 import { useGlobalStore } from "@/stores/globalStore";
 import { useTaskStore } from "@/stores/taskStore";
@@ -240,7 +240,7 @@ const filtered = computed(() => {
     if (searchInDesc) res ||= it.description.toLowerCase().includes(_keyword)
     res &&= _filter.includes(it.priority)
     if (!_filter.includes('completed')) res &&= !it.completed
-    if (_filter.includes('notificated')) res &&= new Date() < getDT(it.notification)
+    if (_filter.includes('notificated')) res &&= isLater(it.notification)
     return res
   })
 
@@ -372,7 +372,7 @@ const openTask = (task) => {
 const changeNotification = (task) => {
   const _id = getNumId(task)
   const { notification, completed, priority, category, title } = task
-  if (new Date() < new Date(notification) && notification !== emptyDatetime && !completed) {
+  if (isLater(notification) && !completed) {
     const body = tr.category + ': ' + (baseCategories.includes(category) ? tr[category] : category)
     setNotification(_id, title, body, notification, priority)
   } else removeNotifications([_id])
