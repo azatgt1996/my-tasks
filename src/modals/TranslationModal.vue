@@ -18,15 +18,13 @@
 <script setup>
 import { IonItem, IonList, IonButton, IonInput } from '@ionic/vue';
 import { useGlobalStore } from '@/stores/globalStore';
-import { ref, computed } from 'vue';
+import { ref, computed, toRefs } from 'vue';
 import { Translations } from "@/helpers/translations.js";
 import { $bus, sendToEmail, delay } from "@/helpers/utils.js";
-import { storeToRefs } from "pinia";
 import UiModal from "@/components/UiModal.vue";
 
-const globalStore = useGlobalStore()
-const { tr, errToast, alert } = globalStore
-const { lang } = storeToRefs(globalStore)
+const { tr, errToast, alert } = useGlobalStore()
+const { lang } = toRefs(useGlobalStore())
 
 const trData = ref({})
 const all = Object.keys(Translations['EN']).length - 2
