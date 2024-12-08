@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia'
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 
 export const useTaskStore = defineStore('taskStore', () => {
     const tasks = reactive([])
+    const selected = ref([])
 
-    return { tasks }
+    return { tasks, selected }
 })

@@ -75,7 +75,7 @@
           </IonLabel>
           <Ikon v-if="task.completed" icon="checkmarkCO" small style="margin-right: 2px" />
           <Ikon v-if="task.notification !== emptyDatetime" icon="alarmO" small style="margin-right: 2px"
-            :style="{ color: new Date() < getDT(task) ? '' : 'orangered' }" />
+            :style="{ color: new Date() < getDT(task.notification) ? '' : 'orangered' }" />
           <Ikon icon="ellipse" :color="priorityType[task.priority]" style="font-size: 14px" />
         </template>
       </SlidingList>
@@ -120,7 +120,7 @@
           <Ikon icon="alarmO" small />
         </IonButton>
         <IonDatetimeButton v-show="current.notification !== emptyDatetime" datetime="datetime"
-          :class="new Date() < getDT(current) ? '' : 'passed-date'" />
+          :class="new Date() < getDT(current.notification) ? '' : 'passed-date'" />
         <IconBtn v-show="current.notification !== emptyDatetime" color="danger" icon="closeCO"
           @click="current.notification = emptyDatetime" />
       </IonItem>
@@ -149,15 +149,7 @@
     </template>
   </UiModal>
 
-  <UiModal name="NotificationModal" sheet style="--height: auto" @willPresent="groupNotification = getLateDate()">
-    <div style="display: grid; margin: 0 auto; padding: 30px 0 10px">
-      <IonDatetimeButton datetime="group-dt" style="margin-bottom: 15px"
-        :class="new Date() < getDT({ notification: groupNotification }) ? '' : 'passed-date'" />
-      <IconTextBtn :text="tr.setNotification" icon="checkmarkCO" @click="changeNotifications()" />
-      <IconTextBtn :text="tr.deleteNotification" icon="closeCO" @click="changeNotifications(1)" color="danger" />
-      <DateTimeModal id="group-dt" v-model="groupNotification" />
-    </div>
-  </UiModal>
+  <NotificationModal @changeNotifications="changeNotifications" />
 
   <UiModal name="CategoriesModal" icon="albumsO" :title="tr.categories">
     <template #button>
@@ -192,9 +184,10 @@ import {
   IonDatetimeButton, IonSegment, IonSegmentButton, IonTextarea
 } from '@ionic/vue';
 import { App } from '@capacitor/app';
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch, toRefs } from "vue";
 import { nanoid } from "nanoid";
-import { clone, isEqual, $, $bus, delay, log, arrayMove, getLateDate, vibrate } from "@/helpers/utils.js";
+import { clone, isEqual, $, $bus, delay, log, arrayMove, getLateDate, getDT, getHexColor, vibrate } from "@/helpers/utils.js";
+import { emptyDatetime } from "@/helpers/constants.js";
 import { useGlobalStore } from "@/stores/globalStore";
 import { useTaskStore } from "@/stores/taskStore";
 import { LocalNotifications } from '@capacitor/local-notifications';
@@ -204,19 +197,16 @@ import DateTimeModal from "@/components/DateTimeModal.vue";
 import UiModal from "@/components/UiModal.vue";
 import Menu from "@/components/Menu.vue";
 import SlidingList from '@/components/SlidingList.vue';
+import NotificationModal from '@/modals/NotificationModal.vue';
 
 const { tr, params, storage, localeDate, toast, errToast, cancelToast, confirm, prompt, prompt2 } = useGlobalStore()
 const { tasks } = useTaskStore()
+const { selected } = toRefs(useTaskStore())
 
 // #region Others
 const audio = new Audio('/change.wav')
 const audio2 = new Audio('/trash.mp3')
 const loading = ref(false)
-
-const getHexColor = (type) => getComputedStyle(document.documentElement).getPropertyValue(`--ion-color-${type}`)
-
-/** Returns datetime of task notification date */
-const getDT = (task) => new Date(task.notification === emptyDatetime ? 0 : task.notification)
 
 /** Returns id (32bit integer) from task created date */
 const getNumId = (task) => +(new Date(task.created).getTime().toString().slice(0, -3))
@@ -253,7 +243,7 @@ const filtered = computed(() => {
     if (searchInDesc) res ||= it.description.toLowerCase().includes(_keyword)
     res &&= _filter.includes(it.priority)
     if (!_filter.includes('completed')) res &&= !it.completed
-    if (_filter.includes('notificated')) res &&= new Date() < getDT(it)
+    if (_filter.includes('notificated')) res &&= new Date() < getDT(it.notification)
     return res
   })
 
@@ -263,7 +253,7 @@ const filtered = computed(() => {
     if (sortBy === 'changed') return new Date(t1.changed) - new Date(t2.changed)
     if (sortBy === 'title') return t1.title.localeCompare(t2.title)
     if (sortBy === 'priority') return priorityNum[t1.priority] - priorityNum[t2.priority]
-    if (sortBy === 'notification') return getDT(t1) - getDT(t2)
+    if (sortBy === 'notification') return getDT(t1.notification) - getDT(t2.notification)
   })
 })
 
@@ -360,7 +350,6 @@ const setTasks = (arr) => (tasks.length = 0, Object.assign(tasks, arr))
 const title = ref(''), addTaskInput = ref()
 const listRef = ref()
 const taskLength = 50
-const emptyDatetime = '2100-01-01T00:00:00.000Z'
 
 const current = ref({})
 let originalCurrent = {}
@@ -536,7 +525,6 @@ const nextTask = () => {
 // #endregion
 
 // #region Selecting
-const selected = ref([])
 const hasSelected = computed(() => selected.value.length > 0)
 
 const removeNotificationsOfSelected = () => {
@@ -587,11 +575,8 @@ const changePriority = () => {
 
 const uncompleteSelected = () => groupExec('completed', false)
 
-const groupNotification = ref()
-
-const changeNotifications = (isDel) => {
-  const val = isDel ? emptyDatetime : groupNotification.value
-  groupExec('notification', val)
+const changeNotifications = (val) => {
+  groupExec('notification', val ?? emptyDatetime)
   $bus.close('NotificationModal')
 }
 // #endregion
@@ -676,9 +661,6 @@ ion-progress-bar
   align-items: center
   justify-content: center
   height: 100%
-
-.passed-date
-  --ion-text-color: orangered
 
 @each $pr, $color in (low: success, medium: warning, high: danger)
   .#{$pr}-item[aria-checked="true"]

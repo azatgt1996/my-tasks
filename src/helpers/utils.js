@@ -1,4 +1,5 @@
 import { Haptics } from "@capacitor/haptics";
+import { emptyDatetime } from "@/helpers/constants.js";
 import EventBus from "@/helpers/eventBus";
 
 export const clone = (obj) => JSON.parse(JSON.stringify(obj))
@@ -28,6 +29,12 @@ export const getLateDate = () => {
     const next = new Date(now.setTime(now.getTime() + 5 * 60000))
     return new Date(next).toISOString().slice(0, -8)
 }
+
+/** Returns datetime of task notification date */
+export const getDT = (date) => new Date(date === emptyDatetime ? 0 : date)
+
+// type: primary, danger, secondary etc
+export const getHexColor = (type) => getComputedStyle(document.documentElement).getPropertyValue(`--ion-color-${type}`)
 
 export const vibrate = (duration = 10) => Haptics.vibrate({ duration })
 

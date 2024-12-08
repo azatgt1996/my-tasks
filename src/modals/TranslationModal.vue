@@ -7,7 +7,7 @@
       <IonItem>
         <IonInput :label="tr.lang" v-model="trData._language" fill="outline" />
       </IonItem>
-      <IonItem v-for="key in Object.keys(Translations['EN']).slice(3)">
+      <IonItem v-for="key in Object.keys(Translations.EN).slice(3)">
         <IonInput :value="Translations[lang][key].replaceAll('%s', ' ')" readonly fill="outline" />
         <IonInput v-model="trData[key]" style="margin-left: 5px" fill="outline" />
       </IonItem>
@@ -27,7 +27,7 @@ const { tr, errToast, alert } = useGlobalStore()
 const { lang } = toRefs(useGlobalStore())
 
 const trData = ref({})
-const all = Object.keys(Translations['EN']).length - 2
+const all = Object.keys(Translations.EN).length - 2
 const filled = computed(() => Object.values(trData.value).filter(it => it?.trim()).length)
 
 const sendTranslation = async () => {
