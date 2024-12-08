@@ -28,12 +28,12 @@
 
 <script setup>
 import { IonMenu, IonContent, IonHeader, IonToolbar, IonList, IonTitle } from '@ionic/vue';
+import { IconText, MenuBtn } from "@/components/renderFunctions.js";
 import { App } from '@capacitor/app';
 import { $bus, str, sendToEmail } from "@/helpers/utils.js";
 import { Translations } from "@/helpers/translations.js";
 import { useGlobalStore } from "@/stores/globalStore";
 import { Share } from '@capacitor/share';
-import { IconText, MenuBtn } from "@/components/renderFunctions.js";
 import LangToggler from "@/components/LangToggler.vue";
 import DarkModeToggler from "@/components/DarkModeToggler.vue";
 import TranslationModal from '@/modals/TranslationModal.vue';

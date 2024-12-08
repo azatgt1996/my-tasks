@@ -1,12 +1,15 @@
 import { defineStore } from 'pinia'
 import { reactive, ref } from 'vue'
 import { useGlobalStore } from "@/stores/globalStore";
-import { vibrate } from "@/helpers/utils.js";
+import { useCategoryStore } from "@/stores/categoryStore";
+import { vibrate, getNumId, isLater, setNotification, removeNotifications } from "@/helpers/utils.js";
+import { priorityType } from "@/helpers/constants.js";
 
 export const useTaskStore = defineStore('taskStore', () => {
   const tasks = reactive([])
   const selected = ref([])
-  const { params, storage } = useGlobalStore()
+  const { tr, params, storage } = useGlobalStore()
+  const { getCategoryName } = useCategoryStore()
 
   const setTasks = (arr) => {
     tasks.length = 0
@@ -23,5 +26,14 @@ export const useTaskStore = defineStore('taskStore', () => {
     if (params.vibro) vibrate(22)
   }
 
-  return { tasks, selected, setTasks, saveTasks }
+  const changeNotification = (task) => {
+    const _id = getNumId(task)
+    const { notification, completed, priority, category, title } = task
+    if (isLater(notification) && !completed) {
+      const body = `${tr.category}: ${getCategoryName(category)}`
+      setNotification(_id, title, body, notification, priorityType[priority])
+    } else removeNotifications([_id])
+  }
+
+  return { tasks, selected, setTasks, saveTasks, changeNotification }
 })

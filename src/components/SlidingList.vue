@@ -78,14 +78,6 @@ const clearTimer = () => {
   sliding = false
 }
 
-const selectAll = () => {
-  if (props.data.length === selected.value.length) selected.value = []
-  else {
-    selected.value = props.data.map(item => item.id)
-    if (props.withVibro) vibrate(14)
-  }
-}
-
 const onIonDrag = (e) => {
   sliding = true
 
@@ -102,8 +94,6 @@ const checkItem = (item) =>
     select(item)
     notOpen = true
   }, 700)
-
-defineExpose({ selectAll })
 </script>
 
 <style lang="sass">

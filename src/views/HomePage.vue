@@ -15,31 +15,12 @@
           <IonSelectOption class="primary" value="">+ {{ tr.newCategory }}</IonSelectOption>
         </UiSelect>
       </IonToolbar>
-      <IonToolbar v-show="selected.length" class="group-actions">
-        <IconBtn slot="start" color="medium" icon="closeO" @click="selected = []" style="margin: 0 3px" />
-        <IonTitle>{{ tr.selected }}: {{ selected.length }}</IonTitle>
-        <IconBtn slot="end" color="primary" icon="checkmarkCO" @click="completeSelected" />
-        <IconBtn slot="end" color="danger" icon="trashO" @click="deleteSelected" />
-        <IconBtn slot="end" :color="selected.length === filtered.length ? 'success' : 'medium'" icon="checkmarkDoneO"
-          @click="listRef.selectAll()" />
-        <IconBtn id="more-btn" slot="end" color="medium" icon="ellipsisVertical" style="margin: 0 3px" />
-        <IonPopover trigger="more-btn" dismiss-on-select size="auto">
-          <IonContent>
-            <IonList lines="none">
-              <IconText icon="arrowUndoCO" :text="tr.uncompleteTasks" @click="uncompleteSelected" />
-              <IconText icon="albumsO" :text="tr.changeCategory" @click="changeCategory" />
-              <IconText icon="caretUpCO" :text="tr.changePriority" @click="changePriority" />
-              <IconText icon="alarmO" :text="tr.changeNotification" @click="$bus.open('NotificationModal')" />
-            </IonList>
-          </IonContent>
-        </IonPopover>
-      </IonToolbar>
+      <GroupAction :data="filtered" />
 
       <IonItem>
-        <IonInput :placeholder="tr.search" v-model="keyword" :maxlength="50" clear-input :debounce="500"
-          :disabled="hasSelected">
+        <IonInput :placeholder="tr.search" v-model="keyword" :maxlength="50" clear-input :debounce="500" :disabled>
           <Ikon slot="start" color="medium" small :icon="params.searchInDesc ? 'searchC' : 'searchS'" />
-          <IconBtn slot="end" size="small" icon="funnel" @click="$('#filterSelect').click()" :disabled="hasSelected"
+          <IconBtn slot="end" size="small" icon="funnel" @click="$('#filterSelect').click()" :disabled
             :color="filters.length === 3 && isEqual(filters, priorities) ? 'medium' : 'primary'"
             style="margin-left: 0" />
         </IonInput>
@@ -54,10 +35,10 @@
         </UiSelect>
       </IonItem>
       <IonItem lines="none">
-        <IonInput ref="addTaskInput" :placeholder="tr.newTask" v-model="title" :disabled="hasSelected" :maxlength="50"
-          clear-input @keyup.enter="addTask(title)">
+        <IonInput ref="addTaskInput" :placeholder="tr.newTask" v-model="title" :disabled :maxlength="50" clear-input
+          @keyup.enter="addTask(title)">
           <IconBtn slot="end" size="small" icon="addC" :color="!title?.trim() ? 'secondary' : 'primary'"
-            @click="addTask(title)" :disabled="hasSelected" style="margin-left: 0" />
+            @click="addTask(title)" :disabled style="margin-left: 0" />
         </IonInput>
       </IonItem>
     </IonHeader>
@@ -66,7 +47,7 @@
       <div v-show="loading" class="flex-center">
         <IonSpinner name="lines" />
       </div>
-      <SlidingList ref="listRef" v-model="selected" :data="filtered" :withVibro="params.vibro" rightIcon="trashO"
+      <SlidingList v-model="selected" :data="filtered" :withVibro="params.vibro" rightIcon="trashO"
         :leftIcon="task => task.completed ? 'arrowUndoCO' : 'checkmarkCO'" @to-left="toggleCompleted"
         @to-right="deleteTask" @click-item="task => $bus.open('TaskModal', task)">
         <template #item="task">
@@ -87,36 +68,36 @@
   </IonPage>
 
   <TaskModal :data="filtered" @delete="deleteTask" @save="saveTask" />
-  <NotificationModal @changeNotifications="changeNotifications" />
   <CategoriesModal />
 </template>
 
 <script setup>
 import {
   useBackButton, IonContent, IonHeader, IonInput, IonToolbar,
-  IonProgressBar, IonSelectOption, IonSpinner, IonPopover, IonItem, IonLabel, IonList, IonPage, IonTitle,
+  IonProgressBar, IonSelectOption, IonSpinner, IonItem, IonLabel, IonPage, IonTitle,
 } from '@ionic/vue';
+import { OptionsGroup, IconBtn, Ikon, MenuBtn } from "@/components/renderFunctions.js";
 import { App } from '@capacitor/app';
 import { computed, onMounted, ref, watch, toRefs } from "vue";
 import { nanoid } from "nanoid";
-import { isEqual, $, $bus, delay, getDT, isLater, getNumId, setNotification, removeNotifications } from "@/helpers/utils.js";
+import { isEqual, $, $bus, delay, getDT, isLater, getNumId, removeNotifications } from "@/helpers/utils.js";
 import { useActionWithCancel } from "@/helpers/actionWithCancel"
 import { emptyDatetime, priorityType, priorities, priorityNum } from "@/helpers/constants.js";
 import { useGlobalStore } from "@/stores/globalStore";
 import { useTaskStore } from "@/stores/taskStore";
 import { useCategoryStore } from "@/stores/categoryStore";
-import { OptionsGroup, IconBtn, IconText, Ikon, MenuBtn } from "@/components/renderFunctions.js";
 import UiSelect from "@/components/UiSelect.vue";
+import GroupAction from "@/components/GroupAction.vue";
 import Menu from "@/components/Menu.vue";
 import SlidingList from '@/components/SlidingList.vue';
 import TaskModal from '@/modals/TaskModal.vue';
-import NotificationModal from '@/modals/NotificationModal.vue';
 import CategoriesModal from '@/modals/CategoriesModal.vue';
 
 const { cancelTimer, execute } = useActionWithCancel()
-const { tr, params, storage, toast, errToast, confirm, prompt2 } = useGlobalStore()
-const { tasks, setTasks, saveTasks } = useTaskStore()
+const { tr, params, storage, toast, errToast, confirm } = useGlobalStore()
+const { tasks, setTasks, saveTasks, changeNotification } = useTaskStore()
 const { selected } = toRefs(useTaskStore())
+const disabled = computed(() => selected.value.length > 0)
 
 const { getCategoryName } = useCategoryStore()
 const { category, categories } = toRefs(useCategoryStore())
@@ -172,16 +153,6 @@ const listStatus = computed(() => {
 
 // #region Main
 const title = ref(''), addTaskInput = ref()
-const listRef = ref()
-
-const changeNotification = (task) => {
-  const _id = getNumId(task)
-  const { notification, completed, priority, category, title } = task
-  if (isLater(notification) && !completed) {
-    const body = tr.category + ': ' + getCategoryName(category)
-    setNotification(_id, title, body, notification, priorityType[priority])
-  } else removeNotifications([_id])
-}
 
 const saveTask = (cur) => {
   cur.title = cur.title.trim()
@@ -273,63 +244,6 @@ const toggleCompleted = async (task) => {
 }
 // #endregion
 
-// #region Selecting
-const hasSelected = computed(() => selected.value.length > 0)
-
-const removeNotificationsOfSelected = () => {
-  const ids = tasks.filter(it => selected.value.includes(it.id)).map(getNumId)
-  removeNotifications(ids)
-}
-
-const completeSelected = () => {
-  removeNotificationsOfSelected()
-
-  for (const id of selected.value) {
-    const task = tasks.find(it => it.id === id)
-    task.completed = true
-  }
-  saveTasks()
-  toast(tr.selectedCompleted)
-}
-
-const deleteSelected = async () => {
-  if (!await confirm(tr.aysToDeleteSelected)) return
-
-  removeNotificationsOfSelected()
-
-  const _tasks = tasks.filter(it => !selected.value.includes(it.id))
-  setTasks(_tasks)
-  saveTasks(1)
-  toast(tr.selectedDeleted)
-}
-
-const groupExec = (prop, val) => {
-  for (const id of selected.value) {
-    const task = tasks.find(it => it.id === id)
-    task[prop] = val
-    changeNotification(task)
-  }
-  saveTasks()
-}
-
-const changeCategory = () => {
-  const options = categories.value.slice(1).map(it => ({ label: getCategoryName(it), value: it }))
-  prompt2(tr.selectCategory, options, val => groupExec('category', val))
-}
-
-const changePriority = () => {
-  const options = priorities.map(it => ({ label: tr[it], value: it, cssClass: `${it}-item` }))
-  prompt2(tr.selectPriority, options, val => groupExec('priority', val))
-}
-
-const uncompleteSelected = () => groupExec('completed', false)
-
-const changeNotifications = (val) => {
-  groupExec('notification', val ?? emptyDatetime)
-  $bus.close('NotificationModal')
-}
-// #endregion
-
 onMounted(async () => {
   filters.value = JSON.parse(await storage.get('filters')) ?? priorities
 
@@ -342,9 +256,6 @@ onMounted(async () => {
 <style lang="sass">
 #main-content > ion-header > ion-item
   --inner-padding-end: 3px
-
-.group-actions > ion-button
-  margin: 0
 
 .full-label > label
   justify-content: space-between

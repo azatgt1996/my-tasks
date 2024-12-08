@@ -27,10 +27,10 @@
 
 <script setup>
 import { IonButton, IonList, IonItem, IonLabel, IonNote, IonReorderGroup, IonReorder } from '@ionic/vue';
+import { IconBtn } from "@/components/renderFunctions.js";
 import { useGlobalStore } from '@/stores/globalStore';
 import { useTaskStore } from "@/stores/taskStore";
 import { useCategoryStore } from "@/stores/categoryStore";
-import { IconBtn } from "@/components/renderFunctions.js";
 import { clone, getNumId, arrayMove, removeNotifications } from "@/helpers/utils.js";
 import { watch, toRefs, onMounted } from 'vue';
 import UiModal from "@/components/UiModal.vue";

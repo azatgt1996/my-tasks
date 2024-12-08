@@ -26,11 +26,11 @@
 
 <script setup>
 import { IonItem, IonList, IonSelectOption } from '@ionic/vue';
+import { IconText, IconBtn, Ikon } from "@/components/renderFunctions.js";
 import { isEqual, $bus } from "@/helpers/utils.js";
 import { useGlobalStore } from '@/stores/globalStore';
 import { useTaskStore } from "@/stores/taskStore";
 import { reactive, onMounted, watch } from 'vue';
-import { IconText, IconBtn, Ikon } from "@/components/renderFunctions.js";
 import UiModal from "@/components/UiModal.vue";
 import ToggleIconItem from "@/components/ToggleIconItem.vue";
 import UiSelect from "@/components/UiSelect.vue";
