@@ -10,7 +10,8 @@
         </IonButtons>
       </IonToolbar>
     </IonHeader>
-    <component :is="sheet ? 'div' : IonContent">
+    <component :is="sheet ? 'div' : IonContent" @click="onClickContent" @swipedLeft="emit('swipedLeft')"
+      @swipedRight="emit('swipedRight')">
       <slot />
     </component>
     <IonFooter style="display: flex">
@@ -32,6 +33,8 @@ const props = defineProps({
   sheet: Boolean,
 })
 
+const emit = defineEmits(['dblClick', 'swipedLeft', 'swipedRight'])
+
 const isOpen = ref(false)
 
 $bus.on('openModal', (modalName) => {
@@ -44,4 +47,12 @@ $bus.on('openModal', (modalName) => {
 $bus.on('closeModal', (modalName) => {
   if (props.name === modalName) isOpen.value = false
 })
+
+let tap
+const onClickContent = () => {
+  let now = new Date().getTime()
+  let diff = now - tap
+  if (diff < 600 && diff > 0) emit('dblClick')
+  tap = new Date().getTime()
+}
 </script>

@@ -86,7 +86,9 @@
     <IonProgressBar v-show="cancelTimer" :value="cancelTimer" color="secondary" />
   </IonPage>
 
-  <UiModal id="task-modal" name="TaskModal" icon="readerO" :title="tr.detailInfo">
+  <UiModal name="TaskModal" icon="readerO" :title="tr.detailInfo" @dblClick="!disabledSave && saveTask(current)"
+    @swipedLeft="filtered.at(-1)?.id !== current.id && nextTask()"
+    @swipedRight="filtered[0]?.id !== current.id && prevTask()">
     <template #button>
       <IconBtn icon="saveO" :disabled="disabledSave" @click="saveTask(current)" />
     </template>
@@ -202,10 +204,6 @@ import NotificationModal from '@/modals/NotificationModal.vue';
 const { tr, params, storage, localeDate, toast, errToast, cancelToast, confirm, prompt, prompt2 } = useGlobalStore()
 const { tasks } = useTaskStore()
 const { selected } = toRefs(useTaskStore())
-
-// #region Others
-const audio = new Audio('/change.wav')
-const audio2 = new Audio('/trash.mp3')
 const loading = ref(false)
 
 /** Returns id (32bit integer) from task created date */
@@ -215,7 +213,6 @@ useBackButton(-1, () => {
   if (selected.value.length) return selected.value = []
   App.exitApp()
 })
-// #endregion
 
 // #region Filter
 const priorityType = { low: 'success', medium: 'warning', high: 'danger' }
@@ -362,26 +359,14 @@ const saveTasks = (isDel) => {
   selected.value = []
 
   if (isDel === 2) return
-  if (params.sound) (isDel ? audio2 : audio).play().catch(log)
+  if (params.sound) new Audio(isDel ? '/trash.mp3' : '/change.wav').play().catch(log)
   if (params.vibro) vibrate(22)
 }
 
-let tap
-const openTask = async (task) => {
+const openTask = (task) => {
   originalCurrent = clone(task)
   current.value = clone(task)
   $bus.open('TaskModal')
-
-  await delay(200)
-  const taskModalContent = $('#task-modal ion-content')
-  taskModalContent.addEventListener('swiped-left', () => filtered.value.at(-1)?.id !== current.value.id && nextTask())
-  taskModalContent.addEventListener('swiped-right', () => filtered.value[0]?.id !== current.value.id && prevTask())
-  taskModalContent.addEventListener('click', () => {
-    let now = new Date().getTime()
-    var diff = now - tap
-    if (diff < 600 && diff > 0 && !disabledSave.value) saveTask(current.value)
-    tap = new Date().getTime()
-  }, false)
 }
 
 const changeNotification = (task) => {

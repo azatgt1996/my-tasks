@@ -30,7 +30,7 @@ export const getLateDate = () => {
     return new Date(next).toISOString().slice(0, -8)
 }
 
-/** Returns datetime of task notification date */
+/** Returns datetime string date */
 export const getDT = (date) => new Date(date === emptyDatetime ? 0 : date)
 
 // type: primary, danger, secondary etc
