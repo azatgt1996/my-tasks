@@ -12,7 +12,7 @@
           <IonSelectOption v-for="_category in categories" :value="_category">
             {{ baseCategories.includes(_category) ? tr[_category] : _category }}
           </IonSelectOption>
-          <IonSelectOption class="new-category" value="">+ {{ tr.newCategory }}</IonSelectOption>
+          <IonSelectOption class="primary" value="">+ {{ tr.newCategory }}</IonSelectOption>
         </UiSelect>
       </IonToolbar>
       <IonToolbar v-show="selected.length" class="group-actions">
@@ -137,8 +137,7 @@
         </IonSegment>
       </IonItem>
       <IonItem>
-        <IonCheckbox v-model="current.completed" justify="space-between"
-          :style="current.completed ? 'color: var(--ion-color-primary)' : ''">
+        <IonCheckbox v-model="current.completed" justify="space-between" :class="{ primary: current.completed }">
           {{ tr.isCompleted }}
         </IonCheckbox>
       </IonItem>
@@ -316,18 +315,18 @@ const deleteTask = async (task) => {
   const idx = tasks.findIndex(it => it.id === task.id)
   const deleted = tasks[idx]
   tasks.splice(idx, 1)
-  let isDeleted = true
+  saveTasks(1)
 
+  let isDeleted = true
   timer = setInterval(() => {
     cancelTimer.value += 0.01
     if (cancelTimer.value > 1) reset()
   }, 30)
-  saveTasks(1)
 
   cancelToast(tr.taskDeleted, () => {
     isDeleted = false
-    tasks.splice(idx, 0, deleted)
     reset()
+    tasks.splice(idx, 0, deleted)
     saveTasks(2)
   })
 
@@ -461,13 +460,6 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped lang="sass">
-ion-progress-bar
-  position: absolute
-  bottom: 0
-  margin-bottom: 2px
-</style>
-
 <style lang="sass">
 #main-content > ion-header > ion-item
   --inner-padding-end: 3px
@@ -481,12 +473,6 @@ ion-progress-bar
     display: none
   & .alert-checkbox-label
     padding-left: 26px
-
-.new-category
-  color: var(--ion-color-primary)
-
-.alert-message
-  white-space: pre-wrap
 
 .full-label > label
   justify-content: space-between

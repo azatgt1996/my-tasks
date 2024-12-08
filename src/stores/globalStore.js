@@ -15,10 +15,10 @@ export const useGlobalStore = defineStore('globalStore', () => {
     return dt.toLocaleString(tr._code)
   }
 
-  const cancelToast = (message, callback) => {
+  const cancelToast = (message, callback, duration = 3000) => {
     toastController.dismiss()
     toastController.create({
-      message, duration: 3000, animated: true, color: 'secondary',
+      message, duration, animated: true, color: 'secondary',
       buttons: [{ text: tr.cancel, handler: callback }]
     }).then(toast => toast.present())
   }
