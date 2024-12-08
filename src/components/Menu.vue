@@ -48,8 +48,8 @@ const shareApp = () => Share.share({ text: tr.shareText, url: appLink, dialogTit
 const rateApp = () => window.location.href = appLink
 
 const showAppInfo = () => {
-  const trAuthors = Object.keys(Translations).map(key => ` ${Translations[key]._language}: ${Translations[key]._trAuthor}`).join('\n')
-  const fullText = tr.aboutText + `${tr.translation}:\n` + trAuthors
+  const trAuthors = Object.keys(Translations).map(key => ` ${Translations[key]._language}: ${Translations[key]._trAuthor}`)
+  const fullText = `${tr.aboutText}${tr.translation}:\n${trAuthors.join('\n')}`
 
   const msg = str(fullText, 'Galyautdinov Azat', 'Ionic Framework 8, VueJs 3', 'https://www.flaticon.com', 'https://mixkit.co/free-sound-effects')
   alert(msg, tr.appInfo)
