@@ -86,11 +86,12 @@
     <IonProgressBar v-show="cancelTimer" :value="cancelTimer" color="secondary" />
   </IonPage>
 
-  <UiModal name="TaskModal" icon="readerO" :title="tr.detailInfo" @dblClick="!disabledSave && saveTask(current)"
+  <UiModal name="TaskModal" icon="readerO" :title="tr.detailInfo"
+    @dblClick="!isEqual(originalCurrent, current) && saveTask(current)"
     @swipedLeft="filtered.at(-1)?.id !== current.id && nextTask()"
     @swipedRight="filtered[0]?.id !== current.id && prevTask()">
     <template #button>
-      <IconBtn icon="saveO" :disabled="disabledSave" @click="saveTask(current)" />
+      <IconBtn icon="saveO" :disabled="isEqual(originalCurrent, current)" @click="saveTask(current)" />
     </template>
     <IonList @click.stop>
       <IonItem>
@@ -152,47 +153,26 @@
   </UiModal>
 
   <NotificationModal @changeNotifications="changeNotifications" />
-
-  <UiModal name="CategoriesModal" icon="albumsO" :title="tr.categories">
-    <template #button>
-      <IonButton @click="addCategory()">{{ tr.add }}</IonButton>
-    </template>
-    <IonList>
-      <IonItem>
-        <IonLabel>
-          {{ tr.common }}
-          <IonNote>({{ tasks.filter(it => it.category === 'common').length }})</IonNote>
-        </IonLabel>
-      </IonItem>
-      <IonReorderGroup :disabled="false" @ionItemReorder="onReorder">
-        <IonItem v-for="_category in categories.slice(2)" :key="_category">
-          <IonLabel class="shorted-text">
-            {{ baseCategories.includes(_category) ? tr[_category] : _category }}
-            <IonNote>({{ tasks.filter(it => it.category === _category).length }})</IonNote>
-          </IonLabel>
-          <IconBtn color="primary" size="small" icon="pencilO" @click="renameCategory(_category)" />
-          <IconBtn color="danger" size="small" icon="trashO" @click="deleteCategory(_category)" />
-          <IonReorder slot="end" :style="categories.slice(2).length === 1 ? 'pointer-events: none' : ''" />
-        </IonItem>
-      </IonReorderGroup>
-    </IonList>
-  </UiModal>
+  <CategoriesModal />
 </template>
 
 <script setup>
 import {
-  useBackButton, IonButton, IonContent, IonHeader, IonInput, IonToolbar, IonReorderGroup, IonReorder, IonCheckbox,
-  IonProgressBar, IonNote, IonSelectOption, IonSpinner, IonPopover, IonItem, IonLabel, IonList, IonPage, IonTitle,
+  useBackButton, IonButton, IonContent, IonHeader, IonInput, IonToolbar, IonCheckbox,
+  IonProgressBar, IonSelectOption, IonSpinner, IonPopover, IonItem, IonLabel, IonList, IonPage, IonTitle,
   IonDatetimeButton, IonSegment, IonSegmentButton, IonTextarea
 } from '@ionic/vue';
 import { App } from '@capacitor/app';
 import { computed, onMounted, ref, watch, toRefs } from "vue";
 import { nanoid } from "nanoid";
-import { clone, isEqual, $, $bus, delay, log, arrayMove, getLateDate, getDT, isLater, getHexColor, vibrate } from "@/helpers/utils.js";
+import {
+  clone, isEqual, $, $bus, delay, getLateDate, getDT,
+  isLater, getNumId, setNotification, removeNotifications
+} from "@/helpers/utils.js";
 import { emptyDatetime } from "@/helpers/constants.js";
 import { useGlobalStore } from "@/stores/globalStore";
 import { useTaskStore } from "@/stores/taskStore";
-import { LocalNotifications } from '@capacitor/local-notifications';
+import { useCategoryStore } from "@/stores/categoryStore";
 import { OptionsGroup, IconBtn, IconText, IconTextBtn, Ikon, MenuBtn } from "@/components/renderFunctions.js";
 import UiSelect from "@/components/UiSelect.vue";
 import DateTimeModal from "@/components/DateTimeModal.vue";
@@ -200,14 +180,15 @@ import UiModal from "@/components/UiModal.vue";
 import Menu from "@/components/Menu.vue";
 import SlidingList from '@/components/SlidingList.vue';
 import NotificationModal from '@/modals/NotificationModal.vue';
+import CategoriesModal from '@/modals/CategoriesModal.vue';
 
-const { tr, params, storage, localeDate, toast, errToast, cancelToast, confirm, prompt, prompt2 } = useGlobalStore()
-const { tasks } = useTaskStore()
+const { tr, params, storage, localeDate, toast, errToast, cancelToast, confirm, prompt2 } = useGlobalStore()
+const { tasks, setTasks, saveTasks } = useTaskStore()
 const { selected } = toRefs(useTaskStore())
-const loading = ref(false)
 
-/** Returns id (32bit integer) from task created date */
-const getNumId = (task) => +(new Date(task.created).getTime().toString().slice(0, -3))
+const { baseCategories } = useCategoryStore()
+const { category, categories } = toRefs(useCategoryStore())
+const loading = ref(true)
 
 useBackButton(-1, () => {
   if (selected.value.length) return selected.value = []
@@ -260,108 +241,13 @@ const listStatus = computed(() => {
 })
 // #endregion
 
-// #region Category
-const baseCategories = ['allCategories', 'common', 'private', 'work']
-const categories = ref([])
-const category = ref('allCategories')
-
-const saveCategories = () => storage.set('categories', JSON.stringify(categories.value))
-
-const addCategory = (isToggle) =>
-  prompt(tr.newCategory, tr.typeCategory, '', val => {
-    if (categories.value.includes(val)) return errToast(tr.categoryExists)
-    categories.value = [...categories.value, val]
-    if (isToggle) category.value = val
-    saveCategories()
-  })
-
-const renameCategory = (_category) => {
-  const oldValue = baseCategories.includes(_category) ? tr[_category] : _category
-
-  prompt(tr.renameCategory, tr.typeCategory, oldValue, val => {
-    if (oldValue === val) return
-    if (categories.value.includes(val)) return errToast(tr.categoryExists)
-
-    const _categories = clone(categories.value)
-    const idx = _categories.findIndex(it => it === _category)
-    _categories[idx] = val
-    categories.value = _categories
-    saveCategories()
-
-    const _tasks = tasks.filter(it => it.category === _category)
-    for (const task of _tasks) task.category = val
-    saveTasks(2)
-
-    if (category.value === _category) category.value = val
-  })
-}
-
-const deleteCategory = async (_category) => {
-  const deleteAllTasksByCategory = (deleteTasks) => {
-    if (deleteTasks) {
-      const ids = tasks.filter(it => it.category === _category).map(getNumId)
-      removeNotifications(ids)
-
-      const _tasks = tasks.filter(it => it.category !== _category)
-      setTasks(_tasks)
-      saveTasks(1)
-      toast(tr.tasksOfCategoryDeleted)
-    }
-
-    if (category.value === _category) category.value = 'allCategories'
-
-    const idx = categories.value.findIndex(it => it === _category)
-    categories.value.splice(idx, 1)
-    saveCategories()
-  }
-
-  const categoryTasksSize = tasks.filter(it => it.category === _category).length
-
-  if (categoryTasksSize > 0) {
-    if (await confirm(tr.aysToDeleteCategory)) deleteAllTasksByCategory(1)
-  } else deleteAllTasksByCategory(0)
-}
-
-const onReorder = (ev) => {
-  const { from, to } = ev.detail
-
-  const _categories = clone(categories.value)
-  arrayMove(_categories, from + 2, to + 2)
-  categories.value = _categories
-
-  saveCategories()
-  ev.detail.complete()
-}
-
-watch(category, (val, old) => {
-  if (!val) {
-    category.value = old
-    addCategory(1)
-  } else storage.set('category', val)
-})
-// #endregion
-
 // #region Main
-const setTasks = (arr) => (tasks.length = 0, Object.assign(tasks, arr))
-
 const title = ref(''), addTaskInput = ref()
 const listRef = ref()
 const taskLength = 50
 
 const current = ref({})
 let originalCurrent = {}
-
-const disabledSave = computed(() => isEqual(originalCurrent, current.value))
-
-const saveTasks = (isDel) => {
-  tasks.length = tasks.length
-  storage.set('tasks', JSON.stringify(tasks))
-  selected.value = []
-
-  if (isDel === 2) return
-  if (params.sound) new Audio(isDel ? '/trash.mp3' : '/change.wav').play().catch(log)
-  if (params.vibro) vibrate(22)
-}
 
 const openTask = (task) => {
   originalCurrent = clone(task)
@@ -374,7 +260,7 @@ const changeNotification = (task) => {
   const { notification, completed, priority, category, title } = task
   if (isLater(notification) && !completed) {
     const body = tr.category + ': ' + (baseCategories.includes(category) ? tr[category] : category)
-    setNotification(_id, title, body, notification, priority)
+    setNotification(_id, title, body, notification, priorityType[priority])
   } else removeNotifications([_id])
 }
 
@@ -566,41 +452,12 @@ const changeNotifications = (val) => {
 }
 // #endregion
 
-// #region Notification
-const checkNotificationPermission = () =>
-  LocalNotifications.checkPermissions().then(res => {
-    if (res?.display !== 'denied') return
-    LocalNotifications.requestPermissions().then(res => {
-      if (res?.display === 'denied') errToast(tr.needNotifyPermission)
-    })
-  })
-
-const setNotification = (id, title, body, dateTime, priority) => {
-  const iconColor = getHexColor(priorityType[priority])
-
-  const schedule = { at: new Date(dateTime) }
-  const notification = { id, title, body, iconColor, schedule }
-
-  LocalNotifications.schedule({ notifications: [notification] })
-}
-
-const removeNotifications = (ids) =>
-  LocalNotifications.cancel({ notifications: ids.map(id => ({ id })) })
-// #endregion
-
 onMounted(async () => {
-  loading.value = true
-
   filters.value = JSON.parse(await storage.get('filters')) ?? priorities
-
-  categories.value = JSON.parse(await storage.get('categories')) ?? baseCategories
-  category.value = await storage.get('category') ?? 'allCategories'
 
   const _tasks = await storage.get('tasks')
   tasks.push(...(_tasks ? JSON.parse(_tasks) : []))
   loading.value = false
-
-  checkNotificationPermission()
 })
 </script>
 
@@ -630,11 +487,6 @@ ion-progress-bar
 
 .alert-message
   white-space: pre-wrap
-
-.shorted-text
-  overflow: hidden
-  white-space: nowrap
-  padding-right: 5px
 
 .full-label > label
   justify-content: space-between
