@@ -1,5 +1,5 @@
 <template>
-  <IonToolbar class="group-actions">
+  <IonToolbar v-show="selected.length" class="group-actions">
     <IconBtn slot="start" color="medium" icon="closeO" @click="selected = []" style="margin: 0 3px" />
     <IonTitle>{{ tr.selected }}: {{ selected.length }}</IonTitle>
     <IconBtn slot="end" color="primary" icon="checkmarkCO" @click="completeSelected" />

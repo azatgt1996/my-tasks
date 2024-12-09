@@ -1,5 +1,5 @@
 <template>
-  <TransitionGroup v-show="data.length" ref="listRef" name="list" tag="ion-list">
+  <TransitionGroup v-show="data.length" ref="listRef" name="list" :tag="IonList.name">
     <IonItemSliding v-for="item in data" :key="item.id" :disabled="selected.length > 0" @ionDrag="onIonDrag">
       <IonItemOptions side="start" @ion-swipe="swipedTo('left', item)">
         <IonItemOption color="primary">
@@ -22,7 +22,7 @@
 
 <script setup>
 import { onClickOutside } from '@vueuse/core';
-import { IonItem, IonItemSliding, IonItemOptions, IonItemOption, IonList/*dont_remove*/ } from '@ionic/vue';
+import { IonItem, IonItemSliding, IonItemOptions, IonItemOption, IonList } from '@ionic/vue';
 import { Ikon } from "@/components/renderFunctions.js";
 import { watch, ref } from 'vue';
 import { vibrate } from "@/helpers/utils.js";

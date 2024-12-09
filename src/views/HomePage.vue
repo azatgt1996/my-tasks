@@ -2,7 +2,7 @@
   <Menu />
   <IonPage id="main-content">
     <IonHeader>
-      <IonToolbar v-if="!selected.length">
+      <IonToolbar v-show="!selected.length">
         <MenuBtn />
         <IonTitle>{{ tr.myTasks }}{{ filtered.length ? `: ${filtered.length}` : '' }}</IonTitle>
         <UiSelect slot="end" interface="popover" v-model="category" class="mr-10" style="max-width: 44%">
@@ -10,7 +10,7 @@
           <SelectOption class="primary" value="" :label="`+ ${tr.newCategory}`" />
         </UiSelect>
       </IonToolbar>
-      <GroupAction v-else :data="filtered" />
+      <GroupAction :data="filtered" />
 
       <IonItem>
         <IonInput :placeholder="tr.search" v-model="keyword" :maxlength="50" clear-input :debounce="500" :disabled>

@@ -11,13 +11,13 @@
         </IonLabel>
       </IonItem>
       <IonReorderGroup :disabled="false" @ionItemReorder="onReorder">
-        <IonItem v-for="_category in categories.slice(2)" :key="_category">
+        <IonItem v-for="val in categories.slice(2)" :key="val">
           <IonLabel class="shorted-text">
-            {{ getCategoryName(_category) }}
-            <IonNote>({{ tasks.filter(it => it.category === _category).length }})</IonNote>
+            {{ getCategoryName(val) }}
+            <IonNote>({{ tasks.filter(it => it.category === val).length }})</IonNote>
           </IonLabel>
-          <IconBtn color="primary" size="small" icon="pencilO" @click="renameCategory(_category)" />
-          <IconBtn color="danger" size="small" icon="trashO" @click="deleteCategory(_category)" />
+          <IconBtn color="primary" size="small" icon="pencilO" @click="renameCategory(val)" />
+          <IconBtn color="danger" size="small" icon="trashO" @click="deleteCategory(val)" />
           <IonReorder slot="end" :style="categories.slice(2).length === 1 ? 'pointer-events: none' : ''" />
         </IonItem>
       </IonReorderGroup>

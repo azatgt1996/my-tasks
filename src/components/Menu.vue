@@ -51,7 +51,7 @@ const showAppInfo = () => {
   const trAuthors = Object.keys(Translations).map(key => ` ${Translations[key]._language}: ${Translations[key]._trAuthor}`)
   const fullText = `${tr.aboutText}${tr.translation}:\n${trAuthors.join('\n')}`
 
-  const msg = str(fullText, 'Galyautdinov Azat', 'Ionic Framework 8, VueJs 3', 'https://www.flaticon.com', 'https://mixkit.co/free-sound-effects')
+  const msg = str(fullText, 'Galyautdinov Azat', 'Ionic Framework 8, VueJs 3', 'www.flaticon.com', 'mixkit.co/free-sound-effects')
   alert(msg, tr.appInfo)
 }
 </script>

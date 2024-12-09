@@ -1,5 +1,5 @@
 <template>
-  <UiModal name="NotificationModal" sheet style="--height: auto" @willPresent="groupNotification = getLateDate()">
+  <UiModal name="NotificationModal" sheet @willPresent="groupNotification = getLateDate()">
     <div style="display: grid; margin: 0 auto; padding: 30px 0 10px">
       <IonDatetimeButton datetime="group-dt" style="margin-bottom: 15px"
         :class="isLater(groupNotification) ? '' : 'passed-date'" />

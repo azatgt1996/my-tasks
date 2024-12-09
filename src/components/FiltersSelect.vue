@@ -18,7 +18,7 @@ import UiSelect from "@/components/UiSelect.vue";
 import { $, isEqual } from "@/helpers/utils.js";
 import { onMounted, watch } from "vue";
 
-const props = defineProps({
+defineProps({
   disabled: Boolean
 })
 

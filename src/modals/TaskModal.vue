@@ -1,9 +1,9 @@
 <template>
   <UiModal name="TaskModal" icon="readerO" :title="tr.detailInfo"
-    @dblClick="!isEqual(originalCurrent, current) && saveTask(current)" @opened="openedModal"
+    @dblClick="!isEqual(originalCurrent, current) && clickSave(current)" @opened="openedModal"
     @swipedLeft="data.at(-1)?.id !== current.id && nextTask()" @swipedRight="data[0]?.id !== current.id && prevTask()">
     <template #button>
-      <IconBtn icon="saveO" :disabled="isEqual(originalCurrent, current)" @click="saveTask(current)" />
+      <IconBtn icon="saveO" :disabled="isEqual(originalCurrent, current)" @click="clickSave(current)" />
     </template>
     <IonList @click.stop>
       <IonItem>
@@ -41,8 +41,8 @@
       <IonItem>
         <IonLabel>{{ tr.priority }}</IonLabel>
         <IonSegment v-model="current.priority" mode="ios">
-          <IonSegmentButton v-for="value in priorities" :value="value">
-            <IonLabel :color="priorityType[value]">{{ tr[value] }}</IonLabel>
+          <IonSegmentButton v-for="val in priorities" :value="val">
+            <IonLabel :color="priorityType[val]">{{ tr[val] }}</IonLabel>
           </IonSegmentButton>
         </IonSegment>
       </IonItem>
@@ -87,7 +87,7 @@ const { categories } = toRefs(useCategoryStore())
 const current = ref({})
 let originalCurrent = {}
 
-const saveTask = (task) => {
+const clickSave = (task) => {
   emit('save', task)
 
   originalCurrent = clone(task)

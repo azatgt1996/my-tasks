@@ -1,5 +1,6 @@
 <template>
-  <IonModal :isOpen @didDismiss="isOpen = false" v-bind="sheet ? { initialBreakpoint: 1, breakpoints: [0, 1] } : {}">
+  <IonModal :isOpen @didDismiss="isOpen = false" :style="sheet ? '--height: auto' : ''"
+    v-bind="sheet ? { initialBreakpoint: 1, breakpoints: [0, 1] } : {}">
     <IonHeader v-if="title">
       <IonToolbar class="icon-modal">
         <Ikon v-if="icon" slot="start" :icon />
