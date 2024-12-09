@@ -8,6 +8,9 @@ import { priorityType } from "@/helpers/constants.js";
 export const useTaskStore = defineStore('taskStore', () => {
   const tasks = reactive([])
   const selected = ref([])
+  const filtered = ref([])
+  const listStatus = ref('')
+
   const { tr, params, storage } = useGlobalStore()
   const { getCategoryName } = useCategoryStore()
 
@@ -35,5 +38,5 @@ export const useTaskStore = defineStore('taskStore', () => {
     } else removeNotifications([id])
   }
 
-  return { tasks, selected, setTasks, saveTasks, changeNotification }
+  return { tasks, selected, filtered, listStatus, setTasks, saveTasks, changeNotification }
 })

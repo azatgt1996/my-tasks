@@ -12,13 +12,8 @@
       </IonToolbar>
       <GroupAction :data="filtered" />
 
-      <IonItem>
-        <IonInput :placeholder="tr.search" v-model="keyword" :maxlength="50" clear-input :debounce="500" :disabled>
-          <Ikon slot="start" color="medium" small :icon="params.searchInDesc ? 'searchC' : 'searchS'" />
-          <FiltersSelect v-model="filters" :disabled />
-        </IonInput>
-      </IonItem>
-      <IonItem lines="none">
+      <SearchAndFilter :disabled style="--inner-padding-end: 3px"/>
+      <IonItem lines="none" style="--inner-padding-end: 3px">
         <IonInput id="add-input" :placeholder="tr.newTask" v-model="title" :disabled :maxlength="50" clear-input
           @keyup.enter="addTask(title)">
           <IconBtn slot="end" size="small" icon="addC" :color="!title?.trim() ? 'secondary' : 'primary'"
@@ -61,14 +56,14 @@ import { IconBtn, Ikon, MenuBtn, SelectOption } from "@/components/renderFunctio
 import { App } from '@capacitor/app';
 import { computed, onMounted, ref, toRefs } from "vue";
 import { nanoid } from "nanoid";
-import { $, $bus, delay, getDT, isLater, getNumId, removeNotifications } from "@/helpers/utils.js";
+import { $, $bus, delay, isLater, getNumId, removeNotifications } from "@/helpers/utils.js";
 import { useActionWithCancel } from "@/helpers/actionWithCancel"
-import { emptyDatetime, priorityType, priorityNum } from "@/helpers/constants.js";
+import { emptyDatetime, priorityType } from "@/helpers/constants.js";
 import { useGlobalStore } from "@/stores/globalStore";
 import { useTaskStore } from "@/stores/taskStore";
 import { useCategoryStore } from "@/stores/categoryStore";
 import UiSelect from "@/components/UiSelect.vue";
-import FiltersSelect from "@/components/FiltersSelect.vue";
+import SearchAndFilter from "@/components/SearchAndFilter.vue";
 import GroupAction from "@/components/GroupAction.vue";
 import Menu from "@/components/Menu.vue";
 import SlidingList from '@/components/SlidingList.vue';
@@ -78,75 +73,13 @@ import CategoriesModal from '@/modals/CategoriesModal.vue';
 const { cancelTimer, execute } = useActionWithCancel()
 const { tr, params, storage, toast, errToast, confirm } = useGlobalStore()
 const { tasks, setTasks, saveTasks, changeNotification } = useTaskStore()
-const { selected } = toRefs(useTaskStore())
+const { selected, filtered, listStatus } = toRefs(useTaskStore())
 const disabled = computed(() => selected.value.length > 0)
 
 const { getCategoryName } = useCategoryStore()
 const { category, categories } = toRefs(useCategoryStore())
 const loading = ref(true)
-
-useBackButton(-1, () => {
-  if (selected.value.length) return selected.value = []
-  App.exitApp()
-})
-
-// #region Filter
-const keyword = ref('')
-const filters = ref([])
-
-const grouped = computed(() => { // grouped by category
-  if (category.value === 'allCategories') return tasks
-  return tasks.filter(it => it.category === category.value)
-})
-
-const filtered = computed(() => {
-  if (!grouped.value.length) return []
-
-  const _filter = filters.value
-  const _keyword = keyword.value.toLowerCase().trim()
-  const { sortBy, orderByDesc, searchInDesc } = params
-
-  const result = grouped.value.filter(it => {
-    let res = it.title.toLowerCase().includes(_keyword)
-    if (searchInDesc) res ||= it.description.toLowerCase().includes(_keyword)
-    res &&= _filter.includes(it.priority)
-    if (!_filter.includes('completed')) res &&= !it.completed
-    if (_filter.includes('notificated')) res &&= isLater(it.notification)
-    return res
-  })
-
-  return result.sort((t1, t2) => {
-    if (orderByDesc) [t1, t2] = [t2, t1]
-    if (sortBy === 'created') return new Date(t1.created) - new Date(t2.created)
-    if (sortBy === 'changed') return new Date(t1.changed) - new Date(t2.changed)
-    if (sortBy === 'title') return t1.title.localeCompare(t2.title)
-    if (sortBy === 'priority') return priorityNum[t1.priority] - priorityNum[t2.priority]
-    if (sortBy === 'notification') return getDT(t1.notification) - getDT(t2.notification)
-  })
-})
-
-const listStatus = computed(() => {
-  if (!grouped.value.length || !filtered.value.length && !keyword.value.trim()) return tr.emptyList
-  if (!filtered.value.length) return tr.tasksNotFound
-})
-// #endregion
-
-// #region Main
 const title = ref('')
-
-const saveTask = (cur) => {
-  cur.title = cur.title.trim()
-  if (!cur.title) return errToast(tr.titleIsEmpty)
-
-  const idx = tasks.findIndex(it => it.id === cur.id)
-  cur.changed = new Date().toISOString()
-  tasks[idx] = cur
-
-  changeNotification(cur)
-
-  toast(tr.taskChanged)
-  saveTasks()
-}
 
 const addTask = (_title) => {
   _title = _title.trim()
@@ -164,8 +97,21 @@ const addTask = (_title) => {
     category: _category, created: now, changed: now, notification: emptyDatetime
   }
   tasks.push(newTask)
-  toast(tr.taskAdded)
   saveTasks()
+  toast(tr.taskAdded)
+}
+
+const saveTask = (cur) => {
+  cur.title = cur.title.trim()
+  if (!cur.title) return errToast(tr.titleIsEmpty)
+
+  const idx = tasks.findIndex(it => it.id === cur.id)
+  cur.changed = new Date().toISOString()
+  tasks[idx] = cur
+
+  changeNotification(cur)
+  saveTasks()
+  toast(tr.taskChanged)
 }
 
 const deleteTask = (task) => {
@@ -182,6 +128,19 @@ const deleteTask = (task) => {
     tasks.splice(idx, 0, deleted)
     saveTasks(2)
   })
+}
+
+const toggleCompleted = async (task) => {
+  const idx = tasks.findIndex(it => it.id === task.id)
+
+  await delay(200)
+  tasks[idx].completed = !task.completed
+  tasks[idx].changed = new Date().toISOString()
+
+  changeNotification(tasks[idx])
+
+  saveTasks()
+  toast(!task.completed ? tr.taskCompleted : tr.taskUncompleted)
 }
 
 $bus.on('deleteAll', async () => {
@@ -208,29 +167,14 @@ $bus.on('deleteAllCompleted', async () => {
   removeNotifications(ids)
 })
 
-const toggleCompleted = async (task) => {
-  const idx = tasks.findIndex(it => it.id === task.id)
-
-  await delay(200)
-  const isCompleted = !task.completed
-  tasks[idx].completed = isCompleted
-  tasks[idx].changed = new Date().toISOString()
-
-  changeNotification(tasks[idx])
-
-  saveTasks()
-  toast(isCompleted ? tr.taskCompleted : tr.taskUncompleted)
-}
-// #endregion
-
 onMounted(async () => {
   const _tasks = await storage.get('tasks')
   tasks.push(...(_tasks ? JSON.parse(_tasks) : []))
   loading.value = false
 })
-</script>
 
-<style lang="sass">
-#main-content > ion-header > ion-item
-  --inner-padding-end: 3px
-</style>
+useBackButton(-1, () => {
+  if (selected.value.length) return selected.value = []
+  App.exitApp()
+})
+</script>
