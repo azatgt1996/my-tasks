@@ -19,7 +19,7 @@
         </IonInput>
       </IonItem>
       <IonItem lines="none">
-        <IonInput ref="addTaskInput" :placeholder="tr.newTask" v-model="title" :disabled :maxlength="50" clear-input
+        <IonInput id="add-input" :placeholder="tr.newTask" v-model="title" :disabled :maxlength="50" clear-input
           @keyup.enter="addTask(title)">
           <IconBtn slot="end" size="small" icon="addC" :color="!title?.trim() ? 'secondary' : 'primary'"
             @click="addTask(title)" :disabled style="margin-left: 0" />
@@ -61,7 +61,7 @@ import { IconBtn, Ikon, MenuBtn, SelectOption } from "@/components/renderFunctio
 import { App } from '@capacitor/app';
 import { computed, onMounted, ref, toRefs } from "vue";
 import { nanoid } from "nanoid";
-import { $bus, delay, getDT, isLater, getNumId, removeNotifications } from "@/helpers/utils.js";
+import { $, $bus, delay, getDT, isLater, getNumId, removeNotifications } from "@/helpers/utils.js";
 import { useActionWithCancel } from "@/helpers/actionWithCancel"
 import { emptyDatetime, priorityType, priorityNum } from "@/helpers/constants.js";
 import { useGlobalStore } from "@/stores/globalStore";
@@ -132,7 +132,7 @@ const listStatus = computed(() => {
 // #endregion
 
 // #region Main
-const title = ref(''), addTaskInput = ref()
+const title = ref('')
 
 const saveTask = (cur) => {
   cur.title = cur.title.trim()
@@ -151,10 +151,9 @@ const saveTask = (cur) => {
 const addTask = (_title) => {
   _title = _title.trim()
   title.value = ''
-  if (!_title) {
-    if (addTaskInput.value.$el.className.includes('has-focus'))
-      errToast(tr.titleIsEmpty)
-    return addTaskInput.value.$el.setFocus()
+  if (!_title) {    
+    if ($('#add-input').className.includes('has-focus')) errToast(tr.titleIsEmpty)
+    return $('#add-input').setFocus()
   }
 
   const _category = category.value === 'allCategories' ? 'common' : category.value
@@ -169,7 +168,7 @@ const addTask = (_title) => {
   saveTasks()
 }
 
-const deleteTask = async (task) => {
+const deleteTask = (task) => {
   let idx, deleted
   execute(tr.taskDeleted, () => {
     idx = tasks.findIndex(it => it.id === task.id)
