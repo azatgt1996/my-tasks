@@ -4,15 +4,10 @@
     <IonHeader>
       <IonToolbar v-show="!selected.length">
         <MenuBtn />
-        <IonTitle>
-          {{ tr.myTasks }}{{ filtered.length ? `: ${filtered.length}` : '' }}
-        </IonTitle>
-        <UiSelect slot="end" interface="popover" v-model="category" class="mr-10"
-          style="max-width: 44%; padding-top: 3px">
-          <IonSelectOption v-for="_category in categories" :value="_category">
-            {{ getCategoryName(_category) }}
-          </IonSelectOption>
-          <IonSelectOption class="primary" value="">+ {{ tr.newCategory }}</IonSelectOption>
+        <IonTitle>{{ tr.myTasks }}{{ filtered.length ? `: ${filtered.length}` : '' }}</IonTitle>
+        <UiSelect slot="end" interface="popover" v-model="category" class="mr-10" style="max-width: 44%">
+          <SelectOption v-for="val in categories" :value="val" :label="getCategoryName(val)" />
+          <SelectOption class="primary" value="" :label="`+ ${tr.newCategory}`" />
         </UiSelect>
       </IonToolbar>
       <GroupAction :data="filtered" />
@@ -24,15 +19,7 @@
             :color="filters.length === 3 && isEqual(filters, priorities) ? 'medium' : 'primary'"
             style="margin-left: 0" />
         </IonInput>
-        <UiSelect v-show="false" id="filterSelect" v-model="filters" multiple :header="tr.filters">
-          <OptionsGroup :label="tr.byPriorities" />
-          <IonSelectOption v-for="pr in priorities" :value="pr" :class="`${pr}-item`">
-            {{ tr[pr] }}
-          </IonSelectOption>
-          <OptionsGroup :label="tr.others" />
-          <IonSelectOption value="completed">{{ tr.completed }}</IonSelectOption>
-          <IonSelectOption value="notificated">{{ tr.notificated }}</IonSelectOption>
-        </UiSelect>
+        <FiltersSelect v-model="filters" />
       </IonItem>
       <IonItem lines="none">
         <IonInput ref="addTaskInput" :placeholder="tr.newTask" v-model="title" :disabled :maxlength="50" clear-input
@@ -72,11 +59,8 @@
 </template>
 
 <script setup>
-import {
-  useBackButton, IonContent, IonHeader, IonInput, IonToolbar,
-  IonProgressBar, IonSelectOption, IonSpinner, IonItem, IonLabel, IonPage, IonTitle,
-} from '@ionic/vue';
-import { OptionsGroup, IconBtn, Ikon, MenuBtn } from "@/components/renderFunctions.js";
+import { useBackButton, IonContent, IonHeader, IonInput, IonToolbar, IonProgressBar, IonSpinner, IonItem, IonLabel, IonPage, IonTitle } from '@ionic/vue';
+import { IconBtn, Ikon, MenuBtn, SelectOption } from "@/components/renderFunctions.js";
 import { App } from '@capacitor/app';
 import { computed, onMounted, ref, watch, toRefs } from "vue";
 import { nanoid } from "nanoid";
@@ -87,6 +71,7 @@ import { useGlobalStore } from "@/stores/globalStore";
 import { useTaskStore } from "@/stores/taskStore";
 import { useCategoryStore } from "@/stores/categoryStore";
 import UiSelect from "@/components/UiSelect.vue";
+import FiltersSelect from "@/components/FiltersSelect.vue";
 import GroupAction from "@/components/GroupAction.vue";
 import Menu from "@/components/Menu.vue";
 import SlidingList from '@/components/SlidingList.vue';
@@ -267,14 +252,4 @@ onMounted(async () => {
   align-items: center
   justify-content: center
   height: 100%
-
-@each $pr, $color in (low: success, medium: warning, high: danger)
-  .#{$pr}-item[aria-checked="true"]
-    .alert-checkbox-icon
-      border-color: var(--ion-color-#{$color}) !important
-      background-color: var(--ion-color-#{$color}) !important
-    .alert-radio-icon
-      border-color: var(--ion-color-#{$color}) !important
-      .alert-radio-inner
-        background-color: var(--ion-color-#{$color})
 </style>

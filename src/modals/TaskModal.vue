@@ -22,9 +22,7 @@
       </IonItem>
       <IonItem>
         <UiSelect v-model="current.category" :label="tr.category" :header="tr.selectCategory">
-          <IonSelectOption v-for="_category in categories.slice(1)" :value="_category">
-            {{ getCategoryName(_category) }}
-          </IonSelectOption>
+          <SelectOption v-for="val in categories.slice(1)" :value="val" :label="getCategoryName(val)" />
         </UiSelect>
       </IonItem>
       <IonItem>
@@ -65,11 +63,8 @@
 </template>
 
 <script setup>
-import {
-  IonDatetimeButton, IonList, IonItem, IonInput, IonTextarea, IonCheckbox,
-  IonSelectOption, IonLabel, IonButton, IonSegment, IonSegmentButton
-} from '@ionic/vue';
-import { IconTextBtn, IconBtn, IconText, Ikon } from "@/components/renderFunctions.js";
+import { IonDatetimeButton, IonList, IonItem, IonInput, IonTextarea, IonCheckbox, IonLabel, IonButton, IonSegment, IonSegmentButton } from '@ionic/vue';
+import { IconTextBtn, IconBtn, IconText, Ikon, SelectOption } from "@/components/renderFunctions.js";
 import { useGlobalStore } from '@/stores/globalStore';
 import { useCategoryStore } from '@/stores/categoryStore';
 import { getLateDate, isLater, $bus, isEqual, clone } from "@/helpers/utils.js";

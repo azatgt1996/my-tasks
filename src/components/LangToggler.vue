@@ -1,6 +1,6 @@
 <template>
   <UiSelect v-show="false" v-model="lang" id="langSelect" :header="tr.selectLang">
-    <IonSelectOption v-for="_lang in langs" :value="_lang">{{ _lang }}</IonSelectOption>
+    <SelectOption v-for="val in langs" :value="val" :label="val" />
   </UiSelect>
   <IonButton slot="end" color="medium" shape="round" fill="clear" @click="langClick">
     <img slot="icon-only" class="flag-icon" :src="getFlagImg(lang)" :alt="lang" width="22" />
@@ -9,7 +9,8 @@
 
 <script setup>
 import { watch } from "vue";
-import { IonButton, IonSelectOption } from '@ionic/vue';
+import { IonButton } from '@ionic/vue';
+import { SelectOption } from "@/components/renderFunctions.js";
 import { langs, Translations } from "@/helpers/translations.js";
 import { useGlobalStore } from "@/stores/globalStore";
 import { $, $$, delay } from "@/helpers/utils.js";

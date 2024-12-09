@@ -18,5 +18,4 @@ defineProps({
 })
 
 const model = defineModel()
-
 </script>

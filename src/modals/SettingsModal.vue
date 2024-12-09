@@ -13,7 +13,7 @@
       <IonItem>
         <Ikon icon="filterS" class="mr-10" />
         <UiSelect :label="tr.sortBy" v-model="$params.sortBy">
-          <IonSelectOption v-for="val in sorts" :value="val">{{ tr[val].toLowerCase() }}</IonSelectOption>
+          <SelectOption v-for="val in sorts" :value="val" :label="tr[val].toLowerCase()" />
         </UiSelect>
       </IonItem>
       <IconText icon="trashO" :text="tr.deleteAll" color="danger" :disabled="!tasks.length"
@@ -25,8 +25,8 @@
 </template>
 
 <script setup>
-import { IonItem, IonList, IonSelectOption } from '@ionic/vue';
-import { IconText, IconBtn, Ikon } from "@/components/renderFunctions.js";
+import { IonItem, IonList } from '@ionic/vue';
+import { IconText, IconBtn, Ikon, SelectOption } from "@/components/renderFunctions.js";
 import { isEqual, $bus } from "@/helpers/utils.js";
 import { useGlobalStore } from '@/stores/globalStore';
 import { useTaskStore } from "@/stores/taskStore";

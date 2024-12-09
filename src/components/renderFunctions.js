@@ -24,5 +24,7 @@ export const IconText = ({ icon, text, color, ...props }) =>
 
 export const MenuBtn = () => h(IonButtons, { slot: 'start' }, () => h(IonMenuButton))
 
+export const SelectOption = ({ label, ...props }) => h(IonSelectOption, props, () => label)
+
 export const OptionsGroup = ({ label }) =>
   h(IonSelectOption, { disabled: true, class: 'options-group' }, () => label)
