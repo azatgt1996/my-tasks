@@ -120,3 +120,10 @@ const nextTask = () => {
   current.value = clone(next)
 }
 </script>
+
+<style lang="sass">
+.full-label > label
+  justify-content: space-between
+  & > .native-wrapper
+    max-width: fit-content
+</style>

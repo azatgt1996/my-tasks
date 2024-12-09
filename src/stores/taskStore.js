@@ -27,12 +27,12 @@ export const useTaskStore = defineStore('taskStore', () => {
   }
 
   const changeNotification = (task) => {
-    const _id = getNumId(task)
+    const id = getNumId(task)
     const { notification, completed, priority, category, title } = task
     if (isLater(notification) && !completed) {
       const body = `${tr.category}: ${getCategoryName(category)}`
-      setNotification(_id, title, body, notification, priorityType[priority])
-    } else removeNotifications([_id])
+      setNotification(id, title, body, notification, priorityType[priority])
+    } else removeNotifications([id])
   }
 
   return { tasks, selected, setTasks, saveTasks, changeNotification }

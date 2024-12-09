@@ -13,8 +13,7 @@ export function useActionWithCancel(duration = 3000) {
       cancelTimer.value = 0
     }
     reset()
-  
-    const data = runCB()
+    runCB()
 
     let isExecuted = true
     timer = setInterval(() => {
@@ -25,13 +24,12 @@ export function useActionWithCancel(duration = 3000) {
     cancelToast(msg, () => {
       isExecuted = false
       reset()
-      cancelCB(data)
+      cancelCB()
     }, duration)
   
     await delay(duration + 500)
     if (!isExecuted) return
-    
-    finallyCB(data)
+    finallyCB()
   }
 
   return { cancelTimer, execute }

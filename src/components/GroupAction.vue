@@ -1,5 +1,5 @@
 <template>
-  <IonToolbar v-show="selected.length" class="group-actions">
+  <IonToolbar class="group-actions">
     <IconBtn slot="start" color="medium" icon="closeO" @click="selected = []" style="margin: 0 3px" />
     <IonTitle>{{ tr.selected }}: {{ selected.length }}</IonTitle>
     <IconBtn slot="end" color="primary" icon="checkmarkCO" @click="completeSelected" />
@@ -49,33 +49,6 @@ const selectAll = () => {
   }
 }
 
-const removeNotificationsOfSelected = () => {
-  const ids = tasks.filter(it => selected.value.includes(it.id)).map(getNumId)
-  removeNotifications(ids)
-}
-
-const completeSelected = () => {
-  removeNotificationsOfSelected()
-
-  for (const id of selected.value) {
-    const task = tasks.find(it => it.id === id)
-    task.completed = true
-  }
-  saveTasks()
-  toast(tr.selectedCompleted)
-}
-
-const deleteSelected = async () => {
-  if (!await confirm(tr.aysToDeleteSelected)) return
-
-  removeNotificationsOfSelected()
-
-  const _tasks = tasks.filter(it => !selected.value.includes(it.id))
-  setTasks(_tasks)
-  saveTasks(1)
-  toast(tr.selectedDeleted)
-}
-
 const groupExec = (prop, val) => {
   for (const id of selected.value) {
     const task = tasks.find(it => it.id === id)
@@ -83,6 +56,23 @@ const groupExec = (prop, val) => {
     changeNotification(task)
   }
   saveTasks()
+}
+
+const completeSelected = () => {
+  groupExec('completed', true)
+  toast(tr.selectedCompleted)
+}
+
+const deleteSelected = async () => {
+  if (!await confirm(tr.aysToDeleteSelected)) return
+
+  const ids = tasks.filter(it => selected.value.includes(it.id)).map(getNumId)
+  removeNotifications(ids)
+
+  const _tasks = tasks.filter(it => !selected.value.includes(it.id))
+  setTasks(_tasks)
+  saveTasks(1)
+  toast(tr.selectedDeleted)
 }
 
 const changeCategory = () => {

@@ -2,7 +2,7 @@
   <Menu />
   <IonPage id="main-content">
     <IonHeader>
-      <IonToolbar v-show="!selected.length">
+      <IonToolbar v-if="!selected.length">
         <MenuBtn />
         <IonTitle>{{ tr.myTasks }}{{ filtered.length ? `: ${filtered.length}` : '' }}</IonTitle>
         <UiSelect slot="end" interface="popover" v-model="category" class="mr-10" style="max-width: 44%">
@@ -10,16 +10,13 @@
           <SelectOption class="primary" value="" :label="`+ ${tr.newCategory}`" />
         </UiSelect>
       </IonToolbar>
-      <GroupAction :data="filtered" />
+      <GroupAction v-else :data="filtered" />
 
       <IonItem>
         <IonInput :placeholder="tr.search" v-model="keyword" :maxlength="50" clear-input :debounce="500" :disabled>
           <Ikon slot="start" color="medium" small :icon="params.searchInDesc ? 'searchC' : 'searchS'" />
-          <IconBtn slot="end" size="small" icon="funnel" @click="$('#filterSelect').click()" :disabled
-            :color="filters.length === 3 && isEqual(filters, priorities) ? 'medium' : 'primary'"
-            style="margin-left: 0" />
+          <FiltersSelect v-model="filters" :disabled />
         </IonInput>
-        <FiltersSelect v-model="filters" />
       </IonItem>
       <IonItem lines="none">
         <IonInput ref="addTaskInput" :placeholder="tr.newTask" v-model="title" :disabled :maxlength="50" clear-input
@@ -62,11 +59,11 @@
 import { useBackButton, IonContent, IonHeader, IonInput, IonToolbar, IonProgressBar, IonSpinner, IonItem, IonLabel, IonPage, IonTitle } from '@ionic/vue';
 import { IconBtn, Ikon, MenuBtn, SelectOption } from "@/components/renderFunctions.js";
 import { App } from '@capacitor/app';
-import { computed, onMounted, ref, watch, toRefs } from "vue";
+import { computed, onMounted, ref, toRefs } from "vue";
 import { nanoid } from "nanoid";
-import { isEqual, $, $bus, delay, getDT, isLater, getNumId, removeNotifications } from "@/helpers/utils.js";
+import { $bus, delay, getDT, isLater, getNumId, removeNotifications } from "@/helpers/utils.js";
 import { useActionWithCancel } from "@/helpers/actionWithCancel"
-import { emptyDatetime, priorityType, priorities, priorityNum } from "@/helpers/constants.js";
+import { emptyDatetime, priorityType, priorityNum } from "@/helpers/constants.js";
 import { useGlobalStore } from "@/stores/globalStore";
 import { useTaskStore } from "@/stores/taskStore";
 import { useCategoryStore } from "@/stores/categoryStore";
@@ -96,8 +93,6 @@ useBackButton(-1, () => {
 // #region Filter
 const keyword = ref('')
 const filters = ref([])
-
-watch(filters, (val) => storage.set('filters', JSON.stringify(val)))
 
 const grouped = computed(() => { // grouped by category
   if (category.value === 'allCategories') return tasks
@@ -175,16 +170,16 @@ const addTask = (_title) => {
 }
 
 const deleteTask = async (task) => {
+  let idx, deleted
   execute(tr.taskDeleted, () => {
-    const idx = tasks.findIndex(it => it.id === task.id)
-    const deleted = tasks[idx]
+    idx = tasks.findIndex(it => it.id === task.id)
+    deleted = tasks[idx]
     tasks.splice(idx, 1)
     saveTasks(1)
-    return { idx, deleted }
-  }, ({ deleted }) => {
+  }, () => {
     const _id = getNumId(deleted)
     removeNotifications([_id])
-  }, ({ idx, deleted }) => {
+  }, () => {
     tasks.splice(idx, 0, deleted)
     saveTasks(2)
   })
@@ -230,8 +225,6 @@ const toggleCompleted = async (task) => {
 // #endregion
 
 onMounted(async () => {
-  filters.value = JSON.parse(await storage.get('filters')) ?? priorities
-
   const _tasks = await storage.get('tasks')
   tasks.push(...(_tasks ? JSON.parse(_tasks) : []))
   loading.value = false
@@ -241,15 +234,4 @@ onMounted(async () => {
 <style lang="sass">
 #main-content > ion-header > ion-item
   --inner-padding-end: 3px
-
-.full-label > label
-  justify-content: space-between
-  & > .native-wrapper
-    max-width: fit-content
-
-.flex-center
-  display: flex
-  align-items: center
-  justify-content: center
-  height: 100%
 </style>
