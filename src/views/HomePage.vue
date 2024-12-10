@@ -83,15 +83,15 @@ const addTask = (title) => {
   toast(tr.taskAdded)
 }
 
-const saveTask = (cur) => {
-  cur.title = cur.title.trim()
-  if (!cur.title) return errToast(tr.titleIsEmpty)
+const saveTask = (task) => {
+  task.title = task.title.trim()
+  if (!task.title) return errToast(tr.titleIsEmpty)
 
-  const idx = tasks.findIndex(it => it.id === cur.id)
-  cur.changed = new Date().toISOString()
-  tasks[idx] = cur
+  const idx = tasks.findIndex(it => it.id === task.id)
+  task.changed = new Date().toISOString()
+  tasks[idx] = task
 
-  changeNotification(cur)
+  changeNotification(task)
   saveTasks()
   toast(tr.taskChanged)
 }

@@ -101,7 +101,7 @@ const clickDelete = (task) => {
   emit('delete', task)
 }
 
-const openedModal = task => {
+const openedModal = (task) => {
   originalCurrent = clone(task)
   current.value = clone(task)
 }

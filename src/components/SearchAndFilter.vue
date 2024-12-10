@@ -1,7 +1,7 @@
 <template>
   <IonItem>
     <IonInput :placeholder="tr.search" v-model="keyword" :maxlength="50" clear-input :debounce="500" :disabled>
-      <Ikon slot="start" color="medium" small :icon="params.searchInDesc ? 'searchC' : 'searchS'" />
+      <Ikon slot="start" color="medium" small :icon="params.searchInDesc ? 'searchCO' : 'searchS'" />
       <IconBtn slot="end" size="small" icon="funnel" @click="$('#filterSelect').click()" :disabled
         :color="filters.length === 3 && isEqual(filters, priorities) ? 'medium' : 'primary'" style="margin-left: 0" />
       <UiSelect v-show="false" id="filterSelect" v-model="filters" multiple :header="tr.filters">

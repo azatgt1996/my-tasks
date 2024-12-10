@@ -19,14 +19,14 @@ const { tr, errToast } = useGlobalStore()
 const title = ref('')
 
 const onChange = () => {
-  const _title = title.value.trim()
-  title.value = ''
-  
-  if (!_title) {
+  title.value = title.value.trim()
+
+  if (!title.value) {
     if ($('#add-input').className.includes('has-focus')) errToast(tr.titleIsEmpty)
     return $('#add-input').setFocus()
   }
-  emit('change', _title)
+  emit('change', title.value)
+  title.value = ''
 }
 
 defineProps({ disabled: Boolean })
