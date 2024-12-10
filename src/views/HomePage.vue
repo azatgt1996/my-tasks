@@ -12,14 +12,8 @@
       </IonToolbar>
       <GroupAction :data="filtered" />
 
-      <SearchAndFilter :disabled style="--inner-padding-end: 3px"/>
-      <IonItem lines="none" style="--inner-padding-end: 3px">
-        <IonInput id="add-input" :placeholder="tr.newTask" v-model="title" :disabled :maxlength="50" clear-input
-          @keyup.enter="addTask(title)">
-          <IconBtn slot="end" size="small" icon="addC" :color="!title?.trim() ? 'secondary' : 'primary'"
-            @click="addTask(title)" :disabled style="margin-left: 0" />
-        </IonInput>
-      </IonItem>
+      <SearchAndFilter :disabled style="--inner-padding-end: 3px" />
+      <AddTaskInput :disabled @change="addTask" style="--inner-padding-end: 3px" />
     </IonHeader>
 
     <IonContent>
@@ -30,7 +24,7 @@
         :leftIcon="task => task.completed ? 'arrowUndoCO' : 'checkmarkCO'" @to-left="toggleCompleted"
         @to-right="deleteTask" @click-item="task => $bus.open('TaskModal', task)">
         <template #item="task">
-          <TaskItem :task/>
+          <TaskItem :task />
         </template>
       </SlidingList>
       <IonLabel v-show="!filtered.length" class="flex-center" color="medium" style="font-size: x-large">
@@ -45,12 +39,12 @@
 </template>
 
 <script setup>
-import { useBackButton, IonContent, IonHeader, IonInput, IonToolbar, IonProgressBar, IonSpinner, IonItem, IonLabel, IonPage, IonTitle } from '@ionic/vue';
-import { IconBtn, MenuBtn, SelectOption } from "@/components/renderFunctions.js";
+import { useBackButton, IonContent, IonHeader, IonToolbar, IonProgressBar, IonSpinner, IonLabel, IonPage, IonTitle } from '@ionic/vue';
+import { MenuBtn, SelectOption } from "@/components/renderFunctions.js";
 import { App } from '@capacitor/app';
 import { computed, onMounted, ref, toRefs } from "vue";
 import { nanoid } from "nanoid";
-import { $, $bus, delay, getNumId, removeNotifications } from "@/helpers/utils.js";
+import { $bus, delay, getNumId, removeNotifications } from "@/helpers/utils.js";
 import { useActionWithCancel } from "@/helpers/actionWithCancel"
 import { emptyDatetime } from "@/helpers/constants.js";
 import { useGlobalStore } from "@/stores/globalStore";
@@ -62,6 +56,7 @@ import GroupAction from "@/components/GroupAction.vue";
 import Menu from "@/components/Menu.vue";
 import SlidingList from '@/components/SlidingList.vue';
 import TaskItem from '@/components/TaskItem.vue';
+import AddTaskInput from '@/components/AddTaskInput.vue';
 import TaskModal from '@/modals/TaskModal.vue';
 import CategoriesModal from '@/modals/CategoriesModal.vue';
 
@@ -74,21 +69,13 @@ const disabled = computed(() => selected.value.length > 0)
 const { getCategoryName } = useCategoryStore()
 const { category, categories } = toRefs(useCategoryStore())
 const loading = ref(true)
-const title = ref('')
 
-const addTask = (_title) => {
-  _title = _title.trim()
-  title.value = ''
-  if (!_title) {    
-    if ($('#add-input').className.includes('has-focus')) errToast(tr.titleIsEmpty)
-    return $('#add-input').setFocus()
-  }
-
+const addTask = (title) => {
   const _category = category.value === 'allCategories' ? 'common' : category.value
   const now = new Date().toISOString()
 
   const newTask = {
-    id: nanoid(), title: _title, description: '', priority: 'low', completed: false,
+    id: nanoid(), title, description: '', priority: 'low', completed: false,
     category: _category, created: now, changed: now, notification: emptyDatetime
   }
   tasks.push(newTask)
