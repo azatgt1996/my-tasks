@@ -5,17 +5,11 @@
     </template>
     <IonList>
       <IonItem>
-        <IonLabel>
-          {{ tr.common }}
-          <IonNote>({{ tasks.filter(it => it.category === 'common').length }})</IonNote>
-        </IonLabel>
+        <LabelNote :label="tr.common" :note="tasks.filter(it => it.category === 'common').length"/>
       </IonItem>
       <IonReorderGroup :disabled="false" @ionItemReorder="onReorder">
         <IonItem v-for="val in categories.slice(2)" :key="val">
-          <IonLabel class="shorted">
-            {{ getCategoryName(val) }}
-            <IonNote>({{ tasks.filter(it => it.category === val).length }})</IonNote>
-          </IonLabel>
+          <LabelNote :label="getCategoryName(val)" :note="tasks.filter(it => it.category === val).length"/>
           <IconBtn color="primary" size="small" icon="pencilO" @click="renameCategory(val)" />
           <IconBtn color="danger" size="small" icon="trashO" @click="deleteCategory(val)" />
           <IonReorder slot="end" :style="categories.slice(2).length === 1 ? 'pointer-events: none' : ''" />
@@ -26,8 +20,8 @@
 </template>
 
 <script setup>
-import { IonButton, IonList, IonItem, IonLabel, IonNote, IonReorderGroup, IonReorder } from '@ionic/vue';
-import { IconBtn } from "@/components/renderFunctions.js";
+import { IonButton, IonList, IonItem, IonReorderGroup, IonReorder } from '@ionic/vue';
+import { IconBtn, LabelNote } from "@/components/renderFunctions.js";
 import { useGlobalStore } from '@/stores/globalStore';
 import { useTaskStore } from "@/stores/taskStore";
 import { useCategoryStore } from "@/stores/categoryStore";
