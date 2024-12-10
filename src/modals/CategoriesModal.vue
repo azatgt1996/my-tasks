@@ -12,7 +12,7 @@
       </IonItem>
       <IonReorderGroup :disabled="false" @ionItemReorder="onReorder">
         <IonItem v-for="val in categories.slice(2)" :key="val">
-          <IonLabel class="shorted-text">
+          <IonLabel class="shorted">
             {{ getCategoryName(val) }}
             <IonNote>({{ tasks.filter(it => it.category === val).length }})</IonNote>
           </IonLabel>

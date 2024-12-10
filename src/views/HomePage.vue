@@ -30,13 +30,7 @@
         :leftIcon="task => task.completed ? 'arrowUndoCO' : 'checkmarkCO'" @to-left="toggleCompleted"
         @to-right="deleteTask" @click-item="task => $bus.open('TaskModal', task)">
         <template #item="task">
-          <IonLabel class="shorted-text" :class="{ 'striked-text': task.completed }">
-            {{ task.title }}
-          </IonLabel>
-          <Ikon v-if="task.completed" icon="checkmarkCO" small style="margin-right: 2px" />
-          <Ikon v-if="task.notification !== emptyDatetime" icon="alarmO" small style="margin-right: 2px"
-            :style="{ color: isLater(task.notification) ? '' : 'orangered' }" />
-          <Ikon icon="ellipse" :color="priorityType[task.priority]" style="font-size: 14px" />
+          <TaskItem :task/>
         </template>
       </SlidingList>
       <IonLabel v-show="!filtered.length" class="flex-center" color="medium" style="font-size: x-large">
@@ -52,13 +46,13 @@
 
 <script setup>
 import { useBackButton, IonContent, IonHeader, IonInput, IonToolbar, IonProgressBar, IonSpinner, IonItem, IonLabel, IonPage, IonTitle } from '@ionic/vue';
-import { IconBtn, Ikon, MenuBtn, SelectOption } from "@/components/renderFunctions.js";
+import { IconBtn, MenuBtn, SelectOption } from "@/components/renderFunctions.js";
 import { App } from '@capacitor/app';
 import { computed, onMounted, ref, toRefs } from "vue";
 import { nanoid } from "nanoid";
-import { $, $bus, delay, isLater, getNumId, removeNotifications } from "@/helpers/utils.js";
+import { $, $bus, delay, getNumId, removeNotifications } from "@/helpers/utils.js";
 import { useActionWithCancel } from "@/helpers/actionWithCancel"
-import { emptyDatetime, priorityType } from "@/helpers/constants.js";
+import { emptyDatetime } from "@/helpers/constants.js";
 import { useGlobalStore } from "@/stores/globalStore";
 import { useTaskStore } from "@/stores/taskStore";
 import { useCategoryStore } from "@/stores/categoryStore";
@@ -67,6 +61,7 @@ import SearchAndFilter from "@/components/SearchAndFilter.vue";
 import GroupAction from "@/components/GroupAction.vue";
 import Menu from "@/components/Menu.vue";
 import SlidingList from '@/components/SlidingList.vue';
+import TaskItem from '@/components/TaskItem.vue';
 import TaskModal from '@/modals/TaskModal.vue';
 import CategoriesModal from '@/modals/CategoriesModal.vue';
 
