@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { onBeforeMount, reactive, ref } from 'vue'
 import { toastController, alertController } from '@ionic/vue'
 import { Storage } from "@ionic/storage";
+import { Share } from '@capacitor/share';
 
 export const useGlobalStore = defineStore('globalStore', () => {
   const storage = new Storage()
@@ -69,7 +70,9 @@ export const useGlobalStore = defineStore('globalStore', () => {
       header, buttons: [tr.cancel, { text: 'Ok', handler: data => onOkClick(data, false, callback) }],
     }).then(alert => alert.present())
 
+  const share = (data) => Share.share({ dialogTitle: tr.shareUsing, ...data })
+
   onBeforeMount(() => storage.create())
 
-  return { tr, params, storage, lang, localeDate, toast, errToast, cancelToast, alert, confirm, prompt, prompt2 }
+  return { tr, params, storage, lang, localeDate, toast, errToast, cancelToast, alert, confirm, prompt, prompt2, share }
 })

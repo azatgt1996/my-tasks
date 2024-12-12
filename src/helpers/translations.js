@@ -32,7 +32,6 @@ const translations = {
   ],
   rateApp: ['Rate the app', 'Califica la aplicación', 'Оценить приложение'],
   aboutApp: ['About the app', 'Acerca de la aplicación', 'О приложении'],
-  appInfo: ['App info', 'Información de la aplicación', 'Информация о приложении'],
   aboutText: [
     'Author: %s\n\nUsed stacks:\n%s\n\nFlag icons:\n%s\n\nSounds:\n%s\n\n',
     'Autor: %s\n\nTecnologías utilizadas:\n%s\n\nIconos de bandera:\n%s\n\nSonidos:\n%s\n\n',

@@ -32,12 +32,10 @@
           <Ikon icon="addO" />
           <Ikon icon="alarmO" small />
         </IonButton>
-        <IonDatetimeButton v-show="current.notification !== emptyDatetime" datetime="datetime"
-          :class="isLater(current.notification) ? '' : 'passed-date'" />
+        <UiDateTime v-show="current.notification !== emptyDatetime" v-model="current.notification" />
         <IconBtn v-show="current.notification !== emptyDatetime" color="danger" icon="closeCO"
           @click="current.notification = emptyDatetime" />
       </IonItem>
-      <DateTimeModal id="datetime" v-model="current.notification" />
       <IonItem>
         <IonLabel>{{ tr.priority }}</IonLabel>
         <IonSegment v-model="current.priority" mode="ios">
@@ -63,16 +61,16 @@
 </template>
 
 <script setup>
-import { IonDatetimeButton, IonList, IonItem, IonInput, IonTextarea, IonCheckbox, IonLabel, IonButton, IonSegment, IonSegmentButton } from '@ionic/vue';
+import { IonList, IonItem, IonInput, IonTextarea, IonCheckbox, IonLabel, IonButton, IonSegment, IonSegmentButton } from '@ionic/vue';
 import { IconTextBtn, IconBtn, IconText, Ikon, SelectOption } from "@/components/renderFunctions.js";
 import { useGlobalStore } from '@/stores/globalStore';
 import { useCategoryStore } from '@/stores/categoryStore';
-import { getLateDate, isLater, $bus, isEqual, clone } from "@/helpers/utils.js";
+import { getLateDate, $bus, isEqual, clone } from "@/helpers/utils.js";
 import { emptyDatetime, priorityType, priorities } from "@/helpers/constants.js";
 import { ref, toRefs } from 'vue';
 import UiModal from "@/components/UiModal.vue";
 import UiSelect from "@/components/UiSelect.vue";
-import DateTimeModal from "@/components/DateTimeModal.vue";
+import UiDateTime from "@/components/UiDateTime.vue";
 
 const props = defineProps({
   data: { type: Array, default: [] }

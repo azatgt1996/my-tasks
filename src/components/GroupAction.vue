@@ -10,6 +10,7 @@
     <IonPopover trigger="more-btn" dismiss-on-select size="auto">
       <IonContent>
         <IonList lines="none">
+          <IconText icon="sendO" :text="tr.send" @click="sendSelected" />
           <IconText icon="arrowUndoCO" :text="tr.uncompleteTasks" @click="uncompleteSelected" />
           <IconText icon="albumsO" :text="tr.changeCategory" @click="changeCategory" />
           <IconText icon="caretUpCO" :text="tr.changePriority" @click="changePriority" />
@@ -36,7 +37,7 @@ const props = defineProps({
   data: { type: Array, default: [] }
 })
 
-const { tr, params, toast, confirm, prompt2 } = useGlobalStore()
+const { tr, params, toast, confirm, prompt2, share } = useGlobalStore()
 const { selected } = toRefs(useTaskStore())
 const { tasks, setTasks, saveTasks, changeNotification } = useTaskStore()
 const { getCategoryName } = useCategoryStore()
@@ -48,6 +49,8 @@ const selectAll = () => {
     if (params.vibro) vibrate(14)
   }
 }
+
+const sendSelected = () => share({ text: selected.value.map(it => '· ' + it.title).join('\n') })
 
 const groupExec = (prop, val) => {
   for (const id of selected.value) {

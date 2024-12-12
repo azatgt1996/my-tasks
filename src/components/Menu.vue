@@ -33,17 +33,16 @@ import { App } from '@capacitor/app';
 import { $bus, str, sendToEmail } from "@/helpers/utils.js";
 import { Translations } from "@/helpers/translations.js";
 import { useGlobalStore } from "@/stores/globalStore";
-import { Share } from '@capacitor/share';
 import LangToggler from "@/components/LangToggler.vue";
 import DarkModeToggler from "@/components/DarkModeToggler.vue";
 import TranslationModal from '@/modals/TranslationModal.vue';
 import SettingsModal from '@/modals/SettingsModal.vue';
 
-const { tr, alert } = useGlobalStore()
+const { tr, alert, share } = useGlobalStore()
 
 const appLink = 'https://play.google.com/store/apps/details?id=com.kvarta.mytasks'
 
-const shareApp = () => Share.share({ text: tr.shareText, url: appLink, dialogTitle: tr.shareUsing })
+const shareApp = () => share({ text: tr.shareText, url: appLink })
 
 const rateApp = () => window.location.href = appLink
 
@@ -51,7 +50,8 @@ const showAppInfo = () => {
   const trAuthors = Object.keys(Translations).map(key => ` ${Translations[key]._language}: ${Translations[key]._trAuthor}`)
   const fullText = `${tr.aboutText}${tr.translation}:\n${trAuthors.join('\n')}`
 
-  const msg = str(fullText, 'Galyautdinov Azat', 'Ionic Framework 8, VueJs 3', 'www.flaticon.com', 'mixkit.co/free-sound-effects')
-  alert(msg, tr.appInfo)
+  let msg = str(fullText, 'Galyautdinov Azat', 'Ionic Framework 8, VueJs 3', 'www.flaticon.com', 'mixkit.co/free-sound-effects')
+  msg += '\n\nGithub project: github.com/azatgt1996/my-tasks'
+  alert(msg, tr.aboutApp)
 }
 </script>
