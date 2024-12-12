@@ -50,7 +50,10 @@ const selectAll = () => {
   }
 }
 
-const sendSelected = () => share({ text: selected.value.map(it => '· ' + it.title).join('\n') })
+const sendSelected = () => {
+  const _tasks = tasks.filter(it => selected.value.includes(it.id))
+  share({ text: _tasks.map(it => `· ${it.title}`).join('\n') })
+}
 
 const groupExec = (prop, val) => {
   for (const id of selected.value) {
