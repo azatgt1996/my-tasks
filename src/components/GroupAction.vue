@@ -10,7 +10,7 @@
     <IonPopover trigger="more-btn" dismiss-on-select size="auto">
       <IonContent>
         <IonList lines="none">
-          <IconText icon="sendO" :text="tr.send" @click="sendSelected" />
+          <IconText icon="shareSocialO" :text="tr.send" @click="sendSelected" />
           <IconText icon="arrowUndoCO" :text="tr.uncompleteTasks" @click="uncompleteSelected" />
           <IconText icon="albumsO" :text="tr.changeCategory" @click="changeCategory" />
           <IconText icon="caretUpCO" :text="tr.changePriority" @click="changePriority" />

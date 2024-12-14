@@ -9,13 +9,15 @@ import { IonButton } from '@ionic/vue';
 import { Ikon } from "@/components/renderFunctions.js";
 import { ref } from "vue";
 
-const _darkMode = (ls.darkMode ?? window.matchMedia?.('(prefers-color-scheme: dark)').matches.toString()) === 'true'
+const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches.toString()
+const _darkMode = (localStorage.darkMode ?? prefersDark) === 'true'
+
 const darkMode = ref(_darkMode)
 document.documentElement.classList.toggle('ion-palette-dark', _darkMode)
 
 const toggleDarkMode = () => {
   darkMode.value = !darkMode.value
-  ls.darkMode = darkMode.value
+  localStorage.darkMode = darkMode.value
   document.documentElement.classList.toggle('ion-palette-dark', darkMode.value)
 }
 </script>

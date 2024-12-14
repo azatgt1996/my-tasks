@@ -24,11 +24,11 @@ const getFlagImg = (name) => new URL(`../assets/flags/${name}.png`, import.meta.
 
 const navLang = window.navigator.language.split('-')[0].toUpperCase()
 const _langs = Object.keys(Translations)
-lang.value = ls.lang ?? (_langs.includes(navLang) ? navLang : _langs[0])
+lang.value = localStorage.lang ?? (_langs.includes(navLang) ? navLang : _langs[0])
 Object.assign(tr, Translations[lang.value])
 
 watch(lang, (val) => {
-  ls.lang = val
+  localStorage.lang = val
   Object.assign(tr, Translations[val])
 })
 
