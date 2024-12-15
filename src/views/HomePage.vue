@@ -20,13 +20,13 @@
       <div v-show="loading" class="flex-center">
         <IonSpinner name="lines" />
       </div>
-      <SlidingList v-model="selected" :data="filtered" :withVibro="params.vibro" rightIcon="trashO"
+      <SlidableCheckList v-model="selected" :data="filtered" :withVibro="params.vibro" rightIcon="trashO"
         :leftIcon="task => task.completed ? 'arrowUndoCO' : 'checkmarkCO'" @to-left="toggleCompleted"
         @to-right="deleteTask" @click-item="task => $bus.open('TaskModal', task)">
         <template #item="task">
           <TaskItem :task />
         </template>
-      </SlidingList>
+      </SlidableCheckList>
       <IonLabel v-show="!filtered.length" class="flex-center" color="medium" style="font-size: x-large">
         {{ listStatus }}
       </IonLabel>
@@ -54,7 +54,7 @@ import UiSelect from "@/components/UiSelect.vue";
 import SearchAndFilter from "@/components/SearchAndFilter.vue";
 import GroupAction from "@/components/GroupAction.vue";
 import Menu from "@/components/Menu.vue";
-import SlidingList from '@/components/SlidingList.vue';
+import SlidableCheckList from '@/components/SlidableCheckList.vue';
 import TaskItem from '@/components/TaskItem.vue';
 import AddTaskInput from '@/components/AddTaskInput.vue';
 import TaskModal from '@/modals/TaskModal.vue';
