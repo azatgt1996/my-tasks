@@ -5,11 +5,11 @@
     </template>
     <IonList>
       <IonItem>
-        <LabelNote :label="tr.common" :note="tasks.filter(it => it.category === 'common').length"/>
+        <LabelNote :label="tr.common" :note="tasks.filter(it => it.category === 'common').length" />
       </IonItem>
       <IonReorderGroup :disabled="false" @ionItemReorder="onReorder">
         <IonItem v-for="val in categories.slice(2)" :key="val">
-          <LabelNote :label="getCategoryName(val)" :note="tasks.filter(it => it.category === val).length"/>
+          <LabelNote :label="getCategoryName(val)" :note="tasks.filter(it => it.category === val).length" />
           <IconBtn color="primary" size="small" icon="pencilO" @click="renameCategory(val)" />
           <IconBtn color="danger" size="small" icon="trashO" @click="deleteCategory(val)" />
           <IonReorder slot="end" :style="categories.slice(2).length === 1 ? 'pointer-events: none' : ''" />
@@ -44,13 +44,14 @@ watch(category, (val, old) => {
 
 const saveCategories = () => storage.set('categories', JSON.stringify(categories.value))
 
-const addCategory = (isToggle) =>
+const addCategory = (isToggle) => {
   prompt(tr.newCategory, tr.typeCategory, '', val => {
     if (categories.value.includes(val)) return errToast(tr.categoryExists)
     categories.value = [...categories.value, val]
     if (isToggle) category.value = val
     saveCategories()
   })
+}
 
 const renameCategory = (_category) => {
   const oldValue = getCategoryName(_category)

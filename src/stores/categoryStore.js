@@ -4,7 +4,7 @@ import { useGlobalStore } from "@/stores/globalStore";
 
 export const useCategoryStore = defineStore('categoryStore', () => {
   const { tr } = useGlobalStore()
-  
+
   const category = ref('allCategories')
   const categories = ref([])
 

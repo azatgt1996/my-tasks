@@ -5,7 +5,7 @@
     <IconBtn slot="end" color="primary" icon="checkmarkCO" @click="completeSelected" />
     <IconBtn slot="end" color="danger" icon="trashO" @click="deleteSelected" />
     <IconBtn slot="end" :color="selected.length === data.length ? 'success' : 'medium'" icon="checkmarkDoneO"
-      @click="selectAll" />
+             @click="selectAll" />
     <IconBtn id="more-btn" slot="end" color="medium" icon="ellipsisVertical" style="margin: 0 3px" />
     <IonPopover trigger="more-btn" dismiss-on-select size="auto">
       <IonContent>

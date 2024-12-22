@@ -17,9 +17,9 @@
         </UiSelect>
       </IonItem>
       <IconText icon="trashO" :text="tr.deleteAll" color="danger" :disabled="!tasks.length"
-        @click="$bus.emit('deleteAll')" />
+                @click="$bus.emit('deleteAll')" />
       <IconText icon="trashBinO" :text="tr.deleteAllCompleted" color="danger"
-        :disabled="!tasks.filter(it => it.completed).length" @click="$bus.emit('deleteAllCompleted')" />
+                :disabled="!tasks.filter(it => it.completed).length" @click="$bus.emit('deleteAllCompleted')" />
     </IonList>
   </UiModal>
 </template>

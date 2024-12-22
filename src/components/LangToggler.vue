@@ -47,7 +47,7 @@ const langClick = async () => {
 <style lang="sass">
 .flag-icon
   border-radius: 50%
-  box-shadow: 0px 0px 2px 0px gray
+  box-shadow: 0 0 2px 0 gray
 
 .alert-radio-label
   display: flex

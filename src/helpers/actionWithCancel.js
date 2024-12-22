@@ -20,13 +20,13 @@ export function useActionWithCancel(duration = 3000) {
       cancelTimer.value += 0.01
       if (cancelTimer.value > 1) reset()
     }, duration / 100)
-  
+
     cancelToast(msg, () => {
       isExecuted = false
       reset()
       cancelCB()
     }, duration)
-  
+
     await delay(duration + 500)
     if (!isExecuted) return
     finallyCB()

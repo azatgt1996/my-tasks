@@ -3,7 +3,7 @@
     <IonInput :placeholder="tr.search" v-model="keyword" :maxlength="50" clear-input :debounce="500" :disabled>
       <Ikon slot="start" color="medium" small :icon="params.searchInDesc ? 'searchCO' : 'searchS'" />
       <IconBtn slot="end" size="small" icon="funnel" @click="$('#filterSelect').click()" :disabled
-        :color="isEqual(filters, priorities) ? 'medium' : 'primary'" style="margin-left: 0" />
+               :color="isEqual(filters, priorities) ? 'medium' : 'primary'" style="margin-left: 0" />
       <UiSelect v-show="false" id="filterSelect" v-model="filters" multiple :header="tr.filters">
         <OptionsGroup :label="tr.byPriorities" />
         <SelectOption v-for="val in priorities" :value="val" :label="tr[val]" :class="`${val}-item`" />
@@ -87,8 +87,10 @@ watch(_listStatus, (val) => listStatus.value = val)
     .alert-checkbox-icon
       border-color: var(--ion-color-#{$color}) !important
       background-color: var(--ion-color-#{$color}) !important
+
     .alert-radio-icon
       border-color: var(--ion-color-#{$color}) !important
+
       .alert-radio-inner
         background-color: var(--ion-color-#{$color})
 </style>

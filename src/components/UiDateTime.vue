@@ -2,7 +2,7 @@
   <IonDatetimeButton :datetime="dtRef" :class="isLater(model) ? '' : 'passed-date'">
     <IonModal keep-contents-mounted @willPresent="focus">
       <IonDatetime :id="dtRef" v-model="model" max="2100-12-31T00:00:00" :locale="tr._code" hour-cycle="h23"
-        :firstDayOfWeek="new Intl.Locale(tr._code).weekInfo.firstDay ?? 1" />
+                   :firstDayOfWeek="new Intl.Locale(tr._code).weekInfo.firstDay ?? 1" />
     </IonModal>
   </IonDatetimeButton>
 </template>

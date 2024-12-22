@@ -7,7 +7,7 @@
         </IonItemOption>
       </IonItemOptions>
       <IonItem button @click="clickItem(item)" @touchstart="checkItem(item)" @touchend="clearTimer"
-        @touchmove="sliding = true">
+               @touchmove="sliding = true">
         <Ikon v-show="selected.includes(item.id)" icon="checkmarkO" color="success" class="check-icon mr-10" />
         <slot name="item" v-bind="item" />
       </IonItem>
@@ -89,11 +89,11 @@ const onIonDrag = (e) => {
 }
 
 const checkItem = (item) =>
-  timer = setTimeout(() => {
-    if (sliding) return
-    select(item)
-    notOpen = true
-  }, 700)
+    timer = setTimeout(() => {
+      if (sliding) return
+      select(item)
+      notOpen = true
+    }, 700)
 </script>
 
 <style lang="sass">
@@ -102,11 +102,13 @@ const checkItem = (item) =>
 
 .list-enter-active, .list-leave-active
   transition: all 0.4s ease
+
 .list-enter-from, .list-leave-to
   opacity: 0
 
 ion-item-sliding .item-options-start ion-item-option
   padding-right: 100%
+
 ion-item-sliding .item-options-end ion-item-option
   padding-left: 100%
 
@@ -115,6 +117,7 @@ ion-item-sliding ion-item-options
 
 .item-sliding-active-options-start ion-item
   border-radius: 12px 0 0 12px
+
 .item-sliding-active-options-end ion-item
   border-radius: 0 12px 12px 0
 </style>

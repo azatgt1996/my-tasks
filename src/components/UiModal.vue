@@ -1,6 +1,6 @@
 <template>
   <IonModal :isOpen @didDismiss="isOpen = false" :style="sheet ? '--height: auto' : ''"
-    v-bind="sheet ? { initialBreakpoint: 1, breakpoints: [0, 1] } : {}">
+            v-bind="sheet ? { initialBreakpoint: 1, breakpoints: [0, 1] } : {}">
     <IonHeader v-if="title">
       <IonToolbar class="icon-modal">
         <Ikon v-if="icon" slot="start" :icon />
@@ -12,7 +12,7 @@
       </IonToolbar>
     </IonHeader>
     <component :is="sheet ? 'div' : IonContent" @click="onClickContent" @swipedLeft="emit('swipedLeft')"
-      @swipedRight="emit('swipedRight')">
+               @swipedRight="emit('swipedRight')">
       <slot />
     </component>
     <IonFooter style="display: flex">

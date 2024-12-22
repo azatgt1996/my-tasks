@@ -3,9 +3,9 @@
     <div style="display: grid; margin: 0 auto; padding: 30px 0 10px">
       <UiDateTime v-model="groupNotification" style="margin-bottom: 15px" />
       <IconTextBtn :text="tr.setNotification" icon="checkmarkCO"
-        @click="emit('changeNotifications', groupNotification)" />
+                   @click="emit('changeNotifications', groupNotification)" />
       <IconTextBtn :text="tr.deleteNotification" icon="closeCO" @click="emit('changeNotifications', null)"
-        color="danger" />
+                   color="danger" />
     </div>
   </UiModal>
 </template>

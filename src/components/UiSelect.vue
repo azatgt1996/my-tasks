@@ -1,6 +1,6 @@
 <template>
   <IonSelect v-model="model" v-bind="$attrs" :label :cancelText="tr.cancel" :interfaceOptions="{ header }"
-    :toggleIcon="chevronDown" :expandedIcon="chevronUp">
+             :toggleIcon="chevronDown" :expandedIcon="chevronUp">
     <slot />
   </IonSelect>
 </template>

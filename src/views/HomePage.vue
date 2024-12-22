@@ -21,8 +21,8 @@
         <IonSpinner name="lines" />
       </div>
       <SlidableCheckList v-model="selected" :data="filtered" :withVibro="params.vibro" rightIcon="trashO"
-        :leftIcon="task => task.completed ? 'arrowUndoCO' : 'checkmarkCO'" @to-left="toggleCompleted"
-        @to-right="deleteTask" @click-item="task => $bus.open('TaskModal', task)">
+                         :leftIcon="task => task.completed ? 'arrowUndoCO' : 'checkmarkCO'" @to-left="toggleCompleted"
+                         @to-right="deleteTask" @click-item="task => $bus.open('TaskModal', task)">
         <template #item="task">
           <TaskItem :task />
         </template>
@@ -39,7 +39,8 @@
 </template>
 
 <script setup>
-import { useBackButton, IonContent, IonHeader, IonToolbar, IonProgressBar, IonSpinner, IonLabel, IonPage, IonTitle } from '@ionic/vue';
+import { useBackButton, IonContent, IonHeader, IonToolbar, IonProgressBar, IonSpinner, IonLabel, IonPage, IonTitle }
+  from '@ionic/vue';
 import { MenuBtn, SelectOption } from "@/components/renderFunctions.js";
 import { App } from '@capacitor/app';
 import { computed, onMounted, ref, toRefs } from "vue";

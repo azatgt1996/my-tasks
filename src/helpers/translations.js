@@ -141,7 +141,7 @@ const translations = {
 }
 
 const langs = translations._code
-const Translations = {}
+const Translations = { EN: {} }
 
 langs.forEach((lang, index) => {
   Translations[lang] = {}

@@ -1,9 +1,9 @@
 <template>
   <IonItem lines="none">
     <IonInput id="add-input" :placeholder="tr.newTask" v-model="title" :disabled :maxlength="50" clear-input
-      @keyup.enter="onChange">
+              @keyup.enter="onChange">
       <IconBtn slot="end" size="small" icon="addC" :color="!title?.trim() ? 'secondary' : 'primary'" @click="onChange"
-        :disabled style="margin-left: 0" />
+               :disabled style="margin-left: 0" />
     </IonInput>
   </IonItem>
 </template>

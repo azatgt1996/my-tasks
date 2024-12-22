@@ -1,7 +1,8 @@
 <template>
   <UiModal name="TaskModal" icon="readerO" :title="tr.detailInfo"
-    @dblClick="!isEqual(originalCurrent, current) && clickSave(current)" @opened="openedModal"
-    @swipedLeft="data.at(-1)?.id !== current.id && nextTask()" @swipedRight="data[0]?.id !== current.id && prevTask()">
+           @dblClick="!isEqual(originalCurrent, current) && clickSave(current)" @opened="openedModal"
+           @swipedLeft="data.at(-1)?.id !== current.id && nextTask()"
+           @swipedRight="data[0]?.id !== current.id && prevTask()">
     <template #button>
       <IconBtn icon="saveO" :disabled="isEqual(originalCurrent, current)" @click="clickSave(current)" />
     </template>
@@ -14,11 +15,11 @@
       </IonItem>
       <IonItem>
         <IonInput :label="tr.title" :placeholder="tr.typeTask" v-model="current.title" label-placement="fixed"
-          :maxlength="50" />
+                  :maxlength="50" />
       </IonItem>
       <IonItem>
         <IonTextarea :label="tr.description" v-model="current.description" :rows="4" :placeholder="tr.typeDescription"
-          clear-input label-placement="fixed" :maxlength="300" />
+                     clear-input label-placement="fixed" :maxlength="300" />
       </IonItem>
       <IonItem>
         <UiSelect v-model="current.category" :label="tr.category" :header="tr.selectCategory">
@@ -28,13 +29,13 @@
       <IonItem>
         <IonLabel>{{ tr.notification }}</IonLabel>
         <IonButton v-show="current.notification === emptyDatetime" color="light"
-          @click="current.notification = getLateDate()" style="--box-shadow: 0">
+                   @click="current.notification = getLateDate()" style="--box-shadow: 0">
           <Ikon icon="addO" />
           <Ikon icon="alarmO" small />
         </IonButton>
         <UiDateTime v-show="current.notification !== emptyDatetime" v-model="current.notification" />
         <IconBtn v-show="current.notification !== emptyDatetime" color="danger" icon="closeCO"
-          @click="current.notification = emptyDatetime" />
+                 @click="current.notification = emptyDatetime" />
       </IonItem>
       <IonItem>
         <IonLabel>{{ tr.priority }}</IonLabel>
@@ -53,15 +54,16 @@
     </IonList>
     <template v-if="data.length > 1" #footer>
       <IconTextBtn size="small" style="width: 100%" :text="tr.prev" icon="caretBackO"
-        :disabled="data[0]?.id === current.id" @click="prevTask" />
+                   :disabled="data[0]?.id === current.id" @click="prevTask" />
       <IconTextBtn size="small" style="width: 100%" :text="tr.next" icon="caretForwardO"
-        :disabled="data.at(-1)?.id === current.id" iconPlace="end" @click="nextTask" />
+                   :disabled="data.at(-1)?.id === current.id" iconPlace="end" @click="nextTask" />
     </template>
   </UiModal>
 </template>
 
 <script setup>
-import { IonList, IonItem, IonInput, IonTextarea, IonCheckbox, IonLabel, IonButton, IonSegment, IonSegmentButton } from '@ionic/vue';
+import { IonList, IonItem, IonInput, IonTextarea, IonCheckbox, IonLabel, IonButton, IonSegment, IonSegmentButton }
+  from '@ionic/vue';
 import { IconTextBtn, IconBtn, IconText, Ikon, SelectOption } from "@/components/renderFunctions.js";
 import { useGlobalStore } from '@/stores/globalStore';
 import { useCategoryStore } from '@/stores/categoryStore';
@@ -122,6 +124,7 @@ const nextTask = () => {
 <style lang="sass">
 .full-label > label
   justify-content: space-between
+
   & > .native-wrapper
     max-width: fit-content
 </style>

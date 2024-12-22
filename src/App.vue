@@ -16,7 +16,7 @@ import { useGlobalStore } from "@/stores/globalStore";
 const { tr, errToast } = useGlobalStore()
 
 onMounted(() => {
-  LocalNotifications.checkPermissions().then(res => {    
+  LocalNotifications.checkPermissions().then(res => {
     if (res?.display !== 'denied') return
     LocalNotifications.requestPermissions().then(res => {
       if (res?.display === 'denied') errToast(tr.needNotifyPermission)
