@@ -34,12 +34,11 @@ export const useGlobalStore = defineStore('globalStore', () => {
 
   const errToast = (message) => baseToast(message, 'danger', 2000)
 
-  const alert = (message, header = tr.attention) => {
+  const alert = (message, header = tr.attention) =>
     alertController.create({ header, message, buttons: ['Ok'] })
       .then(alert => alert.present())
-  }
 
-  const confirm = (message, callback) => {
+  const confirm = (message, callback) =>
     alertController.create({
       header: tr.attention, message,
       buttons: [tr.cancel, { text: 'Ok', role: 'ok', handler: callback }]
@@ -48,7 +47,6 @@ export const useGlobalStore = defineStore('globalStore', () => {
       const { role } = await alert.onDidDismiss()
       return role === 'ok'
     })
-  }
 
   const onOkClick = (data, isInput, callback) => {
     if (!data) {
