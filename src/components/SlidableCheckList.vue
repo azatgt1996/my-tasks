@@ -88,12 +88,13 @@ const onIonDrag = (e) => {
   }
 }
 
-const checkItem = (item) =>
-    timer = setTimeout(() => {
-      if (sliding) return
-      select(item)
-      notOpen = true
-    }, 700)
+const checkItem = (item) => {
+  timer = setTimeout(() => {
+    if (sliding) return
+    select(item)
+    notOpen = true
+  }, 700)
+}
 </script>
 
 <style lang="sass">
