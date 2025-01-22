@@ -7,7 +7,7 @@ export default class EventBus {
   emit(eventName, ...args) {
     const callback = this.eventObject[eventName];
 
-    if (!callback) return console.warn(eventName + ": event not found!");
+    if (!callback) return console.warn(eventName + ': event not found!');
 
     for (let id in callback) {
       callback[id](...args);
@@ -36,10 +36,10 @@ export default class EventBus {
 
   // for UiModal
   open(modalName, ...args) {
-    return this.emit('openModal', modalName, ...args)
+    return this.emit('openModal', modalName, ...args);
   }
 
   close(modalName, ...args) {
-    return this.emit('closeModal', modalName, ...args)
+    return this.emit('closeModal', modalName, ...args);
   }
 }

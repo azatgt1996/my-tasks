@@ -1,19 +1,45 @@
 <template>
-  <TransitionGroup v-show="data.length" ref="listRef" name="list" :tag="IonList.name">
-    <IonItemSliding v-for="item in data" :key="item.id" :disabled="selected.length > 0" @ionDrag="onIonDrag">
+  <TransitionGroup
+    v-show="data.length"
+    ref="listRef"
+    name="list"
+    :tag="IonList.name"
+  >
+    <IonItemSliding
+      v-for="item in data"
+      :key="item.id"
+      :disabled="selected.length > 0"
+      @ionDrag="onIonDrag"
+    >
       <IonItemOptions side="start" @ion-swipe="swipedTo('left', item)">
         <IonItemOption color="primary">
-          <Ikon slot="icon-only" :icon="typeof leftIcon === 'string' ? leftIcon : leftIcon(item)" />
+          <Ikon
+            slot="icon-only"
+            :icon="typeof leftIcon === 'string' ? leftIcon : leftIcon(item)"
+          />
         </IonItemOption>
       </IonItemOptions>
-      <IonItem button @click="clickItem(item)" @touchstart="checkItem(item)" @touchend="clearTimer"
-               @touchmove="sliding = true">
-        <Ikon v-show="selected.includes(item.id)" icon="checkmarkO" color="success" class="check-icon mr-10" />
+      <IonItem
+        button
+        @click="clickItem(item)"
+        @touchstart="checkItem(item)"
+        @touchend="clearTimer"
+        @touchmove="sliding = true"
+      >
+        <Ikon
+          v-show="selected.includes(item.id)"
+          icon="checkmarkO"
+          color="success"
+          class="check-icon mr-10"
+        />
         <slot name="item" v-bind="item" />
       </IonItem>
       <IonItemOptions side="end" @ion-swipe="swipedTo('right', item)">
         <IonItemOption color="danger">
-          <Ikon slot="icon-only" :icon="typeof rightIcon === 'string' ? rightIcon : rightIcon(item)" />
+          <Ikon
+            slot="icon-only"
+            :icon="typeof rightIcon === 'string' ? rightIcon : rightIcon(item)"
+          />
         </IonItemOption>
       </IonItemOptions>
     </IonItemSliding>
@@ -22,79 +48,88 @@
 
 <script setup>
 import { onClickOutside } from '@vueuse/core';
-import { IonItem, IonItemSliding, IonItemOptions, IonItemOption, IonList } from '@ionic/vue';
-import { Ikon } from "@/components/renderFunctions.js";
+import {
+  IonItem,
+  IonItemSliding,
+  IonItemOptions,
+  IonItemOption,
+  IonList,
+} from '@ionic/vue';
+import { Ikon } from '@/components/renderFunctions.js';
 import { watch, ref } from 'vue';
-import { vibrate } from "@/helpers/utils.js";
+import { vibrate } from '@/helpers/utils.js';
 
 const props = defineProps({
   data: Array, // example: [{id: '1', name: 'val1'}, {id: '2', name: 'val2'}] //id is required
   leftIcon: { type: [String, Function] },
   rightIcon: { type: [String, Function] },
   withVibro: Boolean,
-})
+});
 
-const emit = defineEmits(['to-left', 'to-right', 'click-item'])
+const emit = defineEmits(['to-left', 'to-right', 'click-item']);
 
 const swipedTo = (direction, item) => {
-  listRef.value.$el.closeSlidingItems()
-  emit(`to-${direction}`, item)
-}
+  listRef.value.$el.closeSlidingItems();
+  emit(`to-${direction}`, item);
+};
 
-const listRef = ref()
-onClickOutside(listRef, () => listRef.value.$el.closeSlidingItems())
+const listRef = ref();
+onClickOutside(listRef, () => listRef.value.$el.closeSlidingItems());
 
-let timer, notOpen = false, sliding = false, swiped = false
+let timer,
+  notOpen = false,
+  sliding = false,
+  swiped = false;
 
-const selected = defineModel({ default: [] })
-watch(selected, val => {
+const selected = defineModel({ default: [] });
+watch(selected, (val) => {
   if (!val.length) {
-    notOpen = false
-    swiped = false
+    notOpen = false;
+    swiped = false;
   }
-})
+});
 
 const select = (item) => {
   if (selected.value.includes(item.id)) {
-    selected.value = selected.value.filter(id => id !== item.id)
+    selected.value = selected.value.filter((id) => id !== item.id);
   } else {
-    selected.value.push(item.id)
-    if (props.withVibro) vibrate(12)
+    selected.value.push(item.id);
+    if (props.withVibro) vibrate(12);
   }
-}
+};
 
 const clickItem = async (item) => {
   if (selected.value.length) {
-    select(item)
-    return notOpen = false
+    select(item);
+    return (notOpen = false);
   }
 
-  if (notOpen) return notOpen = false
-  emit('click-item', item)
-}
+  if (notOpen) return (notOpen = false);
+  emit('click-item', item);
+};
 
 const clearTimer = () => {
-  clearTimeout(timer)
-  sliding = false
-}
+  clearTimeout(timer);
+  sliding = false;
+};
 
 const onIonDrag = (e) => {
-  sliding = true
+  sliding = true;
 
-  const flag = /item-sliding-active-swipe-(start|end)/.test(e.target.className)
+  const flag = /item-sliding-active-swipe-(start|end)/.test(e.target.className);
   if (flag !== swiped) {
-    swiped = !swiped
-    if (props.withVibro) vibrate(6)
+    swiped = !swiped;
+    if (props.withVibro) vibrate(6);
   }
-}
+};
 
 const checkItem = (item) => {
   timer = setTimeout(() => {
-    if (sliding) return
-    select(item)
-    notOpen = true
-  }, 700)
-}
+    if (sliding) return;
+    select(item);
+    notOpen = true;
+  }, 700);
+};
 </script>
 
 <style lang="sass">

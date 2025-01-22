@@ -1,8 +1,8 @@
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
-import App from './App.vue'
-import './theme/styles.sass'
-import './helpers/swiped-events.min.js'
+import { createApp } from 'vue';
+import { createPinia } from 'pinia';
+import App from './App.vue';
+import './theme/styles.sass';
+import './helpers/swiped-events.min.js';
 
 import { IonicVue } from '@ionic/vue';
 
@@ -36,9 +36,6 @@ import '@ionic/vue/css/palettes/dark.class.css';
 /* Theme variables */
 import './theme/variables.css';
 
-const pinia = createPinia()
+const pinia = createPinia();
 
-createApp(App)
-  .use(IonicVue)
-  .use(pinia)
-  .mount('#app')
+createApp(App).use(IonicVue).use(pinia).mount('#app');
