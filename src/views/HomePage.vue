@@ -32,8 +32,8 @@
       <SearchAndFilter :disabled style="--inner-padding-end: 3px" />
       <AddTaskInput
         :disabled
-        @change="addTask"
         style="--inner-padding-end: 3px"
+        @change="addTask"
       />
     </IonHeader>
 

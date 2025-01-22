@@ -18,10 +18,10 @@
         slot="end"
         size="small"
         icon="funnel"
-        @click="$('#filterSelect').click()"
         :disabled
         :color="isEqual(filters, priorities) ? 'medium' : 'primary'"
         style="margin-left: 0"
+        @click="$('#filterSelect').click()"
       />
       <UiSelect
         v-show="false"
